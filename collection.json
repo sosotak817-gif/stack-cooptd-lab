@@ -1,0 +1,1238 @@
+[
+  {
+    "path": "/",
+    "bytes": 24650
+  },
+  {
+    "path": "/assets/gems/grade-a.webp",
+    "bytes": 3194
+  },
+  {
+    "path": "/assets/gems/grade-b.webp",
+    "bytes": 4458
+  },
+  {
+    "path": "/assets/gems/grade-c.webp",
+    "bytes": 4022
+  },
+  {
+    "path": "/assets/gems/grade-s.webp",
+    "bytes": 4688
+  },
+  {
+    "path": "/assets/gems/grade-ss.webp",
+    "bytes": 5412
+  },
+  {
+    "path": "/assets/gems/grade-sss.webp",
+    "bytes": 6118
+  },
+  {
+    "path": "/assets/maps/abyss-full.webp",
+    "bytes": 29534
+  },
+  {
+    "path": "/assets/maps/abyss-side.webp",
+    "bytes": 12134
+  },
+  {
+    "path": "/assets/maps/deepsea-full.webp",
+    "bytes": 53730
+  },
+  {
+    "path": "/assets/maps/deepsea-side.webp",
+    "bytes": 23780
+  },
+  {
+    "path": "/assets/maps/hard-full.webp",
+    "bytes": 35474
+  },
+  {
+    "path": "/assets/maps/hard-side.webp",
+    "bytes": 14300
+  },
+  {
+    "path": "/assets/maps/hell-full.webp",
+    "bytes": 36814
+  },
+  {
+    "path": "/assets/maps/hell-side.webp",
+    "bytes": 15384
+  },
+  {
+    "path": "/assets/maps/normal-full.webp",
+    "bytes": 26018
+  },
+  {
+    "path": "/assets/maps/normal-side.webp",
+    "bytes": 10794
+  },
+  {
+    "path": "/assets/maps/tower.webp",
+    "bytes": 23540
+  },
+  {
+    "path": "/assets/maps/tower1.webp",
+    "bytes": 30976
+  },
+  {
+    "path": "/assets/maps/tower3.webp",
+    "bytes": 36080
+  },
+  {
+    "path": "/assets/maps/wall.webp",
+    "bytes": 13108
+  },
+  {
+    "path": "/assets/relics/ancient-blue-dragon.webp",
+    "bytes": 2210
+  },
+  {
+    "path": "/assets/relics/asura.webp",
+    "bytes": 2730
+  },
+  {
+    "path": "/assets/relics/axe.webp",
+    "bytes": 2370
+  },
+  {
+    "path": "/assets/relics/basilisk.webp",
+    "bytes": 1810
+  },
+  {
+    "path": "/assets/relics/big-hand.webp",
+    "bytes": 1598
+  },
+  {
+    "path": "/assets/relics/blade.webp",
+    "bytes": 1568
+  },
+  {
+    "path": "/assets/relics/cannon.webp",
+    "bytes": 2426
+  },
+  {
+    "path": "/assets/relics/clara.webp",
+    "bytes": 2036
+  },
+  {
+    "path": "/assets/relics/claw.webp",
+    "bytes": 1242
+  },
+  {
+    "path": "/assets/relics/coin-man.webp",
+    "bytes": 1942
+  },
+  {
+    "path": "/assets/relics/core.webp",
+    "bytes": 1708
+  },
+  {
+    "path": "/assets/relics/destroyer.webp",
+    "bytes": 2582
+  },
+  {
+    "path": "/assets/relics/draxar.webp",
+    "bytes": 1216
+  },
+  {
+    "path": "/assets/relics/eye.webp",
+    "bytes": 1954
+  },
+  {
+    "path": "/assets/relics/feather.webp",
+    "bytes": 2670
+  },
+  {
+    "path": "/assets/relics/goblin-biker.webp",
+    "bytes": 1656
+  },
+  {
+    "path": "/assets/relics/gold-crow.webp",
+    "bytes": 1878
+  },
+  {
+    "path": "/assets/relics/ice-knight.webp",
+    "bytes": 1904
+  },
+  {
+    "path": "/assets/relics/ivy.webp",
+    "bytes": 5118
+  },
+  {
+    "path": "/assets/relics/latest-helicopter-machine.webp",
+    "bytes": 1546
+  },
+  {
+    "path": "/assets/relics/maniac.webp",
+    "bytes": 1570
+  },
+  {
+    "path": "/assets/relics/master-cat.webp",
+    "bytes": 1916
+  },
+  {
+    "path": "/assets/relics/mimic.webp",
+    "bytes": 1698
+  },
+  {
+    "path": "/assets/relics/natures-guardian.webp",
+    "bytes": 2526
+  },
+  {
+    "path": "/assets/relics/omen.webp",
+    "bytes": 1542
+  },
+  {
+    "path": "/assets/relics/oni.webp",
+    "bytes": 2768
+  },
+  {
+    "path": "/assets/relics/phantom-slime.webp",
+    "bytes": 2166
+  },
+  {
+    "path": "/assets/relics/regik.webp",
+    "bytes": 1620
+  },
+  {
+    "path": "/assets/relics/scalluck.webp",
+    "bytes": 3426
+  },
+  {
+    "path": "/assets/relics/space-solider.webp",
+    "bytes": 2172
+  },
+  {
+    "path": "/assets/relics/surprise-mouse.webp",
+    "bytes": 1562
+  },
+  {
+    "path": "/assets/relics/wind.webp",
+    "bytes": 2158
+  },
+  {
+    "path": "/assets/relics/witch-doctor.webp",
+    "bytes": 1672
+  },
+  {
+    "path": "/assets/units/ancient-blue-dragon.webp",
+    "bytes": 10022
+  },
+  {
+    "path": "/assets/units/asura-lib1.webp",
+    "bytes": 17388
+  },
+  {
+    "path": "/assets/units/asura-lib2.webp",
+    "bytes": 21318
+  },
+  {
+    "path": "/assets/units/asura.webp",
+    "bytes": 13220
+  },
+  {
+    "path": "/assets/units/basilisk.webp",
+    "bytes": 9600
+  },
+  {
+    "path": "/assets/units/big-hand.webp",
+    "bytes": 10116
+  },
+  {
+    "path": "/assets/units/cannon.webp",
+    "bytes": 11942
+  },
+  {
+    "path": "/assets/units/clara-rocket.webp",
+    "bytes": 13392
+  },
+  {
+    "path": "/assets/units/clara.webp",
+    "bytes": 11222
+  },
+  {
+    "path": "/assets/units/coin-man.webp",
+    "bytes": 8544
+  },
+  {
+    "path": "/assets/units/copper.webp",
+    "bytes": 918
+  },
+  {
+    "path": "/assets/units/crossbower.webp",
+    "bytes": 1242
+  },
+  {
+    "path": "/assets/units/destroyer-orc.webp",
+    "bytes": 2660
+  },
+  {
+    "path": "/assets/units/destroyer.webp",
+    "bytes": 9156
+  },
+  {
+    "path": "/assets/units/drake.webp",
+    "bytes": 1876
+  },
+  {
+    "path": "/assets/units/draxar.webp",
+    "bytes": 10592
+  },
+  {
+    "path": "/assets/units/egg.webp",
+    "bytes": 926
+  },
+  {
+    "path": "/assets/units/flower-golem.webp",
+    "bytes": 1568
+  },
+  {
+    "path": "/assets/units/goblin-biker-lib.webp",
+    "bytes": 10006
+  },
+  {
+    "path": "/assets/units/goblin-biker.webp",
+    "bytes": 9320
+  },
+  {
+    "path": "/assets/units/gold-crow.webp",
+    "bytes": 11576
+  },
+  {
+    "path": "/assets/units/gold-rock.webp",
+    "bytes": 1642
+  },
+  {
+    "path": "/assets/units/gonkid.webp",
+    "bytes": 1130
+  },
+  {
+    "path": "/assets/units/great-shaman-orc.webp",
+    "bytes": 2402
+  },
+  {
+    "path": "/assets/units/greenstone.webp",
+    "bytes": 2066
+  },
+  {
+    "path": "/assets/units/guardian-of-nature.webp",
+    "bytes": 10538
+  },
+  {
+    "path": "/assets/units/helicopter.webp",
+    "bytes": 6096
+  },
+  {
+    "path": "/assets/units/high-orc.webp",
+    "bytes": 1898
+  },
+  {
+    "path": "/assets/units/ice-knight.webp",
+    "bytes": 11110
+  },
+  {
+    "path": "/assets/units/ivy-lib.webp",
+    "bytes": 12128
+  },
+  {
+    "path": "/assets/units/ivy.webp",
+    "bytes": 11566
+  },
+  {
+    "path": "/assets/units/latest-helicopter-machine.webp",
+    "bytes": "HTTP Error 404: Not Found"
+  },
+  {
+    "path": "/assets/units/lil-archer.webp",
+    "bytes": 1074
+  },
+  {
+    "path": "/assets/units/lil-boulder.webp",
+    "bytes": 1060
+  },
+  {
+    "path": "/assets/units/lil-shaman-orc.webp",
+    "bytes": 1128
+  },
+  {
+    "path": "/assets/units/lil-warrior-orc.webp",
+    "bytes": 944
+  },
+  {
+    "path": "/assets/units/maniac.webp",
+    "bytes": 10992
+  },
+  {
+    "path": "/assets/units/master-cat.webp",
+    "bytes": 8480
+  },
+  {
+    "path": "/assets/units/mimic.webp",
+    "bytes": 7706
+  },
+  {
+    "path": "/assets/units/moonstone.webp",
+    "bytes": 2642
+  },
+  {
+    "path": "/assets/units/natures-guardian.webp",
+    "bytes": "HTTP Error 404: Not Found"
+  },
+  {
+    "path": "/assets/units/omen.webp",
+    "bytes": 7314
+  },
+  {
+    "path": "/assets/units/oni.webp",
+    "bytes": 9248
+  },
+  {
+    "path": "/assets/units/ore-golem.webp",
+    "bytes": 1028
+  },
+  {
+    "path": "/assets/units/outlaw.webp",
+    "bytes": 2534
+  },
+  {
+    "path": "/assets/units/phantom-slime.webp",
+    "bytes": 7100
+  },
+  {
+    "path": "/assets/units/pirate.webp",
+    "bytes": 1880
+  },
+  {
+    "path": "/assets/units/regik.webp",
+    "bytes": 11492
+  },
+  {
+    "path": "/assets/units/sage-orc.webp",
+    "bytes": 3318
+  },
+  {
+    "path": "/assets/units/scalluck.webp",
+    "bytes": 5368
+  },
+  {
+    "path": "/assets/units/skelesoul.webp",
+    "bytes": 1142
+  },
+  {
+    "path": "/assets/units/skilled-hunter.webp",
+    "bytes": 1570
+  },
+  {
+    "path": "/assets/units/skull.webp",
+    "bytes": 836
+  },
+  {
+    "path": "/assets/units/soul-reaper.webp",
+    "bytes": 2202
+  },
+  {
+    "path": "/assets/units/space-soldier.webp",
+    "bytes": 9050
+  },
+  {
+    "path": "/assets/units/space-solider.webp",
+    "bytes": "HTTP Error 404: Not Found"
+  },
+  {
+    "path": "/assets/units/sprout-rock.webp",
+    "bytes": 820
+  },
+  {
+    "path": "/assets/units/surprise-mouse.webp",
+    "bytes": 9234
+  },
+  {
+    "path": "/assets/units/trainee-shaman-orc.webp",
+    "bytes": 1636
+  },
+  {
+    "path": "/assets/units/vigorous-warrior-orc.webp",
+    "bytes": 1384
+  },
+  {
+    "path": "/assets/units/witch-doctor.webp",
+    "bytes": 10206
+  },
+  {
+    "path": "/assets/units/wyvern.webp",
+    "bytes": 1468
+  },
+  {
+    "path": "/board",
+    "bytes": 10661
+  },
+  {
+    "path": "/boss-sim",
+    "bytes": 17675
+  },
+  {
+    "path": "/charts",
+    "bytes": 151707
+  },
+  {
+    "path": "/dps-compare",
+    "bytes": 11047
+  },
+  {
+    "path": "/dps-rank",
+    "bytes": 11403
+  },
+  {
+    "path": "/lib-sim",
+    "bytes": 11102
+  },
+  {
+    "path": "/robots.txt",
+    "bytes": 91
+  },
+  {
+    "path": "/sitemap.xml",
+    "bytes": 664
+  },
+  {
+    "path": "/tickets",
+    "bytes": 39959
+  },
+  {
+    "path": "/wall-sim",
+    "bytes": 17235
+  },
+  {
+    "path": "/_next/static/immutable/chunks/01jfcsdmf2zsk.js",
+    "bytes": 5951
+  },
+  {
+    "path": "/_next/static/immutable/chunks/05m7645vlmefc.js",
+    "bytes": 162205
+  },
+  {
+    "path": "/_next/static/immutable/chunks/09crcwh9dj3o8.css",
+    "bytes": 3619
+  },
+  {
+    "path": "/_next/static/immutable/chunks/0boehcoejgu60.js",
+    "bytes": 15675
+  },
+  {
+    "path": "/_next/static/immutable/chunks/0c0hxoamwjsbw.js",
+    "bytes": 112594
+  },
+  {
+    "path": "/_next/static/immutable/chunks/0cracqeqoncxk.js",
+    "bytes": 72478
+  },
+  {
+    "path": "/_next/static/immutable/chunks/0dcohyltqxql6.css",
+    "bytes": 9071
+  },
+  {
+    "path": "/_next/static/immutable/chunks/0jmalbswt1l6l.css",
+    "bytes": 22391
+  },
+  {
+    "path": "/_next/static/immutable/chunks/0lhv4bqr21afu.css",
+    "bytes": 7734
+  },
+  {
+    "path": "/_next/static/immutable/chunks/0pmbyzndrswjn.css",
+    "bytes": 30053
+  },
+  {
+    "path": "/_next/static/immutable/chunks/0ts1bvfmpuho4.css",
+    "bytes": 40127
+  },
+  {
+    "path": "/_next/static/immutable/chunks/0wkpor6f1k-4r.css",
+    "bytes": 3967
+  },
+  {
+    "path": "/_next/static/immutable/chunks/18m___w7aiov3.css",
+    "bytes": 5790
+  },
+  {
+    "path": "/_next/static/immutable/chunks/1f914fm6uw9ur.js",
+    "bytes": 5596
+  },
+  {
+    "path": "/_next/static/immutable/chunks/1hxds_irfun7f.js",
+    "bytes": 162182
+  },
+  {
+    "path": "/_next/static/immutable/chunks/1xaeaw6ztv3gm.js",
+    "bytes": 32473
+  },
+  {
+    "path": "/_next/static/immutable/chunks/1zrcduuzbmqw3.js",
+    "bytes": 229626
+  },
+  {
+    "path": "/_next/static/immutable/chunks/20z5phih8p1zf.js",
+    "bytes": 15708
+  },
+  {
+    "path": "/_next/static/immutable/chunks/25kvgcvbp6c14.js",
+    "bytes": 5364
+  },
+  {
+    "path": "/_next/static/immutable/chunks/27mw1cfw830bq.css",
+    "bytes": 20656
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2al3qy968papq.js",
+    "bytes": 23756
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2ml3mbckolmq0.js",
+    "bytes": 5595
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2nnxxwl_ire4t.css",
+    "bytes": 8447
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2t4s8wxfgi9je.js",
+    "bytes": 43218
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2w5r13e4wcqg1.js",
+    "bytes": 16303
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2wf2pv7zlq9st.css",
+    "bytes": 13654
+  },
+  {
+    "path": "/_next/static/immutable/chunks/36rxlyxkdurqv.js",
+    "bytes": 6081
+  },
+  {
+    "path": "/_next/static/immutable/chunks/39mjjzdt8w-du.css",
+    "bytes": 41364
+  },
+  {
+    "path": "/_next/static/immutable/chunks/3qasw-37l_qwz.css",
+    "bytes": 44735
+  },
+  {
+    "path": "/_next/static/immutable/chunks/3v_j-q1i3y7o3.css",
+    "bytes": 19455
+  },
+  {
+    "path": "/_next/static/immutable/chunks/41dyccqq35ckh.css",
+    "bytes": 12492
+  },
+  {
+    "path": "/_next/static/immutable/chunks/44_q2v7776xk7.js",
+    "bytes": 20594
+  },
+  {
+    "path": "/_next/static/immutable/chunks/turbopack-1ol0ktyi6c-ta.js",
+    "bytes": 10986
+  },
+  {
+    "path": "/assets/currency/demon-god-stone.webp",
+    "bytes": 2400
+  },
+  {
+    "path": "/assets/currency/dia.webp",
+    "bytes": 1748
+  },
+  {
+    "path": "/assets/currency/draw-ticket.webp",
+    "bytes": 2136
+  },
+  {
+    "path": "/assets/currency/exp.webp",
+    "bytes": 3316
+  },
+  {
+    "path": "/assets/currency/jelly.webp",
+    "bytes": 2324
+  },
+  {
+    "path": "/assets/currency/liberation-stone-coin-man.webp",
+    "bytes": 3114
+  },
+  {
+    "path": "/assets/currency/liberation-stone.webp",
+    "bytes": 2176
+  },
+  {
+    "path": "/assets/currency/magic-powder.webp",
+    "bytes": 3292
+  },
+  {
+    "path": "/assets/currency/royal-jelly.webp",
+    "bytes": 2432
+  },
+  {
+    "path": "/assets/currency/silver.webp",
+    "bytes": 1908
+  },
+  {
+    "path": "/assets/draw/monster-common.webp",
+    "bytes": 2266
+  },
+  {
+    "path": "/assets/draw/monster-epic.webp",
+    "bytes": 2574
+  },
+  {
+    "path": "/assets/draw/monster-legendary.webp",
+    "bytes": 2516
+  },
+  {
+    "path": "/assets/draw/monster-rare.webp",
+    "bytes": 2574
+  },
+  {
+    "path": "/assets/gems/battle.webp",
+    "bytes": 1108
+  },
+  {
+    "path": "/assets/gems/stone-a.webp",
+    "bytes": 2352
+  },
+  {
+    "path": "/assets/gems/stone-b.webp",
+    "bytes": 3182
+  },
+  {
+    "path": "/assets/gems/stone-c.webp",
+    "bytes": 2836
+  },
+  {
+    "path": "/assets/gems/stone-s.webp",
+    "bytes": 3312
+  },
+  {
+    "path": "/assets/gems/stone-ss.webp",
+    "bytes": 3892
+  },
+  {
+    "path": "/assets/gems/stone-sss.webp",
+    "bytes": 4164
+  },
+  {
+    "path": "/assets/relics/bank.webp",
+    "bytes": 2262
+  },
+  {
+    "path": "/assets/relics/dice.webp",
+    "bytes": 1636
+  },
+  {
+    "path": "/assets/relics/fusion.webp",
+    "bytes": 2658
+  },
+  {
+    "path": "/assets/relics/goldcoin.webp",
+    "bytes": 2200
+  },
+  {
+    "path": "/assets/relics/negotiation.webp",
+    "bytes": 2156
+  },
+  {
+    "path": "/assets/relics/pickaxe.webp",
+    "bytes": 1904
+  },
+  {
+    "path": "/assets/relics/slush.webp",
+    "bytes": 2378
+  },
+  {
+    "path": "/assets/relics/zephyro.webp",
+    "bytes": 2182
+  },
+  {
+    "path": "/_next/static/immutable/chunks/0-zcy5-vzngs0.js",
+    "bytes": 28013
+  },
+  {
+    "path": "/_next/static/immutable/chunks/0i51ez9-zv0-6.js",
+    "bytes": 43604
+  },
+  {
+    "path": "/_next/static/immutable/chunks/0jz93rfon-hhl.js",
+    "bytes": 28457
+  },
+  {
+    "path": "/_next/static/immutable/chunks/0k2ou_hl3gtdo.js",
+    "bytes": 28303
+  },
+  {
+    "path": "/_next/static/immutable/chunks/0pp5ibonhg6n5.js",
+    "bytes": 335
+  },
+  {
+    "path": "/_next/static/immutable/chunks/0up0qfiy6zsri.js",
+    "bytes": 62831
+  },
+  {
+    "path": "/_next/static/immutable/chunks/0zdq1wrdz9z8l.js",
+    "bytes": 41082
+  },
+  {
+    "path": "/_next/static/immutable/chunks/1algu5psb9far.css",
+    "bytes": 5495
+  },
+  {
+    "path": "/_next/static/immutable/chunks/1do30548fx6v3.js",
+    "bytes": 4584
+  },
+  {
+    "path": "/_next/static/immutable/chunks/1fhtgs6hkzabd.js",
+    "bytes": 35188
+  },
+  {
+    "path": "/_next/static/immutable/chunks/1ks-1y_egkr70.js",
+    "bytes": 56182
+  },
+  {
+    "path": "/_next/static/immutable/chunks/1lygbt2kffw45.css",
+    "bytes": 15665
+  },
+  {
+    "path": "/_next/static/immutable/chunks/1owr6u1zqb353.js",
+    "bytes": 38119
+  },
+  {
+    "path": "/_next/static/immutable/chunks/1pi-kxc1-_f3_.js",
+    "bytes": 34323
+  },
+  {
+    "path": "/_next/static/immutable/chunks/1pwenypghhqwc.js",
+    "bytes": 58030
+  },
+  {
+    "path": "/_next/static/immutable/chunks/1r8jm21fq4129.js",
+    "bytes": 158413
+  },
+  {
+    "path": "/_next/static/immutable/chunks/1u94t6nbtllgn.js",
+    "bytes": 28816
+  },
+  {
+    "path": "/_next/static/immutable/chunks/1vmv8ogha168t.js",
+    "bytes": 53297
+  },
+  {
+    "path": "/_next/static/immutable/chunks/20fqy9hsg8afo.css",
+    "bytes": 1702
+  },
+  {
+    "path": "/_next/static/immutable/chunks/24up5fd4z5bki.js",
+    "bytes": 259
+  },
+  {
+    "path": "/_next/static/immutable/chunks/29nu882h02dsl.js",
+    "bytes": 63059
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2b-wm1tp6maes.js",
+    "bytes": 96952
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2b116tgiilcsw.js",
+    "bytes": 28906
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2e_a1_9vc7-yb.js",
+    "bytes": 207894
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2kepok20w5r6x.js",
+    "bytes": 54333
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2ly-9sw6-rb20.js",
+    "bytes": 396
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2o5xzy8hfdz_6.js",
+    "bytes": 45037
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2qko5cuniyjt9.js",
+    "bytes": 21240
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2s-wk592_1u3r.js",
+    "bytes": 243493
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2s2y6m25bfmij.js",
+    "bytes": 43927
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2wxivjpjf_lg6.js",
+    "bytes": 23136
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2zlbovztmngq_.css",
+    "bytes": 4036
+  },
+  {
+    "path": "/_next/static/immutable/chunks/32_muwuddd0p4.js",
+    "bytes": 13714
+  },
+  {
+    "path": "/_next/static/immutable/chunks/344vg1dfi-xgj.js",
+    "bytes": 234696
+  },
+  {
+    "path": "/_next/static/immutable/chunks/376r4t27-n83r.css",
+    "bytes": 9563
+  },
+  {
+    "path": "/_next/static/immutable/chunks/390677nvs3vk1.js",
+    "bytes": 28418
+  },
+  {
+    "path": "/_next/static/immutable/chunks/3cz3sud7bfryc.js",
+    "bytes": 136254
+  },
+  {
+    "path": "/_next/static/immutable/chunks/3fe1noqe9fzt-.js",
+    "bytes": 47262
+  },
+  {
+    "path": "/_next/static/immutable/chunks/3ff5ph_shc0yn.js",
+    "bytes": 110472
+  },
+  {
+    "path": "/_next/static/immutable/chunks/3gli-g1atdgyj.css",
+    "bytes": 3475
+  },
+  {
+    "path": "/_next/static/immutable/chunks/3p37ikt10uy_u.js",
+    "bytes": 26292
+  },
+  {
+    "path": "/_next/static/immutable/chunks/40enmm456tjcp.js",
+    "bytes": 37111
+  },
+  {
+    "path": "/assets/draw/god-draw.webp",
+    "bytes": 3604
+  },
+  {
+    "path": "/assets/gems/agility.webp",
+    "bytes": 1166
+  },
+  {
+    "path": "/assets/gems/ambush.webp",
+    "bytes": 1460
+  },
+  {
+    "path": "/assets/gems/awakening.webp",
+    "bytes": 1192
+  },
+  {
+    "path": "/assets/gems/bounty.webp",
+    "bytes": 1160
+  },
+  {
+    "path": "/assets/gems/close-combat.webp",
+    "bytes": 1510
+  },
+  {
+    "path": "/assets/gems/combo.webp",
+    "bytes": 1344
+  },
+  {
+    "path": "/assets/gems/cycle.webp",
+    "bytes": 660
+  },
+  {
+    "path": "/assets/gems/destruction.webp",
+    "bytes": 1276
+  },
+  {
+    "path": "/assets/gems/devastation.webp",
+    "bytes": 1126
+  },
+  {
+    "path": "/assets/gems/domination.webp",
+    "bytes": 1238
+  },
+  {
+    "path": "/assets/gems/dominion.webp",
+    "bytes": 1118
+  },
+  {
+    "path": "/assets/gems/encirclement.webp",
+    "bytes": 1374
+  },
+  {
+    "path": "/assets/gems/erosion.webp",
+    "bytes": 1090
+  },
+  {
+    "path": "/assets/gems/execution.webp",
+    "bytes": 1450
+  },
+  {
+    "path": "/assets/gems/focus.webp",
+    "bytes": 1534
+  },
+  {
+    "path": "/assets/gems/fortune.webp",
+    "bytes": 1424
+  },
+  {
+    "path": "/assets/gems/frost.webp",
+    "bytes": 1184
+  },
+  {
+    "path": "/assets/gems/gale.webp",
+    "bytes": 1572
+  },
+  {
+    "path": "/assets/gems/glacier.webp",
+    "bytes": 1226
+  },
+  {
+    "path": "/assets/gems/gold.webp",
+    "bytes": 1392
+  },
+  {
+    "path": "/assets/gems/hero.webp",
+    "bytes": 1374
+  },
+  {
+    "path": "/assets/gems/invasion.webp",
+    "bytes": 1480
+  },
+  {
+    "path": "/assets/gems/legion.webp",
+    "bytes": 1416
+  },
+  {
+    "path": "/assets/gems/longshot.webp",
+    "bytes": 1460
+  },
+  {
+    "path": "/assets/gems/marksman.webp",
+    "bytes": 1422
+  },
+  {
+    "path": "/assets/gems/momentum.webp",
+    "bytes": 1504
+  },
+  {
+    "path": "/assets/gems/onslaught.webp",
+    "bytes": 1666
+  },
+  {
+    "path": "/assets/gems/origin.webp",
+    "bytes": 1202
+  },
+  {
+    "path": "/assets/gems/paralysis.webp",
+    "bytes": 1528
+  },
+  {
+    "path": "/assets/gems/penetration.webp",
+    "bytes": 1130
+  },
+  {
+    "path": "/assets/gems/perfection.webp",
+    "bytes": 1206
+  },
+  {
+    "path": "/assets/gems/precision.webp",
+    "bytes": 1360
+  },
+  {
+    "path": "/assets/gems/pursuit.webp",
+    "bytes": 1488
+  },
+  {
+    "path": "/assets/gems/retribution.webp",
+    "bytes": 1142
+  },
+  {
+    "path": "/assets/gems/ruin.webp",
+    "bytes": 976
+  },
+  {
+    "path": "/assets/gems/sharpness.webp",
+    "bytes": 1146
+  },
+  {
+    "path": "/assets/gems/strikes.webp",
+    "bytes": 1188
+  },
+  {
+    "path": "/assets/gems/suppression.webp",
+    "bytes": 1462
+  },
+  {
+    "path": "/assets/gems/supremacy.webp",
+    "bytes": 1630
+  },
+  {
+    "path": "/assets/gems/swiftness.webp",
+    "bytes": 1494
+  },
+  {
+    "path": "/assets/gems/transcendence.webp",
+    "bytes": 1906
+  },
+  {
+    "path": "/assets/gems/triple-strike.webp",
+    "bytes": 1702
+  },
+  {
+    "path": "/assets/gems/vanguard.webp",
+    "bytes": 1604
+  },
+  {
+    "path": "/assets/gems/waves.webp",
+    "bytes": 1278
+  },
+  {
+    "path": "/_next/static/immutable/chunks/08l6uuejskmwo.js",
+    "bytes": 1346
+  },
+  {
+    "path": "/_next/static/immutable/chunks/0cutcf2484oh3.js",
+    "bytes": 14184
+  },
+  {
+    "path": "/_next/static/immutable/chunks/0t8ulyah53imq.js",
+    "bytes": 25641
+  },
+  {
+    "path": "/_next/static/immutable/chunks/18et31vt7scrz.js",
+    "bytes": 608
+  },
+  {
+    "path": "/_next/static/immutable/chunks/1so_zf8xf1c2w.js",
+    "bytes": 395
+  },
+  {
+    "path": "/_next/static/immutable/chunks/1y93i7s7-3g8n.js",
+    "bytes": 21925
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2l2qxj94s42ac.js",
+    "bytes": 22270
+  },
+  {
+    "path": "/_next/static/immutable/chunks/2n_ybe1xdqukq.js",
+    "bytes": 30341
+  },
+  {
+    "path": "/_next/static/immutable/chunks/35x9-61dtgfjm.js",
+    "bytes": 27680
+  },
+  {
+    "path": "/_next/static/immutable/chunks/3ffxz6dpfilvr.js",
+    "bytes": 29670
+  },
+  {
+    "path": "/_next/static/immutable/chunks/3oj0_bwwdv8ok.js",
+    "bytes": 47014
+  },
+  {
+    "path": "/_next/static/immutable/chunks/3oygc3m2kph4k.js",
+    "bytes": 18723
+  },
+  {
+    "path": "/_next/static/immutable/chunks/3wakrdq6nhc2p.js",
+    "bytes": 38121
+  },
+  {
+    "path": "/_next/static/immutable/chunks/43lihv2h8ndpj.js",
+    "bytes": 457
+  },
+  {
+    "path": "/_next/static/immutable/chunks/turbopack-0tlfa693gow_v.js",
+    "bytes": 11244
+  },
+  {
+    "path": "/_next/static/immutable/chunks/turbopack-1bmgg7itpsq76.js",
+    "bytes": 11287
+  },
+  {
+    "path": "/_next/static/immutable/chunks/turbopack-20axdgochl7g6.js",
+    "bytes": 11330
+  },
+  {
+    "path": "/_next/static/immutable/chunks/turbopack-2djx7h8t-vfss.js",
+    "bytes": 11287
+  },
+  {
+    "path": "/_next/static/immutable/chunks/turbopack-38ymisuf_a3rb.js",
+    "bytes": 11115
+  },
+  {
+    "path": "/_next/static/immutable/chunks/turbopack-3rn93-fcx3on_.js",
+    "bytes": 11416
+  },
+  {
+    "path": "/_next/static/immutable/chunks/turbopack-worker-2g80pj3ycf14_.js",
+    "bytes": 849
+  },
+  {
+    "path": "/_next/static/immutable/media/board.worker.1k3ejryqw11m4.ts",
+    "bytes": 746
+  },
+  {
+    "path": "/_next/static/immutable/media/rank.worker.26l_d9jsa2_9w.ts",
+    "bytes": 763
+  },
+  {
+    "path": "/_next/static/immutable/media/run.worker.310fa9d62xfbj.ts",
+    "bytes": 1214
+  },
+  {
+    "path": "/_next/static/immutable/media/wallBoard.worker.0y8kzkn8ahzzp.ts",
+    "bytes": 695
+  },
+  {
+    "path": "/_next/static/immutable/media/wallRun.worker.04fwsyyatqi9g.ts",
+    "bytes": 1067
+  },
+  {
+    "path": "/_next/static/immutable/media/wavePlan.worker.2z0dnkbpa93j2.ts",
+    "bytes": 426
+  },
+  {
+    "path": "/assets/bosses/deepsea-poseidon.webp",
+    "bytes": 6058
+  },
+  {
+    "path": "/assets/bosses/giant.webp",
+    "bytes": 3894
+  },
+  {
+    "path": "/assets/bosses/guildboss-god-03.webp",
+    "bytes": 78232
+  },
+  {
+    "path": "/assets/fx/liberation-flame.webp",
+    "bytes": 33098
+  },
+  {
+    "path": "/assets/fx/liberation-rainbow.webp",
+    "bytes": 372
+  },
+  {
+    "path": "/assets/maps/guild-defense.webp",
+    "bytes": 39660
+  },
+  {
+    "path": "/assets/units/eggby-egg.webp",
+    "bytes": 4046
+  }
+]

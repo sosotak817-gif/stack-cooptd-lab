@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.openai/*credential*
+deployment.tar.gz
+preview.png

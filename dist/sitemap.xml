@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url>
+<loc>https://coop-tools.vercel.app</loc>
+</url>
+<url>
+<loc>https://coop-tools.vercel.app/dps-compare</loc>
+</url>
+<url>
+<loc>https://coop-tools.vercel.app/dps-rank</loc>
+</url>
+<url>
+<loc>https://coop-tools.vercel.app/board</loc>
+</url>
+<url>
+<loc>https://coop-tools.vercel.app/boss-sim</loc>
+</url>
+<url>
+<loc>https://coop-tools.vercel.app/charts</loc>
+</url>
+<url>
+<loc>https://coop-tools.vercel.app/tickets</loc>
+</url>
+<url>
+<loc>https://coop-tools.vercel.app/lib-sim</loc>
+</url>
+<url>
+<loc>https://coop-tools.vercel.app/wall-sim</loc>
+</url>
+</urlset>
