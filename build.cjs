@@ -26,6 +26,6 @@ for(const route of ['dps-compare','dps-rank','board','boss-sim','charts','ticket
  s=s.replace('<head>',`<head><script>globalThis.COOP_KO=${JSON.stringify(translations).replace(/</g,'\\u003c')};</script><script src="/localize.js" defer></script>`);
  fs.writeFileSync(p,s);
 }
-fs.copyFileSync('ui/board.html',path.join(dist,'index.html'));for(const f of ['board-app.js','board.css','board-worker.js','localize.js'])fs.copyFileSync('ui/'+f,path.join(dist,f));
+fs.copyFileSync('ui/board.html',path.join(dist,'index.html'));for(const f of ['board-app.js','board.css','board-worker.js','localize.js','logo.svg'])fs.copyFileSync('ui/'+f,path.join(dist,f));
 const summary={files:fs.readdirSync(path.join(dist,'_next/static/immutable/chunks')).length,units:Object.keys(data.UNITS).length,demons:ds.DEMONS.length,gems:ds.GEMS.length};
 console.log(JSON.stringify(summary));

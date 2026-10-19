@@ -8,3 +8,5 @@
 .board.side-view{aspect-ratio:7/5;background-size:100% 220%;background-position:center bottom;grid-template-rows:repeat(5,1fr)}.board.side-view.partner-view{background-position:center top}.board-views{display:flex;gap:3px}.board-views button{font-size:8px;padding:5px 8px;border-color:transparent;background:#f6f3fc;color:#9386aa}.board-views button.on{background:#e9e0ff;color:#7156a8;border-color:#d5c5f3}.roster>p,.board-caption,.setting-row,.gem-note,.hero p,.score-guide p,.contribution small{color:#82768f}.source-links,.legend,.metrics>div>small,.board-foot,footer{color:#91859f}.metrics>div>span{color:#827790}.metrics .power-metric>span{color:#f0eaff}.metrics .power-metric>small{color:#e6deff}
 
 .trait-row{display:flex;gap:5px;margin:7px 0}.trait-row select:first-child{flex:1;width:0;font-size:9px}.trait-row select:nth-child(2){width:55px;font-size:9px}.trait-row input{width:65px;font-size:9px;text-align:right}
+
+.logo>img{width:48px;height:48px;object-fit:contain;filter:drop-shadow(0 3px 5px #805dd52b)}.logo>span{letter-spacing:-.4px;font-size:20px}.logo small{letter-spacing:0}@media(max-width:600px){.logo>img{width:38px;height:38px}.logo>span{font-size:16px}}
