@@ -26,6 +26,7 @@ for(const route of ['dps-compare','dps-rank','board','boss-sim','charts','ticket
  s=s.replace('<head>',`<head><script>globalThis.COOP_KO=${JSON.stringify(translations).replace(/</g,'\\u003c')};</script><script src="/localize.js" defer></script>`);
  fs.writeFileSync(p,s);
 }
-fs.copyFileSync('ui/board.html',path.join(dist,'index.html'));for(const f of ['board-app.js','board.css','board-worker.js','localize.js','logo.svg'])fs.copyFileSync('ui/'+f,path.join(dist,f));
+fs.copyFileSync('ui/board.html',path.join(dist,'index.html'));for(const f of ['board-app.js','board.css','board-worker.js','optimizer-core.js','localize.js','logo.svg'])fs.copyFileSync('ui/'+f,path.join(dist,f));
+const crypto=require('crypto');const revision=crypto.createHash('sha256').update(fs.readFileSync(path.join(dist,'engine.js'))).update(fs.readFileSync(path.join(dist,'board-worker.js'))).update(fs.readFileSync(path.join(dist,'optimizer-core.js'))).digest('hex');fs.writeFileSync(path.join(dist,'cache-version.js'),'self.COOP_DATA_REVISION='+JSON.stringify(revision)+';');const assetVersion=crypto.createHash('sha256').update(revision).update(fs.readFileSync(path.join(dist,'board-app.js'))).update(fs.readFileSync(path.join(dist,'index.html'))).update(fs.readFileSync(path.join(dist,'board.css'))).update(fs.readFileSync(path.join(dist,'ko.json'))).digest('hex').slice(0,16);fs.writeFileSync(path.join(dist,'sw.js'),fs.readFileSync('ui/sw.js','utf8').replace('__VERSION__',assetVersion));
 const summary={files:fs.readdirSync(path.join(dist,'_next/static/immutable/chunks')).length,units:Object.keys(data.UNITS).length,demons:ds.DEMONS.length,gems:ds.GEMS.length};
 console.log(JSON.stringify(summary));

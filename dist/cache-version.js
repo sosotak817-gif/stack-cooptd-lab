@@ -1,0 +1,1 @@
+self.COOP_DATA_REVISION="bafdf0d40949d90cc16e9fe1d72bdb2e9f64668d95f457f07e8a3d6cc7ea07be";
