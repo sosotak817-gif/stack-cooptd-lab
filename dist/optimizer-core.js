@@ -1,6 +1,6 @@
 (function(root){'use strict';
 function canonical(v){if(Array.isArray(v))return '['+v.map(canonical).join(',')+']';if(v&&typeof v==='object')return '{'+Object.keys(v).sort().map(k=>JSON.stringify(k)+':'+canonical(v[k])).join(',')+'}';return JSON.stringify(v)}
-function cacheInput(input,revision){return canonical({revision,mode:input.mode,target:input.target,you:input.you,partner:input.partner,cells:input.cells,marks:input.marks||[]})}
+function cacheInput(input,revision){return canonical({revision,partnerEnabled:!!input.partnerEnabled,mode:input.mode,target:input.target,you:input.you,partner:input.partner,cells:input.cells,marks:input.marks||[]})}
 const clone=value=>structuredClone(value),sideOf=p=>p.row>5?'you':'partner',same=(a,b)=>a.row===b.row&&a.col===b.col;
 // A storm is movable independently; critical tiles do not stack.
 function markMoves(marks){return marks.flatMap((m,index)=>[...m.boost?[{index,type:'boost'}]:[],...Array.from({length:m.storms||0},(_,storm)=>({index,type:'storms',storm}))])}
