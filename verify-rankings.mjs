@@ -36,12 +36,15 @@ try {
  assert.equal((await call('GET',null,{query:{deck:'custom'}})).status,400);
  assert.equal((await call('POST',makeData(),{headers:{Origin:'https://evil.example'}})).status,403);
  assert.equal((await call('POST',makeData(),{headers:{Authorization:'Bearer guessed'}})).status,401);
- for(const invalid of [null,[],makeData({score:'100'}),makeData({score:0}),makeData({score:-1}),makeData({score:1e101}),makeData({nickname:'<script>'}),makeData({revision:'old'}),makeData({target:'unknown'})]) assert.ok((await call('POST',invalid)).status>=400);
+ for(const invalid of [null,[],makeData({score:'100'}),makeData({score:0}),makeData({score:-1}),makeData({score:1e101}),makeData({nickname:'bad\nname'}),makeData({nickname:'가'.repeat(21)}),makeData({revision:'old'}),makeData({target:'unknown'})]) assert.ok((await call('POST',invalid)).status>=400);
  assert.equal((await call('POST',null,{raw:'{'})).status,400);
  assert.equal((await call('POST',null,{raw:' '.repeat(2049)})).status,413);
  const first=await call('POST',makeData());assert.equal(first.status,201);assert.equal(first.data.improved,true);
  clock+=11000;
- const lower=await call('POST',makeData({score:1}),{token:first.token});assert.equal(lower.data.score,12);assert.equal(lower.data.improved,false);
+ const beforeRename=(await call('GET',null,{token:first.token})).data.entries[0].achievedAt;
+ const lower=await call('POST',makeData({score:1,nickname:'[별]🌟'}),{token:first.token});assert.equal(lower.data.score,12);assert.equal(lower.data.improved,false);
+ const renamed=(await call('GET',null,{token:first.token})).data.mine;assert.equal(renamed.nickname,'[별]🌟');assert.equal(renamed.rank,1);
+ assert.equal((await call('GET',null,{token:first.token})).data.entries[0].achievedAt,beforeRename,'nickname updates must not change tie priority');
  clock+=11000;
  assert.equal((await call('POST',makeData({score:20}),{token:first.token})).data.score,20);
  const records=await call('GET',null,{token:first.token});assert.equal(records.data.total,1);assert.equal(records.data.entries[0].mine,true);assert.ok(!('owner' in records.data.entries[0]));
@@ -56,11 +59,12 @@ try {
  sqlite.exec('DELETE FROM rankings');
  const insert=sqlite.prepare('INSERT INTO rankings VALUES (?,?,?,?,?,?,?)');
  sqlite.exec('BEGIN');for(let i=0;i<1000;i++)insert.run(catalog.revision,'clara',target,'seed'+i,'사용자'+i,1000-i,100);sqlite.exec('COMMIT');
- let submitted=await call('POST',makeData({score:.5}));assert.equal(submitted.data.retained,false);
+ let submitted=await call('POST',makeData({score:.5}));assert.equal(submitted.data.retained,false);assert.equal(submitted.data.rank,'1000+');
  assert.equal(sqlite.prepare('SELECT COUNT(*) AS n FROM rankings').get().n,1000);
  submitted=await call('POST',makeData({score:2000}));assert.equal(submitted.data.retained,true);
  let top=await call('GET');assert.equal(top.data.entries[0].score,2000);assert.equal(top.data.total,1000);
  let last=await call('GET',null,{query:{page:'20'}});assert.equal(last.data.entries.length,50);assert.equal(last.data.entries.at(-1).rank,1000);
+ const ownLast=await call('GET',null,{token:submitted.token,query:{page:'20'}});assert.equal(ownLast.data.mine.rank,1,'own rank must be available on every page');
  await call('POST',makeData({score:2000}));top=await call('GET');assert.equal(top.data.entries[0].achievedAt,top.data.entries[1].achievedAt);
  // Same timestamp and score must still have deterministic pagination (owner tie-breaker).
  const again=await call('GET');assert.deepEqual(top.data.entries,again.data.entries);
