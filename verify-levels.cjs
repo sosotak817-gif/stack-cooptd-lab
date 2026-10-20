@@ -9,7 +9,7 @@ for(const slug of ['oni','cannon','clara','ivy'])for(const level of [1,10,12,13,
  assert.equal(a.stats.lib,Math.min(lib,X.maxLibAt(level)),'liberation is capped by base level');cases++;
 }
 const target=T.finalBossOf('hard');
-const context=ctx;Object.assign(context,{self:{location:{href:'http://localhost/'}},importScripts(){},URL,TextEncoder,crypto:require('node:crypto').webcrypto,COOP_DATA_REVISION:'test-level-v1',CoopOptimize:require('./ui/optimizer-core.js'),CoopGemTools:require('./ui/gem-tools.js'),CoopEngine:E,CoopData:D,CoopBoss:B,CoopTargets:T,CoopAccount:load(42389),console});
+const context=ctx;Object.assign(context,{self:{location:{href:'http://localhost/'}},importScripts(){},URL,TextEncoder,crypto:require('node:crypto').webcrypto,COOP_DATA_REVISION:'test-level-v1',CoopOptimize:require('./ui/optimizer-core.js'),CoopGemTools:require('./ui/gem-tools.js'),CoopEggby:require('./ui/eggby-tools.js'),CoopEngine:E,CoopData:D,CoopBoss:B,CoopTargets:T,CoopAccount:load(42389),console});
 vm.runInContext(fs.readFileSync('ui/board-worker.js','utf8'),context);
 const original=x=>vm.runInContext('JSON.parse',ctx)(JSON.stringify(x));
 (async()=>{
