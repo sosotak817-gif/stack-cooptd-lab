@@ -5,7 +5,7 @@
   "description": "Korean image-based Coop TD board DPS simulator using the archived public client engine",
   "scripts": {
     "build": "node build.cjs",
-    "test": "node verify.cjs && node verify-optimizer.cjs && node verify-fields.cjs && node verify-gem-tools.cjs && node verify-damage.cjs && node verify-giant.cjs && node verify-rankings.mjs && node verify-pressure.cjs && node verify-levels.cjs && node verify-accounts.mjs && node verify-account-ui.cjs && node verify-vaults.mjs && node verify-clara.cjs && node verify-eggby.cjs && node verify-stages.cjs && node verify-wall.cjs && node verify-units.cjs",
+    "test": "node verify.cjs && node verify-optimizer.cjs && node verify-fields.cjs && node verify-gem-tools.cjs && node verify-damage.cjs && node verify-giant.cjs && node verify-rankings.mjs && node verify-pressure.cjs && node verify-levels.cjs && node verify-accounts.mjs && node verify-account-ui.cjs && node verify-vaults.mjs && node verify-clara.cjs && node verify-eggby.cjs && node verify-stages.cjs && node verify-wall.cjs && node verify-units.cjs && node verify-unit-top.cjs",
     "start": "python -m http.server 4173 --bind 127.0.0.1 --directory dist",
     "collect": "node extra-assets.cjs && python collect.py"
   }
