@@ -31,7 +31,9 @@ function giantSummary(run){
   const visited=Number.isFinite(start)&&start<limit;
   const damage=run.kill.segments.filter(s=>s.phase===i).reduce((sum,s)=>sum+Math.max(0,Math.min(limit,s.to)-Math.max(0,s.from))*Math.max(0,s.rate),0);
   const healed=(run.kill.heals||[]).filter(h=>h.at>=start&&h.at<Math.min(limit,end)).reduce((sum,h)=>sum+h.amount,0);
-  phases.push({phase:i+1,cleared:complete,at:complete?end:null,reached:visited,progress:complete?1:visited?Math.max(0,Math.min(1,(damage-healed)/pools[i])):0});
+  const required=pools[i],dealt=visited?Math.max(0,damage):0,recovered=visited?Math.max(0,healed):0;
+  const effectiveDamage=complete?required:Math.max(0,Math.min(required,dealt-recovered)),remaining=complete?0:Math.max(0,required-effectiveDamage);
+  phases.push({phase:i+1,cleared:complete,at:complete?end:null,reached:visited,required,damage:dealt,healed:recovered,effectiveDamage,remaining,progress:complete?1:visited&&required>0?effectiveDamage/required:0});
   if(complete)cleared++;
   start=complete?end:Infinity;
  }

@@ -1,0 +1,10 @@
+# Copy to wrangler.toml and replace database_id with the result of `npx wrangler d1 create stack-cooptd-ranking`.
+name = "stack-cooptd-lab"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-10-20"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "stack-cooptd-ranking"
+database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
+migrations_dir = "migrations"
