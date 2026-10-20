@@ -3,3 +3,6 @@ __pycache__/
 .openai/*credential*
 deployment.tar.gz
 preview.png
+
+mobile-preview.png
+report-preview.png
