@@ -9,6 +9,7 @@ database_name = "stack-cooptd-ranking"
 database_id = "REPLACE_WITH_YOUR_D1_DATABASE_ID"
 migrations_dir = "migrations"
 
-# Set NAVER_CLIENT_ID, NAVER_CLIENT_SECRET as Cloudflare secrets. Never commit them.
-# Set NAVER_REDIRECT_URI to https://YOUR_PRODUCTION_DOMAIN/api/auth/callback.
-# Apply both migrations before enabling login: npx wrangler d1 migrations apply stack-cooptd-ranking --remote
+# Optional migration management (vault tables also initialize on first use):
+# npx wrangler d1 migrations apply stack-cooptd-ranking --remote
+# No Naver keys are required for code-based personal storage.
+# Optional: set VAULT_MAX_STORES to adjust the default cap of 2,000 stores.

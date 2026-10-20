@@ -1,0 +1,37 @@
+import assert from 'node:assert/strict';
+import { DatabaseSync } from 'node:sqlite';
+import fs from 'node:fs';
+import { handleVault } from './server/vaults.mjs';
+const sqlite=new DatabaseSync(':memory:');sqlite.exec(fs.readFileSync('migrations/0003_vaults.sql','utf8'));
+class Statement{constructor(sql,values=[]){this.sql=sql;this.values=values;}bind(...values){return new Statement(this.sql,values);}async first(){return sqlite.prepare(this.sql).get(...this.values)||null;}async run(){return sqlite.prepare(this.sql).run(...this.values);}}
+const DB={prepare:sql=>new Statement(sql),async batch(statements){sqlite.exec('BEGIN');try{for(const s of statements)await s.run();sqlite.exec('COMMIT');}catch(e){sqlite.exec('ROLLBACK');throw e;}}};
+const env={DB},base='https://lab.example',sample={version:2,mode:'hell',target:'hell:SpecialBoss:100:0',cells:[{slug:'ivy',row:6,col:2}],you:{perDemon:{}},partner:{perDemon:{}}};
+async function call(method='GET',code,body,extra={}){const response=await handleVault({env:extra.env||env,request:new Request(base+(extra.path||'/api/vault'),{method,headers:{Origin:base,'Content-Type':'application/json','CF-Connecting-IP':extra.ip||'127.0.0.1',...(code?{Authorization:'Bearer '+code}:{}),...extra.headers},...(body!==undefined&&method!=='GET'?{body:typeof body==='string'?body:JSON.stringify(body)}:{})})});return {status:response.status,data:await response.json()};}
+assert.equal((await call('GET',null,null,{path:'/api/vault/status',env:{}})).data.ready,false);
+assert.equal((await call('GET',null,undefined,{path:'/api/vault/status'})).data.ready,true);
+assert.equal(sqlite.prepare('SELECT COUNT(*) n FROM lab_vaults').get().n,0,'visits never create stores');
+assert.equal((await call('POST',null,{board:sample},{headers:{Origin:'https://evil.example'}})).status,403);
+assert.equal((await call('POST',null,{board:{}})).status,400);
+sqlite.exec('DROP TABLE lab_vault_limits; DROP TABLE lab_vaults;');env.DB={...DB};
+const one=await call('POST',null,{board:sample});assert.equal(one.status,201);assert.match(one.data.code,/^SL(?:-[A-F0-9]{8}){4}$/);assert.equal(one.data.revision,1);
+const stored=sqlite.prepare('SELECT * FROM lab_vaults').get();assert.ok(!JSON.stringify(stored).includes(one.data.code));assert.match(stored.code_hash,/^[a-f0-9]{64}$/);
+const two=await call('POST',null,{board:{...sample,cells:[]}});assert.notEqual(one.data.code,two.data.code);
+assert.deepEqual((await call('GET',one.data.code)).data.board,sample);
+assert.deepEqual((await call('GET',two.data.code.toLowerCase().replaceAll('-',' '))).data.board.cells,[]);
+assert.equal((await call('GET','SL-'+('0'.repeat(8)+'-').repeat(3)+'0'.repeat(8))).status,404);
+assert.equal((await call('GET')).status,401);
+assert.equal((await call('PUT',one.data.code,{board:sample,revision:1},{headers:{Origin:'https://evil.example'}})).status,403);
+const saved=await call('PUT',one.data.code,{board:{...sample,cells:[]},revision:1});assert.equal(saved.data.revision,2);
+assert.equal((await call('PUT',one.data.code,{board:sample,revision:1})).status,409,'stale browser never overwrites newer data');
+assert.equal((await call('PUT',one.data.code,{board:sample,revision:0})).status,400);
+assert.equal((await call('PUT',one.data.code,' '.repeat(256001))).status,413);
+for(let i=0;i<3;i++)assert.equal((await call('POST',null,{board:sample})).status,201);
+assert.equal((await call('POST',null,{board:sample})).status,429,'creation is rate limited');
+assert.equal((await call('POST',null,{board:sample},{ip:'another',env:{DB,VAULT_MAX_STORES:'5'}})).status,503,'total store count is bounded');
+sqlite.prepare('UPDATE lab_vaults SET expires_at=0 WHERE id=?').run(stored.id);
+assert.equal((await call('GET',one.data.code)).status,404);assert.equal((await call('PUT',one.data.code,{board:sample,revision:2})).status,404);
+assert.equal((await call('POST',null,{board:sample},{ip:'cleanup',env:{DB,VAULT_MAX_STORES:'5'}})).status,201);
+assert.equal(sqlite.prepare('SELECT COUNT(*) n FROM lab_vaults WHERE id=?').get(stored.id).n,0,'expired stores are reclaimed');
+assert.equal((await call('DELETE',two.data.code)).status,405);
+assert.equal((await call('GET',two.data.code)).data.board.cells.length,0,'separate codes remain isolated');
+sqlite.close();console.log('Vaults: explicit creation, hashed codes, separate browsers, stock limits, atomic revision conflicts, size/origin checks, expiry and cleanup passed.');
