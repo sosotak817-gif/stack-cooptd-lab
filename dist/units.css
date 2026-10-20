@@ -49,3 +49,11 @@
 @media(prefers-reduced-motion:reduce){.unit-comparison-scroll{scroll-behavior:auto}}
 
 .combo-tools:not([open])>summary{display:block}@media(max-width:600px){.unit-comparisons:has(>.unit-combo:only-child){grid-auto-columns:100%}#unit-gem-comparison:has(.unit-comparisons>.unit-combo:only-child) .unit-swipe-hint{display:none}}
+
+/* Isolate comparison slots from the board gem-row grid. */
+.unit-combo .gem-row{display:block;min-width:0;margin:0}.unit-combo .gem-row select:last-child{width:66px;font-size:12px}.unit-combo .gem-row>div{min-width:0}.unit-combo .gem-description{width:100%;min-width:0}
+.combo-summary-gems{display:flex;flex-direction:column;gap:4px;width:100%;margin-top:4px}.combo-summary-gem{display:flex;align-items:center;justify-content:center;gap:4px;min-width:0}.combo-summary-gem img{width:18px;height:18px;object-fit:contain;flex:none}.combo-summary-gem small{font-size:10px;line-height:1.4;color:#9075aa;word-break:keep-all;overflow-wrap:anywhere}
+@media(max-width:600px){.unit-combo .gem-row>div{display:grid;grid-template-columns:32px minmax(0,1fr) 66px;gap:7px;width:100%}.unit-combo .gem-row .gem-pick{max-width:none;width:100%;padding:10px 24px 10px 8px;box-sizing:border-box}.unit-combo .gem-row>small{width:100%;white-space:normal}.unit-comparison-nav button{justify-content:flex-start}.unit-combo .gem-description>summary{white-space:nowrap}}
+@media(max-width:360px){.unit-combo .gem-row>div{grid-template-columns:28px minmax(0,1fr);gap:7px}.unit-combo .gem-row>div>select:last-child{grid-column:2;width:80px;justify-self:end}.unit-combo .gem-row img{width:28px}}
+
+@media(max-width:600px){.unit-combo .gem-row select:last-child{font-size:16px;width:100%}}
