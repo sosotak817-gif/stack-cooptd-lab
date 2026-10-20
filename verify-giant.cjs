@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
 require('./dist/engine.js');
-const context={self:{location:{href:'http://localhost/'}},importScripts(){},URL,TextEncoder,crypto:require('node:crypto').webcrypto,COOP_DATA_REVISION:'test-giant',CoopOptimize:require('./ui/optimizer-core.js'),CoopGemTools:require('./ui/gem-tools.js'),CoopEngine,CoopData,CoopBoss,CoopTargets,CoopAccount,console};vm.createContext(context);vm.runInContext(fs.readFileSync('ui/board-worker.js','utf8'),context);
+const context={self:{location:{href:'http://localhost/'}},importScripts(){},URL,TextEncoder,crypto:require('node:crypto').webcrypto,COOP_DATA_REVISION:'test-giant',CoopOptimize:require('./ui/optimizer-core.js'),CoopGemTools:require('./ui/gem-tools.js'),CoopEngine,CoopData,CoopBoss,CoopTargets,CoopAccount,CoopPresets:require('./ui/board-presets.js'),console};vm.createContext(context);vm.runInContext(fs.readFileSync('ui/board-worker.js','utf8'),context);
 const summary=context.giantSummary,target={type:'GiantsBoss',eventSeconds:30,shield:100,hp:10,hpLayers:1,phaseLayers:[1,2,3]};
 let run={target,kill:{phases:[10,15,Infinity],segments:[{phase:2,from:25,to:30,rate:10}]}};
 let g=summary(run);assert.equal(g.cleared,2);assert.equal(g.phases[1].at,25);assert.ok(Math.abs(g.phases[2].progress-50/310)<1e-12);assert.equal(g.seconds,null);
@@ -8,9 +8,21 @@ g=summary({target,kill:{phases:[Infinity,NaN,NaN],segments:[]}});assert.equal(g.
 g=summary({target,kill:{phases:[10,10,10],segments:[]}});assert.equal(g.cleared,3);assert.equal(g.seconds,30);
 g=summary({target,kill:{phases:[10,10,10.01],segments:[]}});assert.equal(g.cleared,2,'completion after timer cannot clear');
 assert.equal(summary({target:{type:'SpecialBoss'}}),null);
+const P=require('./ui/board-presets.js');
+const own={perDemon:{clara:{level:21,lib:20,skinLevels:2,gems:[{id:'battle',grade:'SSS'}]}},traits:[{id:'atk',rank:'SS',value:10}],codexSSS:7};
+const fixture={partnerEnabled:false,you:own,partner:{perDemon:{clara:{level:1}}},cells:[{slug:'clara',row:6,col:3,lib:true,nolib:false,eggby:'mir'},{slug:'oni',row:4,col:1,nolib:true}],marks:[{row:6,col:3,boost:true,storms:2,stormBy:[{row:7,col:3}]},{row:4,col:1,storms:1}]};
+const before=structuredClone(fixture),mirror=P.giantInput(fixture,'mirror'),solo=P.giantInput(fixture,'solo');
+assert.equal(P.hasPartnerDeck(fixture),false);assert.throws(()=>P.giantInput(fixture),/선택/);
+assert.equal(mirror.partnerEnabled,true);assert.equal(mirror.cells.length,2);assert.deepEqual(mirror.cells[1],{...fixture.cells[0],row:4});assert.deepEqual(mirror.partner,own);assert.notEqual(mirror.partner,mirror.you);assert.notEqual(mirror.partner.perDemon,mirror.you.perDemon);
+assert.deepEqual(mirror.marks[1],{row:4,col:3,boost:true,storms:2,stormBy:[{row:3,col:3}]});assert.deepEqual(fixture,before,'simulation must never change saved decks');
+assert.equal(solo.partnerEnabled,false);assert.equal(solo.cells.length,1);assert.equal(solo.marks.length,1);
+const paired={...fixture,partnerEnabled:true};assert.equal(P.hasPartnerDeck(paired),true);assert.deepEqual(P.giantInput(paired).partner,paired.partner);assert.equal(P.giantInput(paired).giantBasis,'partner');assert.equal(P.hasPartnerDeck({...paired,cells:[fixture.cells[0]]}),false);
+assert.notEqual(context.CoopOptimize.cacheInput(mirror,'1'),context.CoopOptimize.cacheInput(solo,'1'));
 (async()=>{
  const P=require('./ui/board-presets.js'),p=P.newAccount(CoopEngine,CoopData),other=P.newAccount(CoopEngine,CoopData),t=CoopTargets.TARGETS.find(t=>t.mode==='hard'&&t.type==='GiantsBoss');p.perDemon.clara={level:21,lib:20,skinLevels:2,gems:[]};
  const input={cells:[{slug:'clara',row:6,col:3,lib:true,nolib:false}],marks:[],you:p,partner:other,partnerEnabled:false,mode:t.mode,target:t.id};
  const r=await context.calculate(input);assert.equal(r.giant.total,t.phaseLayers.length);assert.equal(r.giant.cleared,2);assert.ok(r.giant.phases[0].at<r.giant.phases[1].at);assert.equal(r.giant.phases[3].reached,false);assert.equal((await context.calculate(input)).cached,true);
+ const mirrored=await context.calculate(P.giantInput(input,'mirror'));assert.ok(mirrored.giant.cleared>=r.giant.cleared);assert.ok(mirrored.rawActual>r.rawActual);
+ let reply;context.postMessage=data=>{reply=data};await context.self.onmessage({data:{...input,kind:'giant',id:11,giantBasis:'mirror'}});assert.equal(reply.giant.basis,'mirror');assert.equal(reply.giant.cleared,mirrored.giant.cleared);
  console.log('Giant phases: original hard-mode run, cumulative completion times, partial progress, timer boundary, failed/NaN phases and cache passed.',JSON.stringify(r.giant));
 })().catch(e=>{console.error(e);process.exitCode=1});

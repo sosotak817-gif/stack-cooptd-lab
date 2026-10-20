@@ -6,5 +6,22 @@ const presets={clara:{name:'클라라덱',cells:[...top('clara'),cell('witch-doc
 function newAccount(engine,data){const p=structuredClone(engine.DEFAULT_PARAMS);p.levelSupreme=p.levelDemonGod=p.levelOther=1;p.lib=0;p.skinLevels=0;for(const d of data.DEMONS)p.perDemon[d.slug]={...p.perDemon[d.slug],level:1,lib:0,skinLevels:0,gems:[]};return p}
 function withDefaults(state,engine,data){if(state.unitDefaultsVersion===1)return state;const next=structuredClone(state);for(const side of ['you','partner']){const p=next[side];for(const d of data.DEMONS){const own=p.perDemon[d.slug],original=engine.DEFAULT_PARAMS.perDemon[d.slug];if(!own||JSON.stringify(own)===JSON.stringify(original))p.perDemon[d.slug]={...own,level:1,lib:0,skinLevels:0,gems:[]};else p.perDemon[d.slug]={level:p.levelSupreme,lib:p.lib,skinLevels:p.skinLevels,...own}}p.levelSupreme=p.levelDemonGod=p.levelOther=1;p.lib=0;p.skinLevels=0}next.unitDefaultsVersion=1;return next}
 function applyPreset(state,id,side='you'){const preset=presets[id];if(!preset)throw Error('프리셋을 찾을 수 없습니다.');const next=structuredClone(state),isSide=c=>side==='you'?c.row>5:c.row<5;const position=c=>side==='you'?{...c}:{...c,row:10-c.row};next.cells=[...next.cells.filter(c=>!isSide(c)),...structuredClone(preset.cells).map(position)];next.marks=[...(next.marks||[]).filter(c=>!isSide(c)),...structuredClone(preset.marks).map(position)];return next}
-root.CoopPresets={presets,newAccount,withDefaults,applyPreset};if(typeof module!=='undefined')module.exports=root.CoopPresets;
+function hasPartnerDeck(state){return !!state.partnerEnabled&&state.cells.some(c=>c.row<5)}
+function giantInput(state,basis){
+ const next=structuredClone(state);
+ if(!basis&&hasPartnerDeck(state))basis='partner';
+ if(!['solo','mirror','partner'].includes(basis))throw Error('거인 계산 인원을 선택해 주세요.');
+ if(basis==='partner'){if(!hasPartnerDeck(state))throw Error('활성 파트너 덱이 없습니다.');return{...next,giantBasis:basis}}
+ const cells=next.cells.filter(c=>c.row>5),marks=(next.marks||[]).filter(m=>m.row>5);
+ if(!cells.length)throw Error('내 진영에 초마신을 먼저 배치해 주세요.');
+ next.cells=cells;next.marks=marks;next.partnerEnabled=basis==='mirror';
+ if(basis==='mirror'){
+  const reflect=value=>({...structuredClone(value),row:10-value.row});
+  next.partner=structuredClone(next.you);
+  next.cells=[...cells,...cells.map(reflect)];
+  next.marks=[...marks,...marks.map(m=>({...reflect(m),...(m.stormBy?{stormBy:m.stormBy.map(reflect)}:{})}))];
+ }
+ return{...next,giantBasis:basis};
+}
+root.CoopPresets={presets,newAccount,withDefaults,applyPreset,hasPartnerDeck,giantInput};if(typeof module!=='undefined')module.exports=root.CoopPresets;
 })(globalThis);
