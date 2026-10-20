@@ -93,3 +93,43 @@ http://localhost:4173 에 접속합니다. HTML 파일을 직접 열면 Worker�
 - 거인 계산 시 활성 파트너 진영에 배치가 없다면 매번 계산 인원 팝업에서 선택합니다. 혼자 기준은 파트너 효과를 제외하며, 내 세팅 2인 기준은 내 계정/초마신 설정을 깊은 복사하고 배치/장판/폭풍 소유자를 반대 진영으로 반영합니다. 실제 저장 배치와 파트너 데이터는 수정하지 않습니다. 활성 파트너 배치가 있으면 원래 두 진영으로 바로 계산합니다. 결과에 계산 기준을 표시합니다.
 
 - 거인 페이즈 카드에는 보호막+체력 총량, 원본 시간별 구간을 합산한 가한 피해, 회복 상쇄(있을 때), 부족 피해를 표시합니다. 유효 피해는 가한 피해-회복 상쇄를 0~해당 페이즈 총량으로 제한하며, 부족 피해는 총량-유효 피해입니다. 완료 페이즈는 부동소수점 잔차 없이 부족 0, 미도달 페이즈는 가한 피해 0/부족 전체 총량입니다. 표시 DPS의 연구소 추가 방감 보정은 원본 처치 판정과 동일하게 적용하지 않습니다.
+
+
+## D1 솔로 전투력 랭킹
+
+- 클라라덱/코블린덱의 고정 프리셋 배치와 장판을 사용합니다. 현재 내 계정의 성장·특성·보석을 적용하며 현재 배치판과 파트너는 변경하지 않습니다.
+- 맵·보스(웨이브 포함)·덱·계산 버전별로 최고 1,000개 기록을 실제 보관하고 50개씩 조회합니다. 같은 브라우저는 각 분류에 최고 기록 하나만 남깁니다. 동점은 먼저 달성한 기록 우선이며 같은 밀리초면 내부 식별자로 순서를 고정합니다.
+- 무료 플랜 CPU 예산을 고려해 계산은 브라우저 Worker에서 실행합니다. **미검증 커뮤니티 랭킹**이며 서버 재계산, 게임 계정 인증, 실제 보유 세팅 검증과 점수 위변조 방지는 제공하지 않습니다. 상품·보상 지급용 경쟁 순위로 사용하지 마세요.
+- 닉네임은 중복 가능하며 게임 계정 식별자가 아닙니다. 갱신용 임의 비밀 토큰은 localStorage에, 서버에는 그 SHA-256 해시만 저장합니다. 브라우저 데이터 삭제/다른 기기 이용 시 기존 기록의 갱신 권한을 잃습니다.
+- 등록 제한은 동일 접속 IP 기준 10초 간격·UTC 하루 100회입니다. 공유 IP 사용자에게도 합산 적용됩니다. IP 원문은 보관하지 않고 날짜와 결합한 해시만 저장합니다. 프록시/새 접속 등 모든 악용을 방지하는 장치는 아닙니다.
+- 계산 엔진·Worker·프리셋 변경 시 별도 랭킹 버전이 생성됩니다. 이전 버전 기록은 조회에 섞지 않고 보관하므로 필요 시 관리자가 정리합니다.
+- Python 정적 서버에서는 DB API가 없으므로 랭킹 연결 안내가 표시됩니다. 나머지 계산은 정상 작동합니다. API 응답은 Service Worker와 브라우저 캐시에 보관하지 않습니다.
+
+### Cloudflare Pages 연결
+
+GitHub 저장소 루트에 package.json과 functions/가 있습니다. Pages 빌드 명령은 `npm run build`, 출력은 `dist`, 배포 브랜치는 `main`으로 설정합니다. functions/ API가 있으므로 Git 연동 또는 Wrangler로 배포하세요.
+
+1. Cloudflare 대시보드에서 D1 데이터베이스 `stack-cooptd-ranking`을 생성합니다.
+2. D1 콘솔에서 `migrations/0001_rankings.sql` 전체를 실행합니다. 이미 생성된 테이블은 유지합니다.
+3. Pages 프로젝트의 Settings → Bindings에서 D1 바인딩 이름을 **DB**로 지정하고 생성한 데이터베이스를 연결합니다. 운영 환경과 미리보기 환경은 별도 DB 사용을 권장합니다.
+4. 바인딩 적용 후 재배포하고 사이트 하단의 솔로 랭킹을 펼쳐 등록/조회를 확인합니다.
+
+CLI를 사용할 경우 `wrangler.example.toml`을 `wrangler.toml`로 복사하고 발급된 database_id를 입력합니다. 예시의 placeholder를 그대로 배포하지 마세요.
+
+```powershell
+npx wrangler login
+npx wrangler d1 create stack-cooptd-ranking
+# 위 결과로 wrangler.toml의 database_id를 채운 후:
+npx wrangler d1 migrations apply stack-cooptd-ranking --remote
+npm run build
+npx wrangler pages deploy dist --project-name stack-cooptd-lab
+```
+
+로컬 DB 검증은 동일한 설정 파일을 준비한 다음 실행합니다. 로컬 DB는 운영 DB와 분리됩니다.
+
+```powershell
+npx wrangler d1 migrations apply stack-cooptd-ranking --local
+npx wrangler pages dev dist
+```
+
+DB 연결/테이블 준비 전에는 API가 503과 안내 메시지를 반환합니다. `npm test`는 실제 SQLite에서 등록·갱신·분류·동점·상위 1,000개 정리·페이지 경계를 검증합니다.

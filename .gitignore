@@ -6,3 +6,8 @@ preview.png
 
 mobile-preview.png
 report-preview.png
+
+node_modules/
+.wrangler/
+.dev.vars
+wrangler.toml
