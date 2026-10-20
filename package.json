@@ -5,7 +5,7 @@
   "description": "Korean image-based Coop TD board DPS simulator using the archived public client engine",
   "scripts": {
     "build": "node build.cjs",
-    "test": "node verify.cjs && node verify-optimizer.cjs",
+    "test": "node verify.cjs && node verify-optimizer.cjs && node verify-fields.cjs",
     "start": "python -m http.server 4173 --bind 127.0.0.1 --directory dist",
     "collect": "node extra-assets.cjs && python collect.py"
   }
