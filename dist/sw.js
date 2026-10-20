@@ -1,4 +1,4 @@
-const CACHE='stack-lab-assets-212940fcde901e46';
+const CACHE='stack-lab-assets-bb4c323c3e260c41';
 const SHELL=['/','/board-presets.js','/board-app.js','/board.css','/board-worker.js','/optimizer-core.js','/engine.js','/cache-version.js','/ko.json','/logo.svg'];
 self.addEventListener('install',event=>event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(SHELL)).then(()=>self.skipWaiting())));
 self.addEventListener('activate',event=>event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith('stack-lab-assets-')&&k!==CACHE).map(k=>caches.delete(k)))).then(()=>clients.claim())));
