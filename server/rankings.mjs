@@ -63,7 +63,7 @@ export async function handleRankings({request,env}) {
     if(data.revision!==catalog.revision) throw fail('계산 버전이 변경되었습니다. 새로고침 후 등록해 주세요.',409);
     const nickname=typeof data.nickname==='string'?data.nickname.normalize('NFC').trim():'';
     if(!nickname||Array.from(nickname).length>20||/[\p{Cc}\p{Cf}\p{Cs}]/u.test(nickname)) throw fail('인게임 닉네임을 1~20자로 입력해 주세요. 제어 문자는 사용할 수 없습니다.');
-    if(typeof data.score!=='number'||!Number.isFinite(data.score)||data.score<=0||data.score>1e100) throw fail('유효한 전투력을 먼저 계산해 주세요.');
+    if(typeof data.score!=='number'||!Number.isFinite(data.score)||data.score<=0||data.score>1e100) throw fail('유효한 DPS를 먼저 계산해 주세요.');
     const now=Date.now(), day=new Date(now).toISOString().slice(0,10);
     // The IP itself is never stored. Both identity and IP share a daily write budget.
     const ip=request.headers.get('CF-Connecting-IP');

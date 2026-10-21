@@ -35,5 +35,6 @@ async function request(url,options={}){
  const data=await response.json().catch(()=>{throw Error('랭킹 API가 연결되지 않았습니다.');});
  if(!response.ok)throw Error(data.error||'랭킹 요청에 실패했습니다.');return data;
 }
-root.CoopRankUI={badge,token,auth,participated,remember,presetFor,request};
+function dps(score,digits=1){return Number.isFinite(Number(score))?Number(score).toLocaleString('ko-KR',{minimumFractionDigits:digits,maximumFractionDigits:digits})+'조':'—';}
+root.CoopRankUI={dps,badge,token,auth,participated,remember,presetFor,request};
 })(globalThis);

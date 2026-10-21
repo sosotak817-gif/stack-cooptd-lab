@@ -9,7 +9,7 @@ function plain(text,href='/rankings/'){
 async function refresh(){
  if(pending)return;
  clear();const id=generation,snapshot=StackLabRanking.snapshot(),deck=R.presetFor(snapshot);
- if(!deck){plain('솔로 전투력 랭킹 보기');return;}
+ if(!deck){plain('솔로 DPS 랭킹 보기');return;}
  const result=StackLabRanking.result();
  if(!result||!Number.isFinite(result.actual)||result.actual<=0)return;
  const href='/rankings/?'+new URLSearchParams({deck,target:snapshot.target});
@@ -33,7 +33,7 @@ async function refresh(){
    const link=document.createElement('a');link.href=href;link.className='score-rank-link';
    const label=document.createElement('span');label.textContent=CoopPresets.presets[deck].name+(data.archived?' 이전 계산 기록':' 내 최고 기록');
    link.append(label,R.badge(rank));
-   if(data.mine){link.title=data.mine.nickname+' · 등록 최고 전투력 '+Number(data.mine.score).toLocaleString('ko-KR',{maximumFractionDigits:2});}
+   if(data.mine){link.title=data.mine.nickname+' · 등록 최고 DPS '+R.dps(data.mine.score,6);}
    box.replaceChildren(link);
   }catch(error){if(id!==generation||error.name==='AbortError')return;catalogPromise=null;plain('랭킹 연결 대기',href);}
  },350);

@@ -14,7 +14,7 @@ function ownRecord(record){
  box.append(R.badge(rank));
  if(record){
   R.remember(recordRevision||catalog.revision,$('ranking-deck').value,$('ranking-target').value);
-  const detail=document.createElement('span');detail.textContent=record.nickname+' · 전투력 '+Number(record.score).toLocaleString('ko-KR',{maximumFractionDigits:2});box.append(detail);
+  const detail=document.createElement('span');detail.textContent=record.nickname+' · DPS '+R.dps(record.score);box.append(detail);
   if(!$('ranking-name').value)$('ranking-name').value=record.nickname;
  }else if(rank==='1000+'){
   const detail=document.createElement('span');detail.textContent='상위 1,000위 밖';box.append(detail);
@@ -42,7 +42,7 @@ async function load(){
   for(const entry of data.entries){
    const row=document.createElement('tr');if(entry.mine)row.className='ranking-mine';
    const position=document.createElement('td');position.append(R.badge(entry.rank));row.append(position);
-   const values=[entry.nickname+(entry.mine?' (내 기록)':''),Number(entry.score).toLocaleString('ko-KR',{maximumFractionDigits:2}),new Date(entry.achievedAt).toLocaleDateString('ko-KR')];
+   const values=[entry.nickname+(entry.mine?' (내 기록)':''),R.dps(entry.score),new Date(entry.achievedAt).toLocaleDateString('ko-KR')];
    for(const value of values){const td=document.createElement('td');td.textContent=value;row.append(td);}
    $('ranking-rows').append(row);
   }
@@ -58,16 +58,16 @@ async function submit(event){
  const selected=catalog.targets.find(t=>t.id===target),snapshot=window.StackLabRanking.snapshot(),preset=CoopPresets.presets[deck];
  Object.assign(snapshot,{mode:selected.mode,target,partnerEnabled:false,cells:structuredClone(preset.cells),marks:structuredClone(preset.marks)});
  let credential;try{credential=R.token();}catch{message('기록 갱신을 위해 브라우저 저장 공간을 허용해 주세요.');return;}
- busy=true;controller?.abort();generation++;controls();message('고정 프리셋으로 솔로 전투력을 계산하는 중…');
+ busy=true;controller?.abort();generation++;controls();message('고정 프리셋으로 솔로 DPS를 계산하는 중…');
  try{
   const result=await window.StackLabRanking.calculate(snapshot),score=result.actual/1e12;
-  if(!Number.isFinite(score)||score<=0)throw Error('등록할 수 있는 전투력이 없습니다. 성장 세팅을 확인해 주세요.');
+  if(!Number.isFinite(score)||score<=0)throw Error('등록할 수 있는 DPS이 없습니다. 성장 세팅을 확인해 주세요.');
   const data=await R.request('/api/rankings',{method:'POST',headers:{'Content-Type':'application/json',Authorization:'Bearer '+credential},body:JSON.stringify({revision:catalog.revision,deck,target,nickname,score})});
   try{localStorage.setItem('stack-lab-ranking-name',nickname);}catch{}
   R.remember(recordRevision||catalog.revision,deck,target);
   window.dispatchEvent(new CustomEvent('stack-lab:ranking-updated',{detail:{deck,target}}));
   page=1;await load();
-  message(data.retained?(data.improved?'최고 기록 등록 완료':'인게임 닉네임 갱신 · 기존 최고 기록 유지')+' · 현재 '+data.rank+'위 · 전투력 '+Number(data.score).toLocaleString('ko-KR',{maximumFractionDigits:2}):'현재 순위 1000+ · 상위 1,000위 밖 기록은 순위표에 표시하지 않습니다.');
+  message(data.retained?(data.improved?'최고 기록 등록 완료':'인게임 닉네임 갱신 · 기존 최고 기록 유지')+' · 현재 '+data.rank+'위 · DPS '+R.dps(data.score):'현재 순위 1000+ · 상위 1,000위 밖 기록은 순위표에 표시하지 않습니다.');
  }catch(error){message(error.message);}finally{busy=false;controls();}
 }
 async function initialize(){
