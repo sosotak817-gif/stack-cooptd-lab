@@ -71,5 +71,6 @@ try {
  // Old engine revisions are never mixed into the current leaderboard.
  insert.run('old','clara',target,'old','이전 계산',1e10,1);
  assert.equal((await call('GET')).data.entries[0].score,2000);
+ const archived=await call('GET',null,{query:{revision:'old'}});assert.equal(archived.data.archived,true);assert.equal(archived.data.entries[0].nickname,'이전 계산');assert.ok(archived.data.revisions.some(r=>r.revision===catalog.revision));const archiveTarget=catalog.targets[5].id;insert.run('prior-build','goblin',archiveTarget,'historic','보존 기록',123,2);const archiveOnly=await call('GET',null,{query:{deck:'goblin',target:archiveTarget}});assert.equal(archiveOnly.status,200);assert.equal(archiveOnly.data.archived,true);assert.equal(archiveOnly.data.entries[0].nickname,'보존 기록');assert.equal(archiveOnly.data.recordRevision,'prior-build');assert.equal(JSON.parse(fs.readFileSync('ranking-season.json','utf8')).revision,catalog.revision);assert.ok(!fs.readFileSync('build.cjs','utf8').includes("const rankingRevision=crypto.createHash"),'normal builds do not reset ranking identity');
  console.log('Rankings: real SQLite API validation, ownership, highest-only updates, categories, cooldown, deterministic ties, 1,000 cap, pagination and revision separation passed.');
 } finally {Date.now=oldNow;sqlite.close();}

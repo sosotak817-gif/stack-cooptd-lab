@@ -41,9 +41,10 @@ for(const entry of ['index.html','lab/index.html','stages/index.html','wall/inde
 const summary={files:fs.readdirSync(path.join(dist,'_next/static/immutable/chunks')).length,units:Object.keys(data.UNITS).length,demons:ds.DEMONS.length,gems:ds.GEMS.length};
 console.log(JSON.stringify(summary));
 
-// Keep ranking buckets separate when the calculation engine or fixed presets change.
-const rankingRevision=crypto.createHash('sha256').update(revision).update(fs.readFileSync('ui/board-presets.js')).digest('hex').slice(0,24);
-const rankingCatalog={revision:rankingRevision,targets:load(1503).TARGETS.filter(t=>t.type.includes('Boss')).map(t=>({id:t.id,mode:t.mode,name:load(1503).targetName(t).replace(/Final boss/g,'최종 보스').replace(/Colossal Giant/g,'거대 거인').replace(/Boss/g,'보스')}))};
+// Leaderboard identity changes only for an explicit season; calculation/cache versions remain separate.
+const rankingRevision=JSON.parse(fs.readFileSync('ranking-season.json','utf8')).revision;
+const calculationRevision=crypto.createHash('sha256').update(revision).update(fs.readFileSync('ui/board-presets.js')).digest('hex').slice(0,24);
+const rankingCatalog={revision:rankingRevision,calculationRevision,targets:load(1503).TARGETS.filter(t=>t.type.includes('Boss')).map(t=>({id:t.id,mode:t.mode,name:load(1503).targetName(t).replace(/Final boss/g,'최종 보스').replace(/Colossal Giant/g,'거대 거인').replace(/Boss/g,'보스')}))};
 fs.mkdirSync('server',{recursive:true});
 fs.writeFileSync('server/ranking-catalog.mjs','export const catalog='+JSON.stringify(rankingCatalog)+';\n');
 fs.writeFileSync(path.join(dist,'ranking-catalog.json'),JSON.stringify(rankingCatalog));

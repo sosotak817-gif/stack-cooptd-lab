@@ -39,6 +39,11 @@ export async function handleRankings({request,env}) {
     const url=new URL(request.url), db=env.DB;
     if(request.method==='GET') {
       const keys=category(url.searchParams.get('deck'),url.searchParams.get('target'));
+      const versions=await db.batch([db.prepare('SELECT revision,MAX(achieved_at) AS updatedAt,COUNT(*) AS total FROM rankings WHERE deck=? AND target=? GROUP BY revision ORDER BY updatedAt DESC').bind(keys[1],keys[2])]);
+      const revisions=versions[0].results,requested=url.searchParams.get('revision');
+      if(requested&&requested!==catalog.revision&&!revisions.some(r=>r.revision===requested))throw fail('저장된 랭킹 버전을 찾을 수 없습니다.');
+      const recordRevision=requested||(revisions.some(r=>r.revision===catalog.revision)?catalog.revision:revisions[0]?.revision||catalog.revision);
+      keys[0]=recordRevision;
       const raw=url.searchParams.get('page')??'1';
       if(!/^(?:[1-9]|1[0-9]|20)$/.test(raw)) throw fail('페이지는 1~20 범위입니다.');
       const page=Number(raw), owner=await identity(request);
@@ -48,7 +53,7 @@ export async function handleRankings({request,env}) {
         myRecord(db,keys,owner)
       ]);
       const own=mine.results[0];
-      return reply({revision:catalog.revision,page,total:Math.min(1000,count.results[0].total),mine:own?{rank:own.rank,nickname:own.nickname,score:own.score}:null,entries:rows.results.map((row,i)=>({rank:(page-1)*50+i+1,nickname:row.nickname,score:row.score,achievedAt:row.achieved_at,mine:row.owner===owner}))});
+      return reply({revision:catalog.revision,recordRevision,revisions,archived:recordRevision!==catalog.revision,page,total:Math.min(1000,count.results[0].total),mine:own?{rank:own.rank,nickname:own.nickname,score:own.score}:null,entries:rows.results.map((row,i)=>({rank:(page-1)*50+i+1,nickname:row.nickname,score:row.score,achievedAt:row.achieved_at,mine:row.owner===owner}))});
     }
     if(request.method!=='POST') return new Response(null,{status:405,headers:{...headers,Allow:'GET, POST'}});
     if(request.headers.get('Origin')!==url.origin) throw fail('사이트에서 직접 등록해 주세요.',403);

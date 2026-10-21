@@ -27,11 +27,11 @@ async function refresh(){
    }
    if(id!==generation)return;
    if(data.revision!==catalog.revision){plain('새로고침 후 랭킹 확인',href);return;}
-   const rank=data.mine?.rank??(R.participated(catalog.revision,deck,snapshot.target)?'1000+':null);
+   const rank=data.mine?.rank??(R.participated(data.recordRevision||catalog.revision,deck,snapshot.target)?'1000+':null);
    if(rank===null){plain('인게임 닉네임으로 랭킹 등록',href);return;}
-   if(data.mine)R.remember(catalog.revision,deck,snapshot.target);
+   if(data.mine)R.remember(data.recordRevision||catalog.revision,deck,snapshot.target);
    const link=document.createElement('a');link.href=href;link.className='score-rank-link';
-   const label=document.createElement('span');label.textContent=CoopPresets.presets[deck].name+' 내 최고 기록';
+   const label=document.createElement('span');label.textContent=CoopPresets.presets[deck].name+(data.archived?' 이전 계산 기록':' 내 최고 기록');
    link.append(label,R.badge(rank));
    if(data.mine){link.title=data.mine.nickname+' · 등록 최고 전투력 '+Number(data.mine.score).toLocaleString('ko-KR',{maximumFractionDigits:2});}
    box.replaceChildren(link);
