@@ -18,5 +18,7 @@ function analyze({cells,units=[],builds,partnerEnabled=false},{E,R,G,Dark}){
 }
 function viewport(team,full=false){return full?{start:0,rows:11}:{start:team==='you'?5:0,rows:6};}
 function rectangle(zone,view,awake=false){const half=awake?zone.awakeHalf:zone.half;return{left:(zone.col+.5-half)/7*100,top:(zone.row-view.start+.5-half)/view.rows*100,width:half*2/7*100,height:half*2/view.rows*100};}
-root.CoopRangeView={analyze,viewport,rectangle};if(typeof module!=='undefined')module.exports=root.CoopRangeView;
+function enemyPaths(Boss){return ['you','partner'].flatMap(team=>[false,true].map(flying=>({team,flying,points:Boss.lanePath(team,flying,{hx:.25,hy:.25}).pts})));}
+function pathImage(paths,view){const point=p=>({x:(p.x+3.5)/7*700,y:(5.5-p.y-view.start)/view.rows*600});return 'data:image/svg+xml;charset=utf-8,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 600" preserveAspectRatio="none">'+paths.map(path=>{const pts=path.points.map(point),first=pts[0],color=path.flying?'#ffb454':'#59e5ff';return '<polyline points="'+pts.map(p=>p.x+','+p.y).join(' ')+'" fill="none" stroke="'+color+'" stroke-width="4" stroke-linejoin="round" '+(path.flying?'stroke-dasharray="10 7"':'')+'/>'+ (first.y>=0&&first.y<=600?'<circle cx="'+Math.max(8,Math.min(692,first.x))+'" cy="'+Math.max(8,Math.min(592,first.y))+'" r="8" fill="'+color+'" stroke="#30243e" stroke-width="2"/>':'');}).join('')+'</svg>');}
+root.CoopRangeView={analyze,viewport,rectangle,enemyPaths,pathImage};if(typeof module!=='undefined')module.exports=root.CoopRangeView;
 })(globalThis);
