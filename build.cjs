@@ -7,7 +7,15 @@ load(5706);load(24012);load(90656);load(16871);load(65335);load(49460);load(5658
 const plain={source:'https://coop-tools.vercel.app/',collectedAt:new Date().toISOString(),scope:'Public browser-delivered data and JavaScript; not the private source repository or server code.',...data,demons:ds.DEMONS,gems:ds.GEMS,liberation:ds.LIBERATION_DATA,defaults:engine.DEFAULT_PARAMS,traits:extras.TRAITS};
 fs.writeFileSync(path.join(root,'data.json'),JSON.stringify(plain,null,2));fs.copyFileSync(path.join(root,'data.json'),path.join(dist,'data.json'));
 for(const d of ds.DEMONS)engine.computeDemon(d,structuredClone(engine.DEFAULT_PARAMS));
-const reg=[...modules.entries()].filter(([id])=>cache.has(id)).map(([id,f])=>`${JSON.stringify(id)}:${f.toString()}`).join(',\n');
+// Extend only the optional diagnostic events. Combat state and rules stay original.
+function diagnosticFactory(f){let source=f.toString();if(f===modules.get(49460)){
+ const changes=[
+ ['kind:"shot",frame:e.frame,tower:t.key,enemy:l.id','kind:"shot",frame:e.frame,tower:t.key,enemy:l.id,lane:l.lane,stackSnapshot:{clara:t.clara?.h,ivy:t.ivy?.s}'],
+ ['kind:"after",frame:e.frame,tower:t.key,fired:l','kind:"after",frame:e.frame,tower:t.key,fired:l,stackSnapshot:{clara:t.clara?.h,ivy:t.ivy?.s}'],
+ ['kind:"hit",frame:e.frame,tower:l.key,enemy:t.id,tid:t.tid,dmg:u,dealt:a','kind:"hit",frame:e.frame,tower:l.key,enemy:t.id,tid:t.tid,dmg:u,dealt:a,stackSnapshot:{clara:l.clara?.h,ivy:l.ivy?.s}']
+ ];for(const [before,after]of changes){if(!source.includes(before))throw Error('Original stack diagnostic hook changed: '+before);source=source.replace(before,after);}
+ }return source;}
+const reg=[...modules.entries()].filter(([id])=>cache.has(id)).map(([id,f])=>`${JSON.stringify(id)}:${diagnosticFactory(f)}`).join(',\n');
 let loader=fs.readFileSync('inspect.cjs','utf8').match(/function load\(id\)\{[\s\S]*?\nif\(require.main/)[0].replace(/\nif\(require.main$/,'');
 fs.writeFileSync(path.join(dist,'engine.js'),`(()=>{const registry={${reg}};const modules=new Map(Object.entries(registry).map(([k,v])=>[+k,v])),cache=new Map(),fncache=new Map();\n${loader}\nglobalThis.CoopRange=load(5706);globalThis.CoopOmen=load(24012);globalThis.CoopWall=load(90656);globalThis.CoopWallRules=load(16871);globalThis.CoopWallArrival=load(65335);globalThis.CoopEngine=load(98018);globalThis.CoopData=load(34621);globalThis.CoopBoss=load(49460);globalThis.CoopBoard=load(56584);globalThis.CoopGeometry=load(21428);globalThis.CoopTargets=load(1503);globalThis.CoopRules=load(9469);globalThis.CoopExtras=load(86245);globalThis.CoopAccount=load(42389);})();`);
 const translations=JSON.parse(fs.readFileSync('ko.json','utf8'));
