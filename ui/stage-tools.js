@@ -1,5 +1,5 @@
 (function(root){'use strict';
-const MODES={hell:'지옥',abyss:'심연',deepsea:'심해'};
+const MODES={hard:'어려움',hell:'지옥',abyss:'심연',deepsea:'심해'};
 function targets(T,mode){if(!MODES[mode])throw Error('지원하지 않는 모드입니다.');return T.TARGETS.filter(t=>t.mode===mode&&['Monster','LineBoss','SpecialBoss'].includes(t.type)).sort((a,b)=>a.wave-b.wave||a.id.localeCompare(b.id));}
 function variant(input,mode,altar){const next=structuredClone(input);next.mode=mode;for(const side of ['you','partner'])if(altar==='none')next[side].altar={};return next;}
 function integrate(kill,until){if(!kill)return 0;const end=Math.min(until,kill.leak?.at??Infinity,Number.isFinite(kill.seconds)?kill.seconds:Infinity);return Math.max(0,(kill.segments||[]).reduce((n,s)=>n+Math.max(0,Math.min(end,s.to)-Math.max(0,s.from))*Math.max(0,s.rate),0)-(kill.heals||[]).filter(h=>h.at<end).reduce((n,h)=>n+h.amount,0));}
@@ -39,7 +39,18 @@ function continuousReport({run,mode,altar,T,rounds,basis}){
  // Capacity, not capped damage share: extrapolate the observed boss-only effective
  // mean rate to its allotted clock. One person = half the shared boss durability.
  const seconds=w?.killAt??w?.seconds,contribution=e?.bossPool>0&&seconds>0?{people:2*e.youBossDamage/seconds*final.window/e.bossPool,wave:lastWave,ownDamage:e.youBossDamage,seconds,window:final.window,requiredPerPerson:e.bossPool/2,estimated:true}:null;
- return{mode,altar,basis,continuous:true,rows,waves:rows.map(r=>({wave:r.wave,pass:r.pass,reached:r.reached,variants:[r]})),firstRisk,passed:!firstRisk&&!!w,causes:Object.entries(causes).map(([cause,count])=>({cause,count})),coverage:run.waves.length,lastWave,contribution,lives:run.lives};
+ return{mode,altar,basis,continuous:true,rows,waves:rows.map(r=>({wave:r.wave,pass:r.pass,reached:r.reached,variants:[r]})),firstRisk,passed:!firstRisk&&!!w,causes:Object.entries(causes).map(([cause,count])=>({cause,count})),coverage:run.waves.length,lastWave,bossCapacity:contribution,lives:run.lives};
 }
-root.CoopStages={MODES,targets,variant,integrate,summarize,scan,recorder,continuousReport};if(typeof module!=='undefined')module.exports=root.CoopStages;
+async function personEstimate({evaluate,baseline,onProgress=()=>{}}){
+ let evaluated=0,low=0,high=1;const probes=[];
+ async function test(scale){onProgress({evaluated,scale});const r=scale===1&&baseline?baseline:await evaluate(scale);evaluated++;probes.push({scale,passed:!!r.passed,firstRisk:r.firstRisk});return !!r.passed;}
+ const baselinePassed=await test(1);
+ if(baselinePassed){while(high>1e-6){const next=high/2;if(!await test(next)){low=next;break;}high=next;}if(!low)return{people:null,lowerBound:1/high,baselinePassed,evaluated,probes,bounded:false,estimated:true};}
+ else {low=1;high=2;while(!await test(high)){low=high;high*=2;if(high>1e6)return{people:null,baselinePassed,evaluated,probes,bounded:false,estimated:true};}}
+ // A passing and failing full-run replay bracket the local transition. Stop
+ // when both ends agree at the displayed precision, without rounding scores.
+ for(let n=0;n<24;n++){if((1/low).toFixed(1)===(1/high).toFixed(1))break;const mid=(low+high)/2;if(await test(mid))high=mid;else low=mid;}
+ return{people:1/((low+high)/2),minimum:1/high,maximum:1/low,passingScale:high,failingScale:low,baselinePassed,evaluated,probes,bounded:true,estimated:true};
+}
+root.CoopStages={MODES,targets,variant,integrate,summarize,scan,recorder,continuousReport,personEstimate};if(typeof module!=='undefined')module.exports=root.CoopStages;
 })(globalThis);

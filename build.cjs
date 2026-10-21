@@ -7,9 +7,14 @@ load(5706);load(24012);load(90656);load(16871);load(65335);load(49460);load(5658
 const plain={source:'https://coop-tools.vercel.app/',collectedAt:new Date().toISOString(),scope:'Public browser-delivered data and JavaScript; not the private source repository or server code.',...data,demons:ds.DEMONS,gems:ds.GEMS,liberation:ds.LIBERATION_DATA,defaults:engine.DEFAULT_PARAMS,traits:extras.TRAITS};
 fs.writeFileSync(path.join(root,'data.json'),JSON.stringify(plain,null,2));fs.copyFileSync(path.join(root,'data.json'),path.join(dist,'data.json'));
 for(const d of ds.DEMONS)engine.computeDemon(d,structuredClone(engine.DEFAULT_PARAMS));
-// Extend only the optional diagnostic events. Combat state and rules stay original.
+// Optional telemetry and stage-only damage benchmarks. With no benchmark option,
+// combat arithmetic remains identical to the archived engine.
 function diagnosticFactory(f){let source=f.toString();if(f===modules.get(49460)){
  const changes=[
+ ['wipe:"deepsea"===I,hits:ee','benchmarkDamageScale:p.benchmarkDamageScale,wipe:"deepsea"===I,hits:ee'],
+ ['takes:(e,t,l,a,s)=>{if(e.stunShield>0)','takes:(e,t,l,a,s)=>{if(r.benchmarkDamageScale!==undefined&&!(s&tT.HOP))t*=r.benchmarkDamageScale;if(e.stunShield>0)'],
+ // Hop overflow is already scaled; scale its added bonus once, not its overflow twice.
+ ['hop:(e,t,l)=>(0,tT.hopDamage)(l,','hop:(e,t,l)=>(r.benchmarkDamageScale??1)*(0,tT.hopDamage)(l/(r.benchmarkDamageScale??1),'],
  ['kind:"spawn",frame:e.frame,enemy:t.id,tid:t.tid','kind:"spawn",frame:e.frame,enemy:t.id,tid:t.tid,lane:t.lane,pool:lb(t)'],
  ['ex=t=>{for(let l of','ex=t=>{z&&z({kind:"gone",frame:e.frame,enemy:t.id,pool:lb(t),fate:t.by});for(let l of'],
  ['for(let e=1;e<=_&&(!O||lR.on);e++)e=eB(e);','for(let e=1;e<=_&&(!O||lR.on);e++){e=eB(e);k&&k({kind:"waveStacks",wave:e,kits:[...es.kits].map(([key,value])=>({home:Number(String(key).split(":").at(-1)),clara:value.clara?.h,ivy:value.ivy?.s})),stacks:[...es.counts].map(([home,value])=>({home,spotlight:value.spotlight})),omens:Object.entries(es.omens).map(([home,value])=>({home:Number(home),...value}))});}'],

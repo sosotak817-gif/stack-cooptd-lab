@@ -60,19 +60,29 @@ self.onmessage=async({data})=>{const{id,kind='calculate'}=data;try{if(kind==='co
  const result=await CoopWallTools.recommend({pool,count:Math.max(1,Math.min(21,data.wallCount||7)),copies:Math.max(1,Math.min(3,data.wallCopies||2)),budget:Math.max(8,Math.min(64,data.wallBudget||24)),evaluate,onProgress:p=>postMessage({id,kind:'wall-progress',...p})});postMessage({id,kind,...result});return;
  }if(kind==='stages'){
  if(!CoopGemTools.active(data).cells.length)throw Error('배치 시뮬레이터에서 덱을 먼저 배치하고 저장하세요.');
- const modes=data.stageModes||['hell','abyss','deepsea'];if(!modes.length||modes.some(m=>!CoopStages.MODES[m]))throw Error('모드를 선택하세요.');
- const evaluate=async(input,altar='current',notify=false)=>{
-  const key=await cacheKey({...input,target:'stage-continuous-v4:'+altar+':'+(CoopPresets.hasPartnerDeck(input)?'partner':input.stageBasis||'mirror')});const saved=await read(key);if(saved){if(notify)for(const row of saved.rows)postMessage({id,kind:'stage-progress',mode:input.mode,altar,row});return structuredClone(saved);}
-  const basis=CoopPresets.hasPartnerDeck(input)?'partner':input.stageBasis||'mirror',party=CoopPresets.giantInput(input,basis),{cells,marks}=CoopGemTools.active(party),target=CoopTargets.finalBossOf(input.mode),targetId='stage-continuous:'+input.mode;
+ const modes=data.stageModes||['hard','hell','abyss','deepsea'];if(!modes.length||modes.some(m=>!CoopStages.MODES[m]))throw Error('모드를 선택하세요.');
+ const evaluate=async(input,altar='current',notify=false,damageScale=1,forceMirror=false,onRound=()=>{})=>{
+  const basis=forceMirror?'mirror':CoopPresets.hasPartnerDeck(input)?'partner':input.stageBasis||'mirror';
+  const key=await cacheKey({...input,target:'stage-continuous-v5:'+altar+':'+basis+':'+damageScale});const saved=await read(key);if(saved){if(notify)for(const row of saved.rows)postMessage({id,kind:'stage-progress',mode:input.mode,altar,row});return structuredClone(saved);}
+  const party=CoopPresets.giantInput(input,basis),{cells,marks}=CoopGemTools.active(party),target=CoopTargets.finalBossOf(input.mode),targetId='stage-continuous:'+input.mode;
   // Observe through the end of 100R, without invoking the optional giant invasion.
   CoopTargets.registerTargets([{...target,id:targetId,pinsWave:false}]);
   const p={...CoopEggby.normalize(party.you,CoopEngine),mode:input.mode,targetId,bounties:'none',wave:CoopTargets.lastWave(input.mode)+1,byPlayer:true},other={...CoopEggby.normalize(party.partner,CoopEngine),mode:input.mode,targetId,bounties:'none',wave:p.wave};
   if(!party.partnerEnabled)Object.assign(other,{traits:[],codexSS:0,codexSSS:0,fortuneCard:0,altar:{},otherDef:0,partnerDef:0});p.partnerParams=other;
-  const trace=CoopStages.recorder(CoopTargets,CoopGeometry,cells),run=CoopBoss.bossRun(cells,p,{marks,range:{},blackout:'auto',builds:{you:p,partner:other},gold:false,bounties:null},undefined,e=>{trace.event(e);if(notify&&e.kind==='waveStacks')postMessage({id,kind:'stage-progress',mode:input.mode,altar,row:{wave:e.wave}});});
+  const options={marks,range:{},blackout:'auto',builds:{you:p,partner:other},gold:false,bounties:null,...(damageScale!==1?{benchmarkDamageScale:damageScale}:{})};
+  // Boundary probes need only survival, not per-hit telemetry or 100 table rows.
+  if(forceMirror&&!notify){const run=CoopBoss.bossRun(cells,p,options),probe={passed:!run.gameOver&&run.waves.some(w=>w.wave===CoopTargets.lastWave(input.mode)),firstRisk:run.gameOver?.wave??null};await write(key,probe);return probe;}
+  const trace=CoopStages.recorder(CoopTargets,CoopGeometry,cells),run=CoopBoss.bossRun(cells,p,options,undefined,e=>{trace.event(e);if(e.kind==='waveStacks')onRound(e.wave);if(notify&&e.kind==='waveStacks')postMessage({id,kind:'stage-progress',mode:input.mode,altar,row:{wave:e.wave}});});
   const report=CoopStages.continuousReport({run,mode:input.mode,altar,T:CoopTargets,rounds:trace.rounds,basis});await write(key,report);return structuredClone(report);
  };
- const reports=[];for(const altar of (data.compareAltars?['current','none']:['current']))for(const mode of modes)reports.push(await evaluate(CoopStages.variant(data,mode,altar),altar,true));
- if(data.stagePressureSearch){const report=reports.find(r=>r.mode==='deepsea'&&r.altar==='current');if(report){const base=CoopStages.variant(data,'deepsea','current');report.pressureCases=await CoopPressure.scenarioSearch({base,Account:CoopAccount,budget:data.stagePressureBudget??3,maxLevel:data.stagePressureLevel??5,onProgress:p=>postMessage({id,kind:'stage-pressure-progress',...p}),evaluate:async candidate=>{const r=await evaluate(candidate);return{pass:r.passed,firstRisk:r.firstRisk,contribution:r.contribution};}});}}
+ const reports=[];for(const altar of (data.compareAltars?['current','none']:['current']))for(const mode of modes){
+  const base=CoopStages.variant(data,mode,altar),report=await evaluate(base,altar,true),mirror=CoopPresets.giantInput(base,'mirror'),capacityKey=await cacheKey({...mirror,target:'stage-capacity-v1'}),capacity=await read(capacityKey);
+  if(capacity){report.contribution=structuredClone(capacity);postMessage({id,kind:'stage-capacity-progress',mode,altar,cached:true});}
+  else {const baseline=report.basis==='mirror'?report:await evaluate(base,'capacity',false,1,true);let probe=0;
+   report.contribution=await CoopStages.personEstimate({baseline,onProgress:p=>{probe=p.evaluated+1;postMessage({id,kind:'stage-capacity-progress',mode,altar,probe,scale:p.scale});},evaluate:scale=>evaluate(base,'capacity',false,scale,true,wave=>{if(wave%10===0)postMessage({id,kind:'stage-capacity-progress',mode,altar,probe,scale,wave});})});await write(capacityKey,report.contribution);
+  }reports.push(report);
+ }
+ if(data.stagePressureSearch){const report=reports.find(r=>r.mode==='deepsea'&&r.altar==='current');if(report){const base=CoopStages.variant(data,'deepsea','current');report.pressureCases=await CoopPressure.scenarioSearch({base,Account:CoopAccount,budget:data.stagePressureBudget??3,maxLevel:data.stagePressureLevel??5,onProgress:p=>postMessage({id,kind:'stage-pressure-progress',...p}),evaluate:async candidate=>{const r=await evaluate(candidate);return{pass:r.passed,firstRisk:r.firstRisk,contribution:null};}});}}
  postMessage({id,kind:'stage-result',reports});return;
  }if(kind==='clara-stacks'){
  const side=data.claraSide;if(!CoopGemTools.active(data).cells.some(c=>c.slug==='clara'&&CoopGemTools.sideOf(c)===side))throw Error('선택한 진영에 클라라를 먼저 배치하세요.');
