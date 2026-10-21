@@ -19,7 +19,7 @@ function giantInput(state,basis){
   const reflect=value=>({...structuredClone(value),row:10-value.row});
   next.partner=structuredClone(next.you);
   next.cells=[...cells,...cells.map(reflect)];
-  next.marks=[...marks,...marks.map(m=>({...reflect(m),...(m.stormBy?{stormBy:m.stormBy.map(reflect)}:{})}))];
+  next.marks=[...marks,...marks.map(m=>({...reflect(m),...(m.stormBy?{stormBy:m.stormBy.map(reflect)}:{}),...(m.contract?{contract:reflect(m.contract)}:{})}))];
  }
  return{...next,giantBasis:basis};
 }
