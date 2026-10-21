@@ -10,6 +10,7 @@ for(const d of ds.DEMONS)engine.computeDemon(d,structuredClone(engine.DEFAULT_PA
 // Extend only the optional diagnostic events. Combat state and rules stay original.
 function diagnosticFactory(f){let source=f.toString();if(f===modules.get(49460)){
  const changes=[
+ ['for(let e=1;e<=_&&(!O||lR.on);e++)e=eB(e);','for(let e=1;e<=_&&(!O||lR.on);e++){e=eB(e);k&&k({kind:"waveStacks",wave:e,kits:[...es.kits].map(([key,value])=>({home:Number(String(key).split(":").at(-1)),clara:value.clara?.h,ivy:value.ivy?.s})),stacks:[...es.counts].map(([home,value])=>({home,spotlight:value.spotlight})),omens:Object.entries(es.omens).map(([home,value])=>({home:Number(home),...value}))});}'],
  ['kind:"shot",frame:e.frame,tower:t.key,enemy:l.id','kind:"shot",frame:e.frame,tower:t.key,enemy:l.id,lane:l.lane,stackSnapshot:{clara:t.clara?.h,ivy:t.ivy?.s}'],
  ['kind:"after",frame:e.frame,tower:t.key,fired:l','kind:"after",frame:e.frame,tower:t.key,fired:l,stackSnapshot:{clara:t.clara?.h,ivy:t.ivy?.s}'],
  ['kind:"hit",frame:e.frame,tower:l.key,enemy:t.id,tid:t.tid,dmg:u,dealt:a','kind:"hit",frame:e.frame,tower:l.key,enemy:t.id,tid:t.tid,dmg:u,dealt:a,stackSnapshot:{clara:l.clara?.h,ivy:l.ivy?.s}']

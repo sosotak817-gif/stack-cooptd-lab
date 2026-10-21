@@ -10,7 +10,7 @@ vm.runInContext(`var records=[];for(var slug of ['omen','clara','ivy']){
  var p=CoopPresets.newAccount(CoopEngine,CoopData);p.mode='hell';p.targetId=CoopTargets.finalBossOf('hell').id;
  p.perDemon[slug]={level:21,lib:20,relicLevel:8,gems:[]};
  var events=[];var run=CoopBoss.bossRun([{slug,row:6,col:3,lib:true}],p,{marks:[],builds:{you:p,partner:p}},undefined,e=>events.push(e));
- var nextWave=events.findIndex((e,i)=>i>0&&e.kind==='spawn'&&e.enemy===0);
+ var firstSpawn=events.findIndex(e=>e.kind==='spawn'&&e.enemy===0),nextWave=events.findIndex((e,i)=>i>firstSpawn&&e.kind==='spawn'&&e.enemy===0);
  records.push({slug,events:nextWave<0?events:events.slice(0,nextWave),held:run.banks.held[45]});
 }`,c);
 for(const {slug,events,held} of c.records){
