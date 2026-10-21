@@ -28,9 +28,9 @@ assert.equal(range({target,kill:{seconds:0,segments:[]}}).intervals,0);
 (async()=>{
  const t=T.TARGETS.find(x=>x.mode==='deepsea'&&x.type==='SpecialBoss'&&x.wave===100);
  for(const slug of ['ivy','clara']){
-  const p=P.newAccount(E,D);p.perDemon[slug]={level:21,lib:20,skinLevels:2,gems:[]};p.mode=t.mode;p.targetId=t.id;p.wave=t.wave;
+  const p=P.newAccount(E,D);p.pressureLv=1;p.dsPressure=[];p.perDemon[slug]={level:21,lib:20,skinLevels:2,gems:[]};p.mode=t.mode;p.targetId=t.id;p.wave=t.wave;
   const other=P.newAccount(E,D),cells=[{slug,row:6,col:3,lib:true,nolib:false}];
-  const r=B.computeBossBoard(cells,p,{marks:[],range:{},blackout:'auto',builds:{you:p,partner:other},gold:false,bounties:null});
+  other.pressureLv=1;other.dsPressure=[];const r=B.computeBossBoard(cells,p,{marks:[],range:{},blackout:'auto',builds:{you:p,partner:other},gold:false,bounties:null});
   const values=integrate(r),ramps=[...r.ramps.values()].flat();
   assert.ok(ramps.some(x=>x.drive=== (slug==='ivy'?'attacks':'hits')),slug+' uses original attack/hit ramp');
   assert.ok(values[10]>0&&values[30]>values[10]&&values[60]>values[30]);
