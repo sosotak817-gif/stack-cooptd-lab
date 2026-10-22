@@ -38,3 +38,5 @@
 .setting-row.has-max{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(70px,110px);gap:8px}.setting-row .setting-max{padding:4px 6px;min-height:26px;border-radius:6px;font-size:10px;line-height:1;color:#8261b7;background:#f0eaff;white-space:nowrap}
 
 .dps-value-button{font:inherit;color:inherit;letter-spacing:inherit;background:transparent;border:0;padding:0;cursor:pointer;max-width:100%;overflow-wrap:anywhere}.dps-value-button:focus-visible{outline:2px solid #9675e5;outline-offset:5px;border-radius:6px}
+
+.shortcut-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin:12px 0}.shortcut-controls label{display:grid;gap:5px}.shortcut-controls input{width:90px}.settings-shortcuts{margin:16px 0}#compose-comparison{padding:12px;border:1px solid #cfc5ef;border-radius:12px;margin:12px 0;overflow-wrap:anywhere}#compose-comparison table{width:100%;border-collapse:collapse}#compose-comparison td,#compose-comparison th{padding:8px;text-align:left;border-bottom:1px solid #ddd}#compose-comparison button{margin:8px 8px 0 0}
