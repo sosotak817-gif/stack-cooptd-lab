@@ -4,7 +4,7 @@ let catalog,page=1,total=0,generation=0,controller,busy=false,initializing=false
 const message=text=>{$('ranking-status').textContent=text;};
 function controls(){
  $('ranking-prev').disabled=busy||page<=1;$('ranking-next').disabled=busy||page*50>=total;
- for(const id of ['ranking-deck','ranking-map','ranking-target','ranking-name','ranking-refresh','ranking-submit'])$(id).disabled=busy;
+ for(const id of ['ranking-deck','ranking-map','ranking-target','ranking-name','ranking-refresh','ranking-submit'])$(id).disabled=busy||(id==='ranking-submit'&&!!window.StackLabRanking?.maxBuildEnabled?.());
  $('ranking-page').textContent=page+' / '+Math.max(1,Math.ceil(total/50));
 }
 function ownRecord(record){
@@ -51,7 +51,7 @@ async function load(){
  finally{if(id===generation)controls();}
 }
 async function submit(event){
- event.preventDefault();if(busy)return;
+ event.preventDefault();if(window.StackLabRanking?.maxBuildEnabled?.()){message('최상 세팅 시뮬레이션을 끈 뒤 랭킹을 등록해 주세요.');return;}if(busy)return;
  const nickname=$('ranking-name').value.normalize('NFC').trim();
  if(!nickname||Array.from(nickname).length>20||/[\p{Cc}\p{Cf}\p{Cs}]/u.test(nickname)){message('인게임 닉네임을 1~20자로 입력해 주세요.');return;}
  const deck=$('ranking-deck').value,target=$('ranking-target').value;
@@ -70,6 +70,7 @@ async function submit(event){
   message(data.retained?(data.improved?'최고 기록 등록 완료':'인게임 닉네임 갱신 · 기존 최고 기록 유지')+' · 현재 '+data.rank+'위 · DPS '+R.dps(data.score):'현재 순위 1000+ · 상위 1,000위 밖 기록은 순위표에 표시하지 않습니다.');
  }catch(error){message(error.message);}finally{busy=false;controls();}
 }
+window.addEventListener('stack-lab:max-build-changed',()=>controls());
 async function initialize(){
  if(catalog||initializing)return;initializing=true;
  try{

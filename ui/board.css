@@ -40,3 +40,6 @@
 .dps-value-button{font:inherit;color:inherit;letter-spacing:inherit;background:transparent;border:0;padding:0;cursor:pointer;max-width:100%;overflow-wrap:anywhere}.dps-value-button:focus-visible{outline:2px solid #9675e5;outline-offset:5px;border-radius:6px}
 
 .shortcut-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin:12px 0}.shortcut-controls label{display:grid;gap:5px}.shortcut-controls input{width:90px}.settings-shortcuts{margin:16px 0}#compose-comparison{padding:12px;border:1px solid #cfc5ef;border-radius:12px;margin:12px 0;overflow-wrap:anywhere}#compose-comparison table{width:100%;border-collapse:collapse}#compose-comparison td,#compose-comparison th{padding:8px;text-align:left;border-bottom:1px solid #ddd}#compose-comparison button{margin:8px 8px 0 0}
+
+.max-build-toggle{display:flex;align-items:center;gap:5px;padding:6px 9px;border:1px solid #d8c9fa;border-radius:9px;background:#f7f3ff;color:#685391;font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap}.max-build-toggle input{accent-color:#8060d5}.max-build-toggle:has(input:checked){background:#ece5ff;border-color:#a990e4}#max-build-note{font-size:8px;color:#8e82a0;white-space:nowrap}#max-build-note.active{color:#684bb1;font-weight:700}
+@media(max-width:600px){.max-build-toggle{font-size:9px;padding:6px 8px}#max-build-note{white-space:normal;flex-basis:auto}}
