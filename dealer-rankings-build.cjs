@@ -3,6 +3,7 @@ require('./dist/engine.js');
 require('./ui/eggby-tools.js');
 require('./ui/unit-tools.js');
 const {CoopEngine:E,CoopData:D,CoopTargets:T,CoopUnitTools:H}=globalThis;
+const sourceHash=require('crypto').createHash('sha256').update(fs.readFileSync('dist/engine.js')).update(fs.readFileSync('ui/unit-tools.js')).update(fs.readFileSync(__filename)).digest('hex');
 const modes=['normal','hard','hell','abyss','deepsea'];
 const growth=slug=>({level:D.maxLevelFor(slug),lib:D.NO_LIBERATION.has(slug)?0:20,skinLevels:2,relicLevel:32});
 function accountFor(slug,claraMode){
@@ -17,7 +18,7 @@ function accountFor(slug,claraMode){
   return a;
 }
 async function main(){
-  const output={version:1,generatedAt:new Date().toISOString(),stackBasis:'fixed official Max preset values; independent from user board/deck',benchmark:{coinManGold:30000000,coinManBikers:{liberated:1,unliberated:8},spaceSoldierStacks:15000,asuraLittleAsuras:10,asuraPartsEach:3,asuraUpgrades:5,eggbySupport:true},modes:{}};
+  const output={version:1,sourceHash,generatedAt:new Date().toISOString(),stackBasis:'fixed official Max preset values; independent from user board/deck',benchmark:{coinManGold:30000000,coinManBikers:{liberated:1,unliberated:8},spaceSoldierStacks:15000,asuraLittleAsuras:10,asuraPartsEach:3,asuraUpgrades:5,eggbySupport:true},modes:{}};
   for(const mode of modes){
     const target=T.finalBossOf(mode),roster=D.demonsIn('supreme'),rows=[];
     for(const unit of roster){
