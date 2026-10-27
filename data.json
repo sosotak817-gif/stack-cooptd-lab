@@ -1,6 +1,6 @@
 {
   "source": "https://coop-tools.vercel.app/",
-  "collectedAt": "2026-10-22T03:02:22.017Z",
+  "collectedAt": "2026-10-27T07:39:35.594Z",
   "scope": "Public browser-delivered data and JavaScript; not the private source repository or server code.",
   "BOSSES": [
     {
@@ -13835,6 +13835,11 @@
       "base": 100,
       "t1": 20,
       "t2": 30
+    },
+    "kaiser": {
+      "base": 500,
+      "t1": 100,
+      "t2": 150
     }
   },
   "LOCKED_TILES": {
@@ -15261,6 +15266,27 @@
       ],
       "breakEnhance": [
         500
+      ]
+    },
+    {
+      "id": 1043,
+      "grade": 3,
+      "owner": "kaiser",
+      "ownerName": "Kaiser",
+      "name": "Ember of Eternity",
+      "desc": "Fireball MOV SPD +{0}%",
+      "params": [
+        10
+      ],
+      "enhance": [
+        4
+      ],
+      "breakDesc": "Fireball Final DMG +{0}%",
+      "breakParams": [
+        5
+      ],
+      "breakEnhance": [
+        0.5
       ]
     }
   ],
@@ -16874,6 +16900,42 @@
       ],
       "apEnh": [
         0
+      ]
+    },
+    "kaiser": {
+      "id": "Unit_God_Kaiser",
+      "grade": 5,
+      "tower": "God",
+      "canMergeGod": false,
+      "atk": 10000,
+      "atkEnh": 0.16,
+      "spd": 0,
+      "spdEnh": 0,
+      "fixSpd": true,
+      "boss": 5000,
+      "bossEnh": 0,
+      "crit": 10,
+      "critDmg": 150,
+      "targets": 1,
+      "ap": [
+        1.2,
+        15,
+        500,
+        40,
+        5,
+        5,
+        5,
+        100
+      ],
+      "apEnh": [
+        0,
+        0,
+        100,
+        0,
+        1,
+        1,
+        0.5,
+        10
       ]
     }
   },
@@ -33532,6 +33594,20 @@
         }
       ],
       "libAtkSource": "verified"
+    },
+    {
+      "slug": "kaiser",
+      "name": "Kaiser",
+      "img": "kaiser",
+      "att": 10000,
+      "lvlatt": 1600,
+      "as": 0,
+      "lvlas": 0,
+      "range": 2,
+      "bd": 5000,
+      "lvlbd": 0,
+      "libAtkSource": "verified",
+      "rarity": "Supreme Demon God"
     }
   ],
   "gems": [
@@ -34651,6 +34727,29 @@
           "upgraded": {
             "at": 16,
             "desc": "On Final Blow, has a 50% chance to trigger again (Max 5). At max chain, deals 10000% ATK and 2% of enemies' Max Shield to all enemies 10 times. When using Moon Sword, Dokkaebi Dance's bonus damage to airborne enemies is doubled."
+          }
+        }
+      ],
+      "atkInc": 100
+    },
+    "kaiser": {
+      "skills": [
+        {
+          "name": "Authority",
+          "unlock": 1,
+          "desc": "Fireball Count +1, Grace Tile Count +1.",
+          "upgraded": {
+            "at": 11,
+            "desc": "Fireball Count +2, Grace Tile Count +3."
+          }
+        },
+        {
+          "name": "Descent",
+          "unlock": 6,
+          "desc": "Kaiser descends and casts Basic Attacks. Range and ATK SPD are fixed at 2, and all enemies within range are attacked. Basic Attack DMG increases by the amount equal to 50% of CRIT Rate. When only one enemy is within range, this effect is multiplied by 30.",
+          "upgraded": {
+            "at": 16,
+            "desc": "Kaiser descends and casts Basic Attacks. Range and ATK SPD are fixed at 2, and all enemies within range are attacked. Basic Attack DMG increases by the amount equal to CRIT Rate. When only one enemy is within range, this effect is multiplied by 100."
           }
         }
       ],
