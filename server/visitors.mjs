@@ -13,8 +13,9 @@ export async function handleVisitors({request,env}){
   if(!env.DB)return reply({error:'방문 통계를 불러올 수 없습니다.'},503);
   const db=env.DB,day=seoulDay();await ensureSchema(db);
   if(request.method==='GET'){
-   const since=offsetDay(day,-13),rows=await db.prepare('SELECT day,COUNT(*) AS visitors FROM daily_visitors WHERE day>=? AND day<=? GROUP BY day ORDER BY day').bind(since,day).all(),counts=new Map(rows.results.map(row=>[row.day,Number(row.visitors)]));
-   return reply({days:Array.from({length:14},(_,index)=>{const date=offsetDay(since,index);return{date,visitors:counts.get(date)||0};})});
+   const since=offsetDay(day,-6),rows=await db.prepare('SELECT day,COUNT(*) AS visitors FROM daily_visitors WHERE day>=? AND day<=? GROUP BY day ORDER BY day').bind(since,day).all(),counts=new Map(rows.results.map(row=>[row.day,Number(row.visitors)]));
+   const first=rows.results[0]?.day;
+   return reply({days:first?Array.from({length:Math.round((Date.parse(day)-Date.parse(first))/86400000)+1},(_,index)=>{const date=offsetDay(first,index);return{date,visitors:counts.get(date)||0};}):[]});
   }
   if(request.method!=='POST')return new Response(null,{status:405,headers:{...headers,Allow:'GET, POST'}});
   const url=new URL(request.url);if(request.headers.get('Origin')!==url.origin)return reply({error:'요청 출처를 확인할 수 없습니다.'},403);

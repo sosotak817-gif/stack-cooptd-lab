@@ -1,5 +1,10 @@
 # Repository workflow
 
+## Commit and push
+
+- After completing requested changes and required verification, automatically commit the task changes and push the current branch to its configured remote. The user has authorized this workflow; no additional confirmation is needed.
+- Include relevant generated build artifacts. Do not include unrelated changes or force-push.
+
 ## User-visible patch history
 
 For every change that affects user-facing behavior, UI, recommendations, calculations, or bug fixes:
