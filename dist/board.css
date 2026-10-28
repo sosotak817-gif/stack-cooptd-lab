@@ -43,3 +43,35 @@
 
 .max-build-toggle{display:flex;align-items:center;gap:5px;padding:6px 9px;border:1px solid #d8c9fa;border-radius:9px;background:#f7f3ff;color:#685391;font-size:9px;font-weight:700;cursor:pointer;white-space:nowrap}.max-build-toggle input{accent-color:#8060d5}.max-build-toggle:has(input:checked){background:#ece5ff;border-color:#a990e4}#max-build-note{font-size:8px;color:#8e82a0;white-space:nowrap}#max-build-note.active{color:#684bb1;font-weight:700}
 @media(max-width:600px){.max-build-toggle{font-size:9px;padding:6px 8px}#max-build-note{white-space:normal;flex-basis:auto}}
+
+/* Shared readable dark theme for every tool, including embedded pages. */
+html.lab-dark{--muted:#b3c5db;--line:#344b65}
+html.lab-dark body{color:#e8f0fc;font-size:14px;line-height:1.6}
+html.lab-dark body :is(.panel,.portal-card,.unit-combo,.unit-skill,.rank-panel,.ranking-panel,.settings-dialog,.account-dialog) :is(h2,h3,h4){color:#e5efff}
+html.lab-dark body :is(.panel,.portal-card,.unit-combo,.settings-dialog,.account-dialog) :is(p,small,label,summary,td,th){color:#bdcee2}
+html.lab-dark body :is(.hero p,.portal-note,.board-foot,.board-caption,.gem-note,.gem-help,.trait-help,.skin-note,.range-notes,.source-links,.panel-caption,.tier-footnote,.ranking-caption,.rank-legend,.stage-assumptions,.wall-rules,.wall-empty,.dealer-method,.dealer-tier-empty,.empty-message,.unit-top-gap,.freeze-condition-note,.position-method,.combo-summary-gem small,.combo-summary-delta){color:#b3c5db;font-size:12px;line-height:1.75}
+html.lab-dark body :is(.setting-row,.section-title,.selected-unit small,.selected-unit div>span,.advanced-unit,.lib-toggle label,.lib-toggle small,#unit-status,#board-message,.score-guide p,.score-guide details,.contribution small,.contribution strong,.import-area,.unit-position-box>small){color:#bdcee2;font-size:12px;line-height:1.7}
+html.lab-dark body :is(.selected-unit h3,.score-guide h2,.score-guide p b,.unit-freeze-settings h3,.unit-position-box h4,.combo-change-summary b){color:#d8e7ff}
+html.lab-dark body :is(.unit-combo .combo-dps,.combo-change-summary strong,.unit-top-value,.combo-nav-dps){color:#82f5dc}
+html.lab-dark body :is(.combo-change-summary,.unit-position-box,.unit-freeze-settings,.unit-formula,.formula-section,.gem-description,.stage-altar-side,.stage-pressure-results,.ranking-filters,.ranking-register,.ranking-pagination,.dealer-controls,.dealer-method,.lib-toggle,#board-message){background:#142438;color:#d0deef;border-color:#3a526e}
+html.lab-dark body :is(.unit-combo .combo-stat,.unit-combo .combo-delta,.unit-combo .gem-description p){color:#d2e3f5;background:#182e43;font-size:12px;line-height:1.7}
+html.lab-dark body :is(.unit-combo .gem-row,.unit-skill,.stage-table th,.stage-table td,.ranking-panel th,.ranking-panel td,.contribution,.section-title,footer){border-color:#344b65}
+html.lab-dark body :is(button,.portal button,.unit-combo button,.unit-top-actions button,.ranking-panel button){font-size:12px;color:#dceaff;background-color:#1a3047;border-color:#47617d}
+html.lab-dark body :is(button,.portal button):hover:not(:disabled){color:#f1fffc;background-color:#24465a;border-color:#6adfc9}
+html.lab-dark body :is(button,input,select,textarea):focus-visible{outline:2px solid #82f5dc;outline-offset:3px}
+html.lab-dark body :is(input,select,textarea){font-size:12px}
+html.lab-dark body :is(input,textarea)::placeholder{color:#b3c5db!important;-webkit-text-fill-color:#b3c5db!important}
+html.lab-dark body button:disabled{color:#b1c0d3;opacity:.75}
+html.lab-dark body :is(.unit-combo button.combo-dps,.unit-top-graph>.unit-top-value,.combo-nav-item>.combo-nav-dps,.dps-value){background:transparent;border:0;color:#82f5dc}
+html.lab-dark body .unit-combo button.combo-dps{font-size:31px;line-height:1.3}
+html.lab-dark body .unit-combo .gem-description>summary{font-size:12px;color:#c4d9ef}
+html.lab-dark body :is(.unit-combo small,.unit-top-gem,.unit-comparison-nav .combo-summary-delta){font-size:12px;color:#bdcee2}
+html.lab-dark body :is(.stage-pass,.stage-tag.pass){color:#a1f2d1;background:#173d34}
+html.lab-dark body :is(.stage-fail,#error){color:#ffb7cd}
+html.lab-dark body :is(.sidebar-caption small,.lab-breadcrumb,.lab-breadcrumb b,.lab-local-label,.dashboard-footer,.dashboard-ranking>p,.visitor-panel>small,.section-kicker,.eyebrow){color:#a9bfd9}
+html.lab-dark body :is(.dashboard .patch-body,.dashboard .patch-note time,.preview-unit small,.dashboard-panel header a,.patch-eyebrow){color:#b3c5db;font-size:12px}
+html.lab-dark body .dashboard .patch-title{color:#e8f0fc;font-size:13px}
+html.lab-dark body :is(.home-tools,.home-updates,.portal-shortcut,.portal-card,.saved-deck){background:#132237;border-color:#344b65;color:#e5efff}
+html.lab-dark body :is(.home-section-heading h2,.home-intro h1,.portal-shortcut strong,.patch-heading h2){color:#e5efff}
+html.lab-dark body :is(.patch-all,.tabs button,.unit-comparison-nav>.combo-nav-item){background:#1a3047;color:#d5e4f7;border-color:#47617d}
+@media(max-width:600px){html.lab-dark body .unit-combo button.combo-dps{font-size:32px}html.lab-dark body :is(.setting-row,.unit-combo small,.gem-note,.unit-top-gap,.freeze-condition-note){font-size:12px}}
