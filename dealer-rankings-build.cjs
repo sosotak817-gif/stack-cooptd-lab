@@ -9,7 +9,7 @@ const modes=['normal','hard','hell','abyss','deepsea'];
 const growth=slug=>CoopDealerTools.growth(slug,D);
 const accountFor=(slug,claraMode)=>CoopDealerTools.account(E,D,claraMode);
 async function main(){
-  const output={version:1,sourceHash,generatedAt:new Date().toISOString(),stackBasis:'fixed official Max preset values; independent from user board/deck',benchmark:{coinManGold:30000000,coinManBikers:{liberated:1,unliberated:8},spaceSoldierStacks:15000,asuraLittleAsuras:10,asuraPartsEach:3,asuraUpgrades:5,eggbySupport:true},modes:{}};
+  const output={version:1,sourceHash,generatedAt:new Date().toISOString(),stackBasis:'fixed official Max preset values; independent from user board/deck',benchmark:{coinManGold:25000000,coinManBikers:{liberated:1,unliberated:8},spaceSoldierStacks:15000,asuraLittleAsuras:10,asuraPartsEach:3,asuraUpgrades:5,eggbySupport:true},modes:{}};
   for(const mode of modes){
     const target=T.finalBossOf(mode),roster=D.demonsIn('supreme'),rows=[];
     for(const unit of roster){
