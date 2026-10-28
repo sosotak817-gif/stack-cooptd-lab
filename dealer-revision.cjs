@@ -1,0 +1,1 @@
+const fs=require('node:fs'),crypto=require('node:crypto');module.exports=()=>crypto.createHash('sha256').update(require('./unit-revision.cjs')().revision).update(fs.readFileSync('ui/dealer-tools.js')).update(fs.readFileSync('dealer-rankings-build.cjs')).digest('hex');

@@ -4,7 +4,7 @@ require('./ui/eggby-tools.js');
 require('./ui/unit-tools.js');
 require('./ui/dealer-tools.js');
 const {CoopEngine:E,CoopData:D,CoopTargets:T,CoopUnitTools:H}=globalThis;
-const sourceHash=require('crypto').createHash('sha256').update(fs.readFileSync('dist/engine.js')).update(fs.readFileSync('ui/unit-tools.js')).update(fs.readFileSync('ui/dealer-tools.js')).update(fs.readFileSync(__filename)).digest('hex');
+const sourceHash=require('./dealer-revision.cjs')();
 const modes=['normal','hard','hell','abyss','deepsea'];
 const growth=slug=>CoopDealerTools.growth(slug,D);
 const accountFor=(slug,claraMode)=>CoopDealerTools.account(E,D,claraMode);
