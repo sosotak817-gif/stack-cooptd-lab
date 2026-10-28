@@ -1,2 +1,2 @@
-export const revision="0a1004c776ffe4915a8d2d6d4d1156d23b0f521119d43182db8f2fd470919647";
+export const revision="d7bbc63669e20ae686ea1e7c3abcc2d21357237ad2368158643c4c5863645373";
 export const balanceVersion="2026-10-28";
