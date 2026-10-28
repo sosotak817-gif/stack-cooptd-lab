@@ -11,3 +11,5 @@ node_modules/
 .wrangler/
 .dev.vars
 wrangler.toml
+
+.openai/browser-audit/

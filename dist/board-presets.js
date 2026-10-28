@@ -23,5 +23,7 @@ function giantInput(state,basis){
  }
  return{...next,giantBasis:basis};
 }
-root.CoopPresets={presets,newAccount,withDefaults,applyPreset,hasPartnerDeck,giantInput};if(typeof module!=='undefined')module.exports=root.CoopPresets;
+function maxAccount(account,E,D,mode,catalog=root.CoopDealerRecommendations){const copy=structuredClone(account);copy.perDemon={...copy.perDemon};for(const d of D.DEMONS){const lib=D.NO_LIBERATION.has(d.slug)?0:20,entry=catalog?.modes?.[mode]?.rows?.find(r=>r.slug===d.slug);if(D.SUPREME_SLUGS.has(d.slug)&&lib&&(!entry||entry.gems?.length!==3))throw Error('최상 세팅 추천 보석 데이터를 불러오지 못했습니다. 새로고침해 주세요.');copy.perDemon[d.slug]={...copy.perDemon[d.slug],level:D.maxLevelFor(d.slug),lib,skinLevels:2,relicLevel:32,gems:lib?(entry?.gems||E.recommendedGems(d.slug)||[]).filter(Boolean).map(g=>({...g,grade:'SSS'})):[]};if(d.slug==='clara'&&entry?.claraMode)copy.claraMode=entry.claraMode;}return copy;}
+function maxState(state,E,D,catalog=root.CoopDealerRecommendations){const next=structuredClone(state);for(const side of ['you','partner'])next[side]=maxAccount(next[side],E,D,next.mode,catalog);next.cells=next.cells.map(c=>({...c,lib:!D.NO_LIBERATION.has(c.slug),nolib:D.NO_LIBERATION.has(c.slug)}));return next;}
+root.CoopPresets={maxAccount,maxState,presets,newAccount,withDefaults,applyPreset,hasPartnerDeck,giantInput};if(typeof module!=='undefined')module.exports=root.CoopPresets;
 })(globalThis);

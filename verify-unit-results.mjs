@@ -1,0 +1,33 @@
+import assert from 'node:assert/strict';
+import {DatabaseSync} from 'node:sqlite';
+import fs from 'node:fs';
+import {handleUnitResults} from './server/unit-results.mjs';
+import {revision} from './server/unit-calculation-version.mjs';
+const sqlite=new DatabaseSync(':memory:');
+sqlite.exec('CREATE TABLE preserved(id INTEGER); INSERT INTO preserved VALUES(42)');
+class Statement{constructor(sql,values=[]){this.sql=sql;this.values=values;}bind(...v){return new Statement(this.sql,v);}async first(){return sqlite.prepare(this.sql).get(...this.values)||null;}async run(){return sqlite.prepare(this.sql).run(...this.values);}}
+const DB={prepare:sql=>new Statement(sql),async batch(statements){sqlite.exec('BEGIN');try{for(const s of statements)await s.run();sqlite.exec('COMMIT');}catch(e){sqlite.exec('ROLLBACK');throw e;}}};
+const key='a'.repeat(64),token='b'.repeat(64),other='c'.repeat(64),base='https://lab.example',env={DB};
+const result={revision,updatedAt:Date.now(),evaluated:6090,total:6090,rankings:[{key:'battle|origin|glacier',dps:123456789.12345679,gems:[{id:'battle',grade:'SSS'},{id:'origin',grade:'SSS'},{id:'glacier',grade:'SSS'}]}],freezeProfile:{share:.12345678912345678,immune:false,extraSeconds:0,attackSpeed:2.123456789,sources:[{source:'Glacial Prison',seconds:.8,rate:2,chance:.1}],method:'stationary-average'}};
+async function call(method='GET',body,options={}){const request=new Request(base+'/api/unit-results?key='+(options.key||key)+'&revision='+(options.revision||revision),{method,headers:{Origin:options.origin||base,'Content-Type':'application/json',...(options.token?{Authorization:'Bearer '+options.token}:{})},...(method==='GET'?{}:{body:typeof body==='string'?body:JSON.stringify(body)})});const response=await handleUnitResults({request,env:options.env||env});return{status:response.status,data:await response.json()};}
+assert.equal((await call()).data.result,null);
+assert.equal((await call('GET',null,{env:{}})).status,503);
+assert.equal((await call('GET',null,{key:'invalid'})).status,400);
+assert.equal((await call('GET',null,{revision:'d'.repeat(64)})).status,409);
+assert.equal((await call('PUT',{result})).status,401);
+assert.equal((await call('PUT',{result},{token,origin:'https://bad.example'})).status,403);
+assert.equal((await call('PUT',{result:{...result,rankings:[{dps:-1,gems:[]}]}},{token})).status,400);
+assert.equal((await call('PUT','x'.repeat(131073),{token})).status,400);
+assert.equal((await call('PUT',{result},{token})).status,200);
+const own=await call('GET',null,{token});assert.equal(own.data.source,'personal-db');assert.equal(own.data.result.rankings[0].dps,result.rankings[0].dps);assert.equal(own.data.result.freezeProfile.share,result.freezeProfile.share);
+assert.equal((await call('GET',null,{token:other})).data.result,null);
+assert.equal((await call()).data.result,null,'anonymous requests never receive a private result');
+assert.ok(!sqlite.prepare('SELECT owner FROM lab_unit_results').get().owner.includes(token));
+const ASSETS={async fetch(){return new Response(JSON.stringify({revision,entries:{[key]:result}}),{headers:{'Content-Type':'application/json'}});}};
+const shared=await call('GET',null,{env:{DB,ASSETS}});assert.equal(shared.data.source,'shared-db');
+assert.equal(sqlite.prepare("SELECT COUNT(*) n FROM lab_unit_results WHERE owner='shared'").get().n,1);
+await call('PUT',{result:{...result,rankings:[{...result.rankings[0],dps:1}]}},{token:other});
+assert.equal((await call('GET',null,{token:other})).data.result.rankings[0].dps,result.rankings[0].dps,'personal uploads cannot replace authoritative shared rows');
+assert.equal(sqlite.prepare('SELECT id FROM preserved').get().id,42);
+sqlite.close();
+console.log('D1 recommendation cache: real SQLite schema creation, exact numeric round-trip, private isolation, authoritative asset seeding, revision/origin/size validation and existing-table preservation passed.');

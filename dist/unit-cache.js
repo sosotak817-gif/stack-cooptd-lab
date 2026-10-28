@@ -1,0 +1,11 @@
+(function(root){'use strict';
+// Only engine inputs enter the key. Presentation builds and JSON key order do not.
+function stable(value){if(Array.isArray(value))return value.map(stable);if(value&&typeof value==='object')return Object.fromEntries(Object.keys(value).sort().filter(k=>value[k]!==undefined).map(k=>[k,stable(value[k])]));return value;}
+function account(input,E,Egg){const out=Egg.normalize({...structuredClone(E.DEFAULT_PARAMS),...structuredClone(input.account)},E);out.freezeSetup=input.account.freezeSetup?.enabled?input.account.freezeSetup:{enabled:false};if(out.freezeSetup.enabled)delete out.freezeDamagePercent;out.eggbyAttached=!!input.includeEggby&&!!out.eggbyAttached;out.heliEggby=!!input.includeEggby&&!!out.heliEggby;out.bikerEggby=!!input.includeEggby&&!!out.bikerEggby;return out;}
+function identity(input,E,Egg){return stable({slug:input.slug,mode:input.mode,target:input.target,growth:input.growth,includeEggby:!!input.includeEggby,account:account(input,E,Egg)});}
+async function digest(value){return Array.from(new Uint8Array(await root.crypto.subtle.digest('SHA-256',new TextEncoder().encode(JSON.stringify(stable(value))))),v=>v.toString(16).padStart(2,'0')).join('');}
+async function key(input,E,Egg,revision){return digest({revision,input:identity(input,E,Egg)});}
+async function freezeKey(input,E,Egg,revision){return digest({revision,kind:'freeze',mode:input.mode,target:input.target,account:account({...input,includeEggby:false},E,Egg)});}
+function valid(result){return !!result&&Array.isArray(result.rankings)&&result.rankings.length<=5&&Number.isInteger(result.evaluated)&&result.evaluated>=0&&result.rankings.every(r=>Number.isFinite(r.dps)&&r.dps>=0&&Array.isArray(r.gems)&&r.gems.length===3&&r.gems.every(g=>g===null||typeof g?.id==='string'&&g.grade==='SSS'))&&(!result.freezeProfile||Number.isFinite(result.freezeProfile.share)&&result.freezeProfile.share>=0&&result.freezeProfile.share<=1&&Array.isArray(result.freezeProfile.sources)&&result.freezeProfile.sources.every(c=>typeof c.source==='string'&&Number.isFinite(c.seconds)&&Number.isFinite(c.rate)&&Number.isFinite(c.chance)));}
+root.CoopUnitCache={stable,identity,digest,key,freezeKey,valid};if(typeof module!=='undefined')module.exports=root.CoopUnitCache;
+})(globalThis);

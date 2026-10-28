@@ -12,7 +12,7 @@ class Element{
  for(const saved of [null,{S:[],A:[],B:[],C:[],D:[]}]){
   const nodes=new Map(),get=s=>{if(!nodes.has(s))nodes.set(s,new Element('div'));return nodes.get(s);};
   get('#dealer-mode').value='deepsea';
-  const context={CoopData,CoopTargets,URL,console,Option:function(text,value){this.text=text;this.value=value;},document:{currentScript:{src:'https://example.test/dealer-tiers-page.js'},querySelector:get,createElement:tag=>new Element(tag)},localStorage:{getItem:()=>JSON.stringify(saved),setItem(){}},fetch:url=>{const result=Promise.resolve({ok:true,json:async()=>url.includes('ko.json')?{}:rankings});return result;}};
+  const context={CoopDealerTools:require('./ui/dealer-tools.js'),CoopData,CoopTargets,URL,console,Option:function(text,value){this.text=text;this.value=value;},document:{currentScript:{src:'https://example.test/dealer-tiers-page.js'},querySelector:get,createElement:tag=>new Element(tag)},localStorage:{getItem:()=>JSON.stringify(saved),setItem(){}},fetch:url=>{const result=Promise.resolve({ok:true,json:async()=>url.includes('ko.json')?{}:rankings});return result;}};
   vm.runInNewContext(fs.readFileSync('ui/dealer-tiers-page.js','utf8'),context);
   await new Promise(resolve=>setImmediate(resolve));
   for(const mode of Object.keys(rankings.modes)){

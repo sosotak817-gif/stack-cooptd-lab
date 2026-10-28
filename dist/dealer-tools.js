@@ -1,0 +1,6 @@
+(function(root){'use strict';
+function growth(slug,D){return{level:D.maxLevelFor(slug),lib:D.NO_LIBERATION.has(slug)?0:20,skinLevels:2,relicLevel:32};}
+function account(E,D,claraMode){const a=structuredClone(E.DEFAULT_PARAMS);Object.assign(a,{gold:30000000,spaceStacks:15000,asuraHeads:1,asuraBodies:1,asuraArms:1,asuraLegs:1,asuraLittles:10,asuraUpgrades:5,freezeSetup:{enabled:true,level:D.maxLevelFor('ice-knight'),lib:20,skinLevels:2,relicLevel:32,frostGrade:'SSS',extraSeconds:30}});if(claraMode)a.claraMode=claraMode;return a;}
+function tierScores(rows){const sorted=[...rows].sort((a,b)=>b.dps-a.dps||a.slug.localeCompare(b.slug)),logs=sorted.map(r=>Math.log1p(Math.max(0,r.dps))),lo=Math.min(...logs),hi=Math.max(...logs);return sorted.map((r,i)=>{const tied=sorted.map((x,j)=>x.dps===r.dps?j:-1).filter(j=>j>=0),rank=(tied[0]+tied.at(-1))/2,relative=sorted[0]?.dps>0?r.dps/sorted[0].dps:0,score=hi===lo?.5:.75*(logs[i]-lo)/(hi-lo)+.25*(1-rank/Math.max(1,sorted.length-1)),tier=['S','A','B','C','D'][Math.min(4,Math.floor((1-score)*5))];return{...r,relative,tier,tierScore:score};});}
+root.CoopDealerTools={growth,account,tierScores};if(typeof module!=='undefined')module.exports=root.CoopDealerTools;
+})(globalThis);

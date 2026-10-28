@@ -75,3 +75,17 @@ html.lab-dark body :is(.home-tools,.home-updates,.portal-shortcut,.portal-card,.
 html.lab-dark body :is(.home-section-heading h2,.home-intro h1,.portal-shortcut strong,.patch-heading h2){color:#e5efff}
 html.lab-dark body :is(.patch-all,.tabs button,.unit-comparison-nav>.combo-nav-item){background:#1a3047;color:#d5e4f7;border-color:#47617d}
 @media(max-width:600px){html.lab-dark body .unit-combo button.combo-dps{font-size:32px}html.lab-dark body :is(.setting-row,.unit-combo small,.gem-note,.unit-top-gap,.freeze-condition-note){font-size:12px}}
+
+/* Remaining legacy light surfaces and labels found in the browser contrast audit. */
+html.lab-dark body .metrics>div>span,html.lab-dark body :is(.deck-dps-range b,.damage-grid span,#giant-status,#brush-name,#board-unit-settings,fieldset legend,#stage-basis-option){color:#c2d6ed}
+html.lab-dark body :is(.max-build-toggle,.field-controls,.ranking-disclosure,.combo-tools>summary){background:#172c42;border-color:#3b536e;color:#c2d6ed}
+html.lab-dark body .unit-combo h3{background:#223a54;color:#e5efff}
+html.lab-dark body .unit-combo .combo-tools>summary{color:#c2d6ed!important}
+html.lab-dark body .hero-badge>span{color:#c2d6ed}
+html.lab-dark body .dealer-tier-label{color:#102134}
+html.lab-dark body .portal button.portal-primary{background:#82f5dc;color:#07251f!important;border-color:#82f5dc}
+html.lab-dark body .portal button.portal-primary:hover:not(:disabled){background:#b2ffe9;color:#07251f!important}
+
+html.lab-dark body .unit-top-panel #unit-top-status{font-size:12px;line-height:1.7}
+html.lab-dark body .unit-top-panel :is(.unit-top-gem,.unit-top-gem>span:last-child,.unit-top-gap,.unit-top-help,.unit-top-actions select){font-size:12px;line-height:1.5}
+html.lab-dark body :is(.settings-summary,.settings-launcher small,.giant-party-note,#giant-status,.toolbar label,.damage-grid span){font-size:12px;line-height:1.7}
