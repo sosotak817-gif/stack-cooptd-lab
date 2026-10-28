@@ -23,7 +23,7 @@ async function prepareFreezeCached(raw,data={}){
  if(!(saved?.revision===calculationRevision&&CoopUnitCache.validFreeze(saved))){saved={kind:'freeze',revision:calculationRevision,updatedAt:Date.now(),profile:CoopUnitTools.solveFreeze(basis)};source='computed';}
  if(key)await saveTop('freeze:'+key,saved);
  if(source==='computed'&&key&&data.cacheToken)await timedFetch('/api/unit-freeze-results?revision='+calculationRevision+'&key='+key,{method:'PUT',headers:{'Content-Type':'application/json',Authorization:'Bearer '+data.cacheToken},body:JSON.stringify({result:saved})});
- return{...raw,freezeProfile:saved.profile,freezeCacheSource:source,account:{...raw.account,freezeDamagePercent:saved.profile.share*100}};
+ return{...raw,freezeProfile:saved.profile,freezeCacheSource:source,account:{...raw.account,freezeDamagePercent:saved.profile.share*100,stunned:saved.profile.stunShare===1,holdShares:{...raw.account.holdShares,stun:saved.profile.stunShare}}};
 }
 async function computeTop(raw,data){
  const key=await topKey(raw),cached=await storedTop(key,data);
