@@ -12,7 +12,7 @@ async function main(){
  for(const mode of ['normal','hard','hell','abyss','deepsea'])for(const unit of D.demonsIn('supreme')){
   const target=T.finalBossOf(mode),base=P.newAccount(E,D);base.eggbyAttached=base.heliEggby=base.bikerEggby=false;
   const growth={level:21,lib:20,skinLevels:2,relicLevel:base.perDemon[unit.slug]?.relicLevel??base.relicLevel??0};
-  const profiles=[{enabled:false}];profiles.push({enabled:true,level:21,lib:20,skinLevels:2,relicLevel:32,frostGrade:'SSS',extraSeconds:0});
+  const profiles=[{enabled:false}];profiles.push({enabled:true,level:21,lib:20,skinLevels:2,relicLevel:11,frostGrade:'SSS',extraSeconds:0});
   for(const freezeSetup of profiles){
    const raw={slug:unit.slug,mode,target:target.id,targetData:target,growth,account:{...base,freezeSetup}},key=await C.key(raw,E,Egg,calcRevision);expected.add(key);if(entries[key]&&C.valid(entries[key]))continue;
    const {targetData,...serializable}=raw;jobs.push({key,raw:serializable,mode,slug:unit.slug,freeze:freezeSetup.enabled});
@@ -21,7 +21,7 @@ async function main(){
  await require('./unit-precompute-pool.cjs')(jobs,(job,result)=>{entries[job.key]={...result,revision:calcRevision,updatedAt:Date.now(),kind:'top'};console.log('Precomputed TOP 5:',job.mode,job.slug,job.freeze?'ice+frost':'default');fs.writeFileSync('dist/unit-top-defaults.json',JSON.stringify({schema,sourceHash,version,revision:calcRevision,entries}));});
  const freezeEntries={};
  for(const mode of ['normal','hard','hell','abyss','deepsea'])for(const pressureLv of mode==='deepsea'?[1,2,3,4,5]:[1])for(const frostGrade of ['',...D.GRADES])for(const extraSeconds of [0,5,10,15,20,25,30]){
-  const target=T.finalBossOf(mode),account={...P.newAccount(E,D),pressureLv,freezeSetup:{enabled:true,level:21,lib:20,skinLevels:2,relicLevel:32,frostGrade,extraSeconds}},raw={slug:'ice-knight',mode,target:target.id,targetData:target,account},basis=H.freezeBasis(raw,E,D,Egg),key=await C.freezeProfileKey(basis,calcRevision);
+  const target=T.finalBossOf(mode),account={...P.newAccount(E,D),pressureLv,freezeSetup:{enabled:true,level:21,lib:20,skinLevels:2,relicLevel:11,frostGrade,extraSeconds}},raw={slug:'ice-knight',mode,target:target.id,targetData:target,account},basis=H.freezeBasis(raw,E,D,Egg),key=await C.freezeProfileKey(basis,calcRevision);
   freezeEntries[key]??={kind:'freeze',revision:calcRevision,updatedAt:Date.now(),profile:H.solveFreeze(basis)};
  }
  fs.writeFileSync('dist/unit-freeze-defaults.json',JSON.stringify({schema:1,version,revision:calcRevision,entries:freezeEntries}));

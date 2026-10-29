@@ -1,1 +1,1 @@
-globalThis.COOP_UNIT_REVISION="286a71a4ff5cedef4c78af19b426360a1bd78817b71bee4a2c909bd2d354e23b";globalThis.COOP_UNIT_VERSION={"revision":"286a71a4ff5cedef4c78af19b426360a1bd78817b71bee4a2c909bd2d354e23b","balanceVersion":"2026-10-28","recommendationVersion":1,"freezeVersion":1};
+globalThis.COOP_UNIT_REVISION="e68c319260a12c37167abcea600ae127d321c3e305131d4e68087d37ad3811cb";globalThis.COOP_UNIT_VERSION={"revision":"e68c319260a12c37167abcea600ae127d321c3e305131d4e68087d37ad3811cb","balanceVersion":"2026-10-28","recommendationVersion":1,"freezeVersion":1};
