@@ -14,6 +14,6 @@ function render(data){mine=data.mine;$('#vote-total').textContent=`총 ${data.to
 
 async function load(write=false){if(busy)return;busy=true;sync();$('#vote-status').textContent=write?'투표를 저장하는 중…':'결과를 불러오는 중…';try{const response=await fetch('/api/tier-votes',write?{method:'PUT',headers:{'Content-Type':'application/json'},body:JSON.stringify({ranking})}:{cache:'no-store'}),data=await response.json();if(!response.ok)throw Error(data.error||'투표 서버에 연결할 수 없습니다.');render(data);if(mine)ranking=Array.from(mine);$('#vote-status').textContent=write?'투표를 반영했습니다.':mine?'기존 투표를 불러왔습니다. 순서를 바꿔 수정할 수 있습니다.':'좋아하는 캐릭터 7종을 선택해 주세요.';if(write){closePicker();$('#vote-total').textContent+=' 투표를 반영했습니다.';}}catch(error){$('#vote-status').textContent=error.message;}finally{busy=false;sync();}}
 $('#vote-picker-close').onclick=closePicker;$('#vote-picker').onclick=e=>{if(e.target===$('#vote-picker')){const r=e.target.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closePicker();}};
-$('#vote-open').onclick=()=>showEditor(true);$('#vote-close').onclick=()=>closePicker();$('#tier-ballot').onsubmit=e=>{e.preventDefault();if(!$('#vote-submit').disabled)load(true);};$('#vote-refresh').onclick=()=>load();
+$('#tier-ballot').onsubmit=e=>{e.preventDefault();if(!$('#vote-submit').disabled)load(true);};$('#vote-refresh').onclick=()=>load();
 fetch('/ko.json').then(r=>r.json()).then(d=>ko=d).catch(()=>{}).finally(()=>{sync();load();});
 })();
