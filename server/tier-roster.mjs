@@ -1,0 +1,1 @@
+export const roster=["oni","omen","cannon","goblin-biker","coin-man","master-cat","space-solider","ice-knight","asura","clara","witch-doctor","ancient-blue-dragon","big-hand","phantom-slime","surprise-mouse","latest-helicopter-machine","mimic","scalluck","ivy","kaiser"];

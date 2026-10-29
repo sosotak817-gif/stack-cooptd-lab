@@ -1,0 +1,1 @@
+CREATE TABLE IF NOT EXISTS tier_votes (voter TEXT PRIMARY KEY, ballot TEXT NOT NULL, updated_at INTEGER NOT NULL);

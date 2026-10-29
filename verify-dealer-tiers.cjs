@@ -1,38 +1,39 @@
-const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
-require('./dist/engine.js');
-class Element{
- constructor(tag){this.tag=tag;this.children=[];this.dataset={};this.style={setProperty(){}};this.classList={add(){},remove(){}};}
- append(...nodes){this.children.push(...nodes);}
- replaceChildren(...nodes){this.children=nodes;}
- setAttribute(){}
- addEventListener(type,handler){(this.listeners??={})[type]=handler;}
- showModal(){this.open=true;}
- close(){this.open=false;}
- getBoundingClientRect(){return{left:10,right:100,top:10,bottom:100};}
-}
+const assert=require('node:assert/strict');
 (async()=>{
- const rankings=JSON.parse(fs.readFileSync('dist/dealer-rankings.json','utf8'));
- for(const saved of [null,{S:[],A:[],B:[],C:[],D:[]}]){
-  const nodes=new Map(),get=s=>{if(!nodes.has(s))nodes.set(s,new Element('div'));return nodes.get(s);};
-  get('#dealer-mode').value='deepsea';
-  const context={CoopDealerTools:require('./ui/dealer-tools.js'),CoopEngine,CoopData,CoopTargets,URL,console,Option:function(text,value){this.text=text;this.value=value;},document:{currentScript:{src:'https://example.test/dealer-tiers-page.js'},querySelector:get,createElement:tag=>new Element(tag)},localStorage:{getItem:()=>JSON.stringify(saved),setItem(){}},fetch:url=>{const result=Promise.resolve({ok:true,json:async()=>url.includes('ko.json')?{}:rankings});return result;}};
-  vm.runInNewContext(fs.readFileSync('ui/dealer-conditions.js','utf8'),context);
-  vm.runInNewContext(fs.readFileSync('ui/dealer-tiers-page.js','utf8'),context);
-  await new Promise(resolve=>setImmediate(resolve));
-  for(const mode of Object.keys(rankings.modes)){
-   get('#dealer-mode').value=mode;get('#dealer-mode').onchange();
-   const board=get('#dealer-tier-board'),expected=rankings.modes[mode].rows;
-   assert.equal(board.children.length,5,'all five tier rows must be attached to the board');
-   assert.deepEqual(board.children.map(row=>row.dataset.tier),['S','A','B','C','D']);
-   const cards=board.children.flatMap(row=>row.children[1].children).filter(card=>card.dataset.slug);
-   assert.equal(cards.length,expected.length,'every ranked unit must be visible');
-   assert.equal(new Set(cards.map(card=>card.dataset.slug)).size,expected.length);
-   assert.equal(get('#dealer-ranking-list').children.length,expected.length);
-   const coin=cards.find(card=>card.dataset.slug==='coin-man');coin.listeners.click();assert.equal(get('#dealer-condition-dialog').open,true);const conditions=get('#dealer-condition-content').children.map(p=>p.children.map(n=>n.textContent).join(' ')).join(' ');assert.ok(conditions.includes(({hell:1000000,abyss:4000000})[mode]?.toLocaleString('ko-KR')||'25,000,000'));assert.match(conditions,/보석/);assert.match(conditions,/에그비 미부착/);assert.match(conditions,/추가 빙결 0초/);assert.ok(!conditions.includes('지원 보정 5'),'tier conditions must not retain the Mir level bonus');assert.equal(get('#dealer-condition-content').children[0].children[0].href,'/units/?unit=coin-man&benchmark='+mode);const popup=get('#dealer-condition-dialog');popup.listeners.click({target:popup,clientX:20,clientY:20});assert.equal(popup.open,true,'clicks inside the dialog do not dismiss');popup.listeners.click({target:popup,clientX:0,clientY:0});assert.equal(popup.open,false,'backdrop clicks dismiss the popup');coin.listeners.keydown({key:'Enter',preventDefault(){}});
-   get('#dealer-ranking-list').children[0].children[2].children[0].onclick();assert.match(get('#dealer-condition-title').textContent,/계산 조건/);
-   get('#dealer-reset').onclick();
-   assert.equal(board.children.length,5,'automatic reset must retain visible tiers');
-  }
- }
- console.log('Dealer tier rendering: five modes, fresh/saved layouts, all tier rows and unit cards, rankings and reset passed.');
-})().catch(error=>{console.error(error);process.exitCode=1;});
+ const {tally,validateBallot,handleTierVotes}=await import('./server/tier-votes.mjs');
+ const {roster}=await import('./server/tier-roster.mjs');
+ const ballot=roster.slice(0,7);
+ assert.ok(validateBallot(ballot));
+ assert.ok(!validateBallot([...ballot.slice(0,6),ballot[0]]));
+ assert.ok(!validateBallot(ballot.slice(0,6)));
+ assert.ok(!validateBallot([...ballot.slice(0,6),'invalid']));
+ const rows=tally([ballot]);
+ assert.deepEqual(rows.filter(r=>r.score).map(r=>r.score),[7,6,5,4,3,2,1]);
+ assert.deepEqual(rows.filter(r=>r.score).map(r=>r.tier),['S','S','A','B','B','C','D']);
+ assert.equal(rows.filter(r=>r.tier==='미득표').length,roster.length-7);
+ assert.ok(tally([ballot,[...ballot].reverse()]).filter(r=>r.score).every(r=>r.score===8&&r.tier==='S'));
+ const saved=new Map();
+ const DB={prepare(sql){
+  let args;
+  return {
+   bind(...a){args=a;return this;},
+   async run(){if(sql.startsWith('INSERT'))saved.set(args[0],args[1]);return {};},
+   async all(){return {results:[...saved].map(([voter,ballot])=>({voter,ballot}))};}
+  };
+ }};
+ let cookie='';
+ const call=async(method,ranking,origin='https://test.example')=>{
+  const request=new Request('https://test.example/api/tier-votes',{method,headers:{Origin:origin,'Content-Type':'application/json',Cookie:cookie},...(method==='PUT'?{body:JSON.stringify({ranking})}:{})});
+  const response=await handleTierVotes({env:{DB},request});
+  if(response.headers.get('Set-Cookie'))cookie=response.headers.get('Set-Cookie').split(';')[0];
+  return {status:response.status,data:await response.json()};
+ };
+ assert.equal((await call('GET')).data.total,0);
+ let result=await call('PUT',ballot);assert.equal(result.status,200);assert.equal(result.data.total,1);assert.deepEqual(result.data.mine,ballot);
+ result=await call('PUT',[...ballot].reverse());assert.equal(result.data.total,1);assert.equal(result.data.rows[0].slug,ballot[6]);
+ assert.equal((await call('PUT',ballot,'https://evil.example')).status,403);
+ assert.equal((await call('PUT',[ballot[0]])).status,400);
+ assert.equal((await call('GET')).data.total,1);
+ assert.equal((await handleTierVotes({request:new Request('https://test.example'),env:{}})).status,503);
+ console.log('Tier voting: weighted scores, ties, validation, browser identity, vote replacement and errors passed.');
+})().catch(e=>{console.error(e);process.exitCode=1;});

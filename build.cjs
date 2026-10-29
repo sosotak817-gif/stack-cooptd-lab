@@ -92,3 +92,6 @@ fs.writeFileSync(path.join(dist,'ranking-catalog.json'),JSON.stringify(rankingCa
 fs.writeFileSync(path.join(dist,'_routes.json'),JSON.stringify({version:1,include:['/api/*'],exclude:[]}));
 
 fs.cpSync('ui/assets',path.join(dist,'assets'),{recursive:true});
+
+// Keep the server ballot allowlist aligned with the browser roster.
+require('./dist/engine.js');fs.writeFileSync('server/tier-roster.mjs','export const roster='+JSON.stringify(globalThis.CoopData.demonsIn('supreme').map(d=>d.slug))+';\n');

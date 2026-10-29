@@ -16,7 +16,7 @@ async function main(){
  try{
   for(const width of [1440,390]){await page.setViewportSize({width,height:1000});for(const route of ['/','/lab/','/units/','/dealer-tiers/','/stages/','/wall/','/rankings/','/updates/']){
    await page.goto(base+route,{waitUntil:'load'});await page.waitForFunction(()=>document.documentElement.classList.contains('lab-dark'));await page.waitForTimeout(700);
-   if(route==='/'){await page.selectOption('#dashboard-mode','hell');assert.ok(await page.locator('#dashboard-tiers .preview-tier').count());await page.click('#visitor-open');assert.ok(await page.locator('#visitor-dialog').evaluate(e=>e.open));await page.keyboard.press('Escape');}
+   if(route==='/'){assert.ok(await page.locator('#dashboard-tiers').textContent());await page.click('#visitor-open');assert.ok(await page.locator('#visitor-dialog').evaluate(e=>e.open));await page.keyboard.press('Escape');}
    if(route==='/lab/'){if(width<600)await page.locator('.mobile-launcher').getByRole('button',{name:'초마신',exact:true}).click();else await page.click('#open-unit');await page.waitForSelector('dialog[open]');await page.keyboard.press('Escape');}
    if(route==='/units/'){
     await page.waitForFunction(()=>document.querySelectorAll('#unit-top-list li').length===5,{timeout:30000});assert.match(await page.textContent('#unit-top-status'),/저장|사전 계산|DB/);
@@ -27,7 +27,7 @@ async function main(){
     await page.locator('#unit-gem-comparison').scrollIntoViewIfNeeded();await page.screenshot({path:path.join(output,'units-'+width+'.png')});
     const saved=await page.textContent('#unit-top-status');await page.reload();await page.waitForFunction(()=>document.querySelectorAll('#unit-top-list li').length===5);assert.match(await page.textContent('#unit-top-status'),/기기 저장/);console.log('Stored-first reload:',width,saved);
    }
-   if(route==='/dealer-tiers/'){await page.waitForSelector('.dealer-tier-card');await page.selectOption('#dealer-mode','hell');await page.waitForTimeout(500);assert.ok(await page.locator('.dealer-ranking-row').count());}
+   if(route==='/dealer-tiers/'){await page.waitForSelector('#vote-choices select');assert.equal(await page.locator('#vote-choices select').count(),7);assert.ok(await page.locator('#vote-submit').isDisabled());}
    if(route==='/updates/'){await page.locator('.patch-note summary').first().click();assert.ok(await page.locator('.patch-note').first().evaluate(e=>e.open));}
    const lowContrast=await contrast();reports.push({route,width,lowContrast});await page.screenshot({path:path.join(output,route==='/'?'home-'+width+'.png':route.replaceAll('/','')+'-'+width+'.png')});console.log('Browser audit:',route,width,'low-contrast candidates:',lowContrast.length);
   }}
