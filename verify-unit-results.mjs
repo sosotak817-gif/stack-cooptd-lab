@@ -21,9 +21,9 @@ assert.equal((await call('PUT',{result:{...result,rankings:[{dps:-1,gems:[]}]}},
 assert.equal((await call('PUT','x'.repeat(131073),{token})).status,400);
 assert.equal((await call('PUT',{result},{token})).status,200);
 assert.equal((await call('PUT',{result:{...result,partial:true}},{token})).status,400);assert.equal((await call('PUT',{result:{...result,total:result.total+1}},{token})).status,400);const repeat=await call('PUT',{result:{...result,rankings:[{...result.rankings[0],dps:1}]}},{token});assert.equal(repeat.data.reused,true);
-const own=await call('GET',null,{token});assert.equal(own.data.source,'personal-db');assert.equal(own.data.result.rankings[0].dps,result.rankings[0].dps);assert.equal(own.data.result.freezeProfile.share,result.freezeProfile.share);
-assert.equal((await call('GET',null,{token:other})).data.result,null);
-assert.equal((await call()).data.result,null,'anonymous requests never receive a private result');
+const own=await call('GET',null,{token});assert.equal(own.data.source,'shared-db');assert.equal(own.data.result.rankings[0].dps,result.rankings[0].dps);assert.equal(own.data.result.freezeProfile.share,result.freezeProfile.share);
+assert.deepEqual((await call('GET',null,{token:other})).data.result,own.data.result);
+assert.deepEqual((await call()).data.result,own.data.result,'another browser reuses the shared calculation without identity');
 assert.ok(!sqlite.prepare('SELECT owner FROM lab_unit_results').get().owner.includes(token));
 const ASSETS={async fetch(){return new Response(JSON.stringify({revision,entries:{[key]:result}}),{headers:{'Content-Type':'application/json'}});}};
 const shared=await call('GET',null,{env:{DB,ASSETS}});assert.equal(shared.data.source,'shared-db');
@@ -33,10 +33,16 @@ assert.equal((await call('GET',null,{token:other})).data.result.rankings[0].dps,
 assert.equal(sqlite.prepare('SELECT id FROM preserved').get().id,42);
 const freezeKey='f'.repeat(64),freezeProfile={stunShare:.3456789123456789,stunSources:[{source:'Absolute Zero',seconds:.6,rate:2,chance:.04}],share:.7654321098765432,immune:false,extraSeconds:5,attackSpeed:2,sources:[{source:'Glacial Prison',seconds:3,rate:2,chance:.4}],method:'stationary-average'},freezeResult={kind:'freeze',revision,updatedAt:Date.now(),profile:freezeProfile};
 async function freezeCall(method='GET',result,who=token,assets){const request=new Request(base+'/api/unit-freeze-results?key='+freezeKey+'&revision='+revision,{method,headers:{Origin:base,'Content-Type':'application/json',...(who?{Authorization:'Bearer '+who}:{})},...(method==='PUT'?{body:JSON.stringify({result})}:{})});const r=await handleFreezeResults({request,env:{DB,...(assets?{ASSETS:assets}:{})}});return{status:r.status,data:await r.json()};}
-assert.equal((await freezeCall('PUT',freezeResult)).status,200);const firstFreeze=await freezeCall();assert.deepEqual(firstFreeze.data.result.profile,freezeProfile);assert.equal((await freezeCall('GET',null,other)).data.result,null,'private freeze profiles are isolated');
+assert.equal((await freezeCall('PUT',freezeResult)).status,200);const firstFreeze=await freezeCall();assert.deepEqual(firstFreeze.data.result.profile,freezeProfile);assert.deepEqual((await freezeCall('GET',null,other)).data.result.profile,freezeProfile,'another browser reuses the shared freeze profile');
 assert.equal((await freezeCall('PUT',{...freezeResult,profile:{...freezeProfile,stunShare:undefined}})).status,400);assert.equal((await freezeCall('PUT',{...freezeResult,profile:{...freezeProfile,stunShare:2}})).status,400);
 const duplicate=await freezeCall('PUT',{...freezeResult,profile:{...freezeProfile,share:.1}});assert.equal(duplicate.data.reused,true,'one exact condition is stored only once per revision');assert.equal((await freezeCall()).data.result.profile.share,freezeProfile.share);assert.equal((await freezeCall('PUT',{...freezeResult,profile:{...freezeProfile,share:2}})).status,400);
 const freezeAssets={async fetch(request){assert.equal(new URL(request.url).pathname,'/unit-freeze-defaults.json');return new Response(JSON.stringify({revision,entries:{[freezeKey]:freezeResult}}));}};assert.equal((await freezeCall('GET',null,null,freezeAssets)).data.source,'shared-db');assert.deepEqual((await freezeCall('GET',null,other)).data.result.profile,freezeProfile);
 const fallbackKey='9'.repeat(64);let assetCalls=0;globalThis.fetch=async request=>{assetCalls++;assert.equal(new URL(request.url).pathname,'/unit-top-defaults.json');return new Response(JSON.stringify({revision,entries:{[fallbackKey]:result}}));};const fallback=await call('GET',null,{key:fallbackKey});assert.equal(fallback.data.source,'shared-db');const anotherBrowser=await call('GET',null,{key:fallbackKey,token:other});assert.equal(anotherBrowser.data.source,'shared-db');assert.equal(assetCalls,1,'another browser reuses seeded shared DB without fetching assets');assert.equal(anotherBrowser.data.result.rankings[0].dps,result.rankings[0].dps);globalThis.fetch=originalFetch;
+const refreshed={...result,rankings:[{...result.rankings[0],dps:987654321}]};
+assert.equal((await call('PUT',{result:refreshed,force:true},{token:other})).status,200);
+assert.equal((await call('GET',null,{token})).data.result.rankings[0].dps,987654321,'refresh from browser B updates the shared condition read by browser A');
+assert.equal((await call()).data.result.rankings[0].dps,987654321,'new browsers read the refreshed DB result');
+assert.equal((await freezeCall('GET',null,null)).data.result.profile.share,freezeProfile.share,'freeze results are reusable without the original browser identity');
+assert.equal(sqlite.prepare("SELECT COUNT(*) n FROM lab_unit_results WHERE owner='shared' AND revision=? AND cache_key=?").get(revision,key).n,1,'refresh updates the existing condition instead of appending another row');
 sqlite.close();
-console.log('D1 recommendation cache: real SQLite schema creation, exact numeric round-trip, private isolation, authoritative asset seeding, revision/origin/size validation and existing-table preservation passed.');
+console.log('D1 recommendation cache: real SQLite schema creation, exact numeric round-trip, cross-browser reuse and refresh, asset seeding, revision/origin/size validation and existing-table preservation passed.');
