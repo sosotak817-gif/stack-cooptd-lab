@@ -1,5 +1,5 @@
 (()=>{'use strict';
-const channel='stack-lab-workspace-v1',routes={'/':'홈','/lab/':'배치','/units/':'초마신','/dealer-tiers/':'티어리스트 투표','/stages/':'스테이지','/wall/':'성벽','/rankings/':'랭킹','/updates/':'업데이트'},embedded=window.parent!==window,sourceRoute=location.pathname+location.search;
+const channel='stack-lab-workspace-v1',routes={'/':'홈','/lab/':'배치','/units/':'초마신','/dealer-tiers/':'티어리스트 투표','/dealer-tiers/create/':'티어리스트 작성','/stages/':'스테이지','/wall/':'성벽','/rankings/':'랭킹','/updates/':'업데이트'},embedded=window.parent!==window,sourceRoute=location.pathname+location.search;
 const send=value=>embedded?window.parent.postMessage({channel,...value},location.origin):receive(value,sourceRoute);
 // Observe dedicated workers without changing their requests, responses or cancellation.
 const taskWorkers=new Map;
