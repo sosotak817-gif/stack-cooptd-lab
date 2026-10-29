@@ -1,5 +1,14 @@
 [
   {
+    "id": "2026-10-29-compact-gem-info-footer",
+    "date": "2026-10-29",
+    "type": "fix",
+    "title": "보석 정보창 하단 여백 축소",
+    "details": [
+      "페이지 공통 footer 스타일이 보석 정보창에 적용되던 하단 여백을 초기화하고, 내용 높이에 맞춰 정보창을 표시합니다."
+    ]
+  },
+  {
     "id": "2026-10-29-gem-item-information",
     "date": "2026-10-29",
     "type": "feature",
