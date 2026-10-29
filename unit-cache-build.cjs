@@ -12,7 +12,7 @@ async function main(){
  for(const mode of ['normal','hard','hell','abyss','deepsea'])for(const unit of D.demonsIn('supreme')){
   const target=T.finalBossOf(mode),base=P.newAccount(E,D);base.eggbyAttached=base.heliEggby=base.bikerEggby=false;
   const growth={level:21,lib:20,skinLevels:2,relicLevel:base.perDemon[unit.slug]?.relicLevel??base.relicLevel??0};
-  const profiles=[{enabled:false}];profiles.push({enabled:true,level:21,lib:20,skinLevels:2,relicLevel:11,frostGrade:'SSS',extraSeconds:0});
+  const profiles=[{enabled:false},{enabled:true,level:21,lib:20,skinLevels:2,relicLevel:11,frostGrade:'',extraSeconds:0}];profiles.push({enabled:true,level:21,lib:20,skinLevels:2,relicLevel:11,frostGrade:'SSS',extraSeconds:0});
   for(const freezeSetup of profiles){
    const raw={slug:unit.slug,mode,target:target.id,targetData:target,growth,account:{...base,freezeSetup}},key=await C.key(raw,E,Egg,calcRevision);expected.add(key);if(entries[key]&&C.valid(entries[key]))continue;
    const {targetData,...serializable}=raw;jobs.push({key,raw:serializable,mode,slug:unit.slug,freeze:freezeSetup.enabled});

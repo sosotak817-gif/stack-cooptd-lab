@@ -14,7 +14,7 @@ async function storedTop(key,data,kind='top'){
  const url='/api/'+path+'?revision='+calculationRevision+'&key='+key,headers=data.cacheToken?{Authorization:'Bearer '+data.cacheToken}:{};
  const remote=timedFetch(url,{headers}).then(data=>{if(data?.result?.revision===calculationRevision&&valid(data.result))return{...data.result,cacheSource:data.source};throw Error('no remote result');});
  const defaults=timedFetch('/'+asset+'.json?revision='+calculationRevision).then(data=>{const result=data?.revision===calculationRevision?data.entries?.[key]:null;if(valid(result))return{...result,cacheSource:'precomputed'};throw Error('no default result');});
- try{const result=await Promise.any([remote,defaults]);await saveTop(prefix+key,result);return result;}catch{return null;}
+ try{const result=await Promise.any([remote,defaults]);if(result.cacheSource==='precomputed')await remote.catch(()=>null);await saveTop(prefix+key,result);return result;}catch{return null;}
 }
 async function prepareFreezeCached(raw,data={}){
  if(!raw.account.freezeSetup?.enabled)return raw;

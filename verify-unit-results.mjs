@@ -3,6 +3,7 @@ import {DatabaseSync} from 'node:sqlite';
 import fs from 'node:fs';
 import {handleUnitResults,handleFreezeResults} from './server/unit-results.mjs';
 import {revision} from './server/unit-calculation-version.mjs';
+const originalFetch=globalThis.fetch;globalThis.fetch=async()=>new Response(JSON.stringify({revision,entries:{}}));
 const sqlite=new DatabaseSync(':memory:');
 sqlite.exec('CREATE TABLE preserved(id INTEGER); INSERT INTO preserved VALUES(42)');
 class Statement{constructor(sql,values=[]){this.sql=sql;this.values=values;}bind(...v){return new Statement(this.sql,v);}async first(){return sqlite.prepare(this.sql).get(...this.values)||null;}async run(){return sqlite.prepare(this.sql).run(...this.values);}}
@@ -36,5 +37,6 @@ assert.equal((await freezeCall('PUT',freezeResult)).status,200);const firstFreez
 assert.equal((await freezeCall('PUT',{...freezeResult,profile:{...freezeProfile,stunShare:undefined}})).status,400);assert.equal((await freezeCall('PUT',{...freezeResult,profile:{...freezeProfile,stunShare:2}})).status,400);
 const duplicate=await freezeCall('PUT',{...freezeResult,profile:{...freezeProfile,share:.1}});assert.equal(duplicate.data.reused,true,'one exact condition is stored only once per revision');assert.equal((await freezeCall()).data.result.profile.share,freezeProfile.share);assert.equal((await freezeCall('PUT',{...freezeResult,profile:{...freezeProfile,share:2}})).status,400);
 const freezeAssets={async fetch(request){assert.equal(new URL(request.url).pathname,'/unit-freeze-defaults.json');return new Response(JSON.stringify({revision,entries:{[freezeKey]:freezeResult}}));}};assert.equal((await freezeCall('GET',null,null,freezeAssets)).data.source,'shared-db');assert.deepEqual((await freezeCall('GET',null,other)).data.result.profile,freezeProfile);
+const fallbackKey='9'.repeat(64);let assetCalls=0;globalThis.fetch=async request=>{assetCalls++;assert.equal(new URL(request.url).pathname,'/unit-top-defaults.json');return new Response(JSON.stringify({revision,entries:{[fallbackKey]:result}}));};const fallback=await call('GET',null,{key:fallbackKey});assert.equal(fallback.data.source,'shared-db');const anotherBrowser=await call('GET',null,{key:fallbackKey,token:other});assert.equal(anotherBrowser.data.source,'shared-db');assert.equal(assetCalls,1,'another browser reuses seeded shared DB without fetching assets');assert.equal(anotherBrowser.data.result.rankings[0].dps,result.rankings[0].dps);globalThis.fetch=originalFetch;
 sqlite.close();
 console.log('D1 recommendation cache: real SQLite schema creation, exact numeric round-trip, private isolation, authoritative asset seeding, revision/origin/size validation and existing-table preservation passed.');
