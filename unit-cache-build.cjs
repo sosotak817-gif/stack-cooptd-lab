@@ -22,7 +22,7 @@ async function main(){
  for(const mode of ['normal','hard','hell','abyss','deepsea'])for(const claraMode of ['minigun','rocket'])for(const standardFreeze of [false,true]){
   const target=T.finalBossOf(mode),account=dealer.account(E,D,claraMode,mode,catalog.modes[mode].conditions);
   if(standardFreeze)account.freezeSetup={enabled:true,level:21,lib:20,skinLevels:2,relicLevel:11,frostGrade:'',extraSeconds:0};
-  const raw={slug:'clara',mode,target:target.id,growth:dealer.growth('clara',D),includeEggby:true,account},key=await C.key(raw,E,Egg,calcRevision);
+  const raw={slug:'clara',mode,target:target.id,growth:dealer.growth('clara',D),includeEggby:false,account},key=await C.key(raw,E,Egg,calcRevision);
   expected.add(key);if(entries[key]&&C.valid(entries[key]))continue;
   jobs.push({key,raw,mode,slug:'clara '+claraMode,freeze:true});
  }

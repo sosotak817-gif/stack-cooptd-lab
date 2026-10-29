@@ -6,7 +6,7 @@ async function main(){
  for(const mode of ['normal','hard','hell','abyss','deepsea'])for(const claraMode of ['minigun','rocket'])for(const standardFreeze of [false,true]){
   const target=CoopTargets.finalBossOf(mode),account=F.account(CoopEngine,CoopData,claraMode,mode,catalog.modes[mode].conditions);
   if(standardFreeze)account.freezeSetup={enabled:true,level:21,lib:20,skinLevels:2,relicLevel:11,frostGrade:'',extraSeconds:0};
-  const raw={slug:'clara',mode,target:target.id,growth:F.growth('clara',CoopData),includeEggby:true,account},key=await C.key(raw,CoopEngine,Egg,cache.revision),result=cache.entries[key];
+  const raw={slug:'clara',mode,target:target.id,growth:F.growth('clara',CoopData),includeEggby:false,account},key=await C.key(raw,CoopEngine,Egg,cache.revision),result=cache.entries[key];
   assert.ok(C.valid(result),mode+' '+claraMode+' must be publicly precomputed');assert.equal(result.evaluated,6090);assert.ok(result.freezeProfile.stunShare>0);cases.push({raw,key,result});
  }
  const selected=cases.find(c=>c.raw.mode==='deepsea'&&c.raw.account.claraMode==='rocket'&&c.raw.account.freezeSetup.frostGrade==='');
