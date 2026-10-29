@@ -10,3 +10,6 @@
 @media(max-width:700px){.vote-choices{grid-template-columns:repeat(4,minmax(0,1fr))}.vote-candidates{grid-template-columns:repeat(3,minmax(0,1fr))}.vote-rank-slot strong{font-size:12px}.vote-rank-slot img{width:48px;height:48px}.tier-entry-actions>a,.tier-entry-actions>button{flex:1;white-space:normal}.tier-preview-panel .preview-actions{flex-wrap:wrap;gap:12px}}
 
 .vote-rank-slot[draggable="true"]{cursor:grab;user-select:none}.vote-rank-slot[draggable="true"]:active{cursor:grabbing}.vote-rank-slot.dragging{opacity:.4}.vote-rank-slot.drag-over{border-color:#51e0cc;box-shadow:inset 0 0 0 2px #51e0cc;background:#203e50}
+
+/* Rank selection opens as a modal instead of an inline roster. */
+dialog.vote-picker{width:min(960px,calc(100% - 32px));max-height:85dvh;overflow:auto;box-sizing:border-box;margin:auto;color:#d9eafa;padding:20px}dialog.vote-picker::backdrop{background:#000a}dialog.vote-picker .vote-editor-heading{margin-bottom:18px}dialog.vote-picker h2{margin:0;font-size:20px}
