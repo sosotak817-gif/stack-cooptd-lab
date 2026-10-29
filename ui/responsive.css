@@ -108,3 +108,21 @@ h2[data-icon],.damage-heading>b[data-icon],.settings-launcher b[data-icon],.metr
 .calculation-controls{display:grid;gap:8px;padding:12px 0}.calculation-controls label{display:grid;gap:6px}.calculation-controls small{font-size:12px;line-height:1.5}#setting-preview-table{overflow:auto}#setting-preview-table table{width:100%;border-collapse:collapse;font-size:13px}#setting-preview-table td,#setting-preview-table th{padding:9px;text-align:left;border-bottom:1px solid #e5ddf0;overflow-wrap:anywhere}#setting-preview-apply{position:sticky;bottom:0;width:100%;min-height:44px;background:#eee7ff}#compose-recovery-status{font-size:11px;line-height:1.4;color:#796590}
 .mobile-placement-tools{display:none}
 @media(max-width:600px){.mobile-board .mobile-placement-tools{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:6px;align-items:end;padding:6px}.mobile-placement-tools label{display:grid;gap:3px;min-width:0;font-size:11px}.mobile-placement-tools select{width:100%;min-width:0;min-height:44px;font-size:12px}.mobile-placement-tools button{min-height:44px;padding:8px;font-size:12px;white-space:nowrap}.mobile-placement-tools #erase[aria-pressed=true]{background:#b93d38;color:#fff;border-color:#b93d38}}
+
+/* Reserve readable text and arrow space for narrow mobile selects. */
+@media(max-width:600px){
+ body select:not([multiple]){box-sizing:border-box;min-width:88px;min-height:44px;padding-inline:10px 30px;max-width:100%}
+ body .unit-top-panel .unit-top-actions select{width:88px;min-width:88px;min-height:44px;font-size:14px;padding-inline:8px 26px}
+ body .unit-top-panel .unit-top-row{grid-template-columns:20px minmax(0,1fr)}
+ body .unit-top-panel .unit-top-actions{grid-column:2;grid-row:auto;min-width:0;flex-direction:row;justify-content:flex-end;width:100%}
+ body .unit-top-panel .unit-top-actions button{min-width:64px;min-height:44px}
+ body .unit-combo .gem-row>div{display:grid;grid-template-columns:30px minmax(0,1fr) 36px;gap:8px;align-items:center}
+ body .unit-combo .gem-row>div>img{grid-column:1;grid-row:1;width:28px}
+ body .unit-combo .gem-row>div>.gem-pick{grid-column:2;grid-row:1;width:100%;min-width:0;padding-inline:10px 28px}
+ body .unit-combo .gem-row>div>.gem-info-trigger{grid-column:3;grid-row:1;width:36px;min-width:36px;min-height:44px;margin:0;padding:0}
+ body .unit-combo .gem-row>div>select:last-of-type{grid-column:2 / 4;grid-row:2;justify-self:stretch;width:100%;min-width:100px;font-size:16px;padding-inline:12px 32px}
+ body .settings-dialog .gem-row{display:flex;flex-wrap:wrap}
+ body .settings-dialog .gem-row>select:first-of-type{flex:1 1 170px;width:auto;min-width:130px;padding-inline:10px 30px}
+ body .settings-dialog .gem-row>select:last-of-type{flex:0 0 100px;width:100px;min-width:100px;padding-inline:10px 30px}
+ body .settings-dialog .gem-row>.gem-info-trigger{flex:0 0 36px;width:36px;min-width:36px;margin:0;padding:0}
+}
