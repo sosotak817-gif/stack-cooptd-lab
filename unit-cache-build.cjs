@@ -18,6 +18,14 @@ async function main(){
    const {targetData,...serializable}=raw;jobs.push({key,raw:serializable,mode,slug:unit.slug,freeze:freezeSetup.enabled});
   }
  }
+ const dealer=require('./ui/dealer-tools.js'),catalog=JSON.parse(fs.readFileSync('dist/dealer-rankings.json','utf8'));
+ for(const mode of ['normal','hard','hell','abyss','deepsea'])for(const claraMode of ['minigun','rocket'])for(const standardFreeze of [false,true]){
+  const target=T.finalBossOf(mode),account=dealer.account(E,D,claraMode,mode,catalog.modes[mode].conditions);
+  if(standardFreeze)account.freezeSetup={enabled:true,level:21,lib:20,skinLevels:2,relicLevel:11,frostGrade:'',extraSeconds:0};
+  const raw={slug:'clara',mode,target:target.id,growth:dealer.growth('clara',D),includeEggby:true,account},key=await C.key(raw,E,Egg,calcRevision);
+  expected.add(key);if(entries[key]&&C.valid(entries[key]))continue;
+  jobs.push({key,raw,mode,slug:'clara '+claraMode,freeze:true});
+ }
  await require('./unit-precompute-pool.cjs')(jobs,(job,result)=>{entries[job.key]={...result,revision:calcRevision,updatedAt:Date.now(),kind:'top'};console.log('Precomputed TOP 5:',job.mode,job.slug,job.freeze?'ice+frost':'default');fs.writeFileSync('dist/unit-top-defaults.json',JSON.stringify({schema,sourceHash,version,revision:calcRevision,entries}));});
  const freezeEntries={};
  for(const mode of ['normal','hard','hell','abyss','deepsea'])for(const pressureLv of mode==='deepsea'?[1,2,3,4,5]:[1])for(const frostGrade of ['',...D.GRADES])for(const extraSeconds of [0,5,10,15,20,25,30]){
