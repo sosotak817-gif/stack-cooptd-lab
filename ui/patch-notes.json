@@ -1,5 +1,15 @@
 [
   {
+    "id": "2026-10-30-zero-tear-bright-gold",
+    "date": "2026-10-30",
+    "type": "feature",
+    "title": "0 Tear 밝은 금색 표시",
+    "details": [
+      "독보적 1위 표기를 0 Tear로 변경하고 홈·투표 화면의 라벨과 카드에 밝은 금색을 적용했습니다.",
+      "저장 이미지의 0 Tear 라벨도 밝은 금색과 짙은 글자로 표시합니다."
+    ]
+  },
+  {
     "id": "2026-10-30-zero-tier-image-export",
     "date": "2026-10-30",
     "type": "feature",
