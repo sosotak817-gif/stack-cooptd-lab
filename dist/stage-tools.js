@@ -2,6 +2,8 @@
 const MODES={hard:'어려움',hell:'지옥',abyss:'심연',deepsea:'심해'};
 function targets(T,mode){if(!MODES[mode])throw Error('지원하지 않는 모드입니다.');return T.TARGETS.filter(t=>t.mode===mode&&['Monster','LineBoss','SpecialBoss'].includes(t.type)).sort((a,b)=>a.wave-b.wave||a.id.localeCompare(b.id));}
 function variant(input,mode,altar){const next=structuredClone(input);next.mode=mode;for(const side of ['you','partner'])if(altar==='none')next[side].altar={};return next;}
+// Use the original target formula, including deep-sea and boss shred penalties.
+function maxDefenceParams(params,T,mode){const next={...params},list=targets(T,mode);let minimum=100;while(list.some(t=>T.leftoverDef(t,minimum,0)>0)&&minimum<10000)minimum+=25;next.otherDef=Math.max(Number(next.otherDef)||0,minimum);return next;}
 function integrate(kill,until){if(!kill)return 0;const end=Math.min(until,kill.leak?.at??Infinity,Number.isFinite(kill.seconds)?kill.seconds:Infinity);return Math.max(0,(kill.segments||[]).reduce((n,s)=>n+Math.max(0,Math.min(end,s.to)-Math.max(0,s.from))*Math.max(0,s.rate),0)-(kill.heals||[]).filter(h=>h.at<end).reduce((n,h)=>n+h.amount,0));}
 function summarize(run,input,T,B,correction){
  const t=run.target,window=T.waveClock(t,t.wave),mob=t.type==='Monster',pool=T.fightPool(t),sides=input.partnerEnabled?['you','partner']:['you'];let lanes=[];
@@ -52,5 +54,5 @@ async function personEstimate({evaluate,baseline,onProgress=()=>{}}){
  for(let n=0;n<24;n++){if((1/low).toFixed(1)===(1/high).toFixed(1))break;const mid=(low+high)/2;if(await test(mid))high=mid;else low=mid;}
  return{people:1/((low+high)/2),minimum:1/high,maximum:1/low,passingScale:high,failingScale:low,baselinePassed,evaluated,probes,bounded:true,estimated:true};
 }
-root.CoopStages={MODES,targets,variant,integrate,summarize,scan,recorder,continuousReport,personEstimate};if(typeof module!=='undefined')module.exports=root.CoopStages;
+root.CoopStages={MODES,targets,variant,maxDefenceParams,integrate,summarize,scan,recorder,continuousReport,personEstimate};if(typeof module!=='undefined')module.exports=root.CoopStages;
 })(globalThis);

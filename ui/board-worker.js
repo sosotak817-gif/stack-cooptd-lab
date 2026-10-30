@@ -64,17 +64,18 @@ self.onmessage=async({data})=>{if(data.kind==='__scheduler'){schedulerPaused=!!d
  const modes=data.stageModes||['hard','hell','abyss','deepsea'];if(!modes.length||modes.some(m=>!CoopStages.MODES[m]))throw Error('모드를 선택하세요.');
  const evaluate=async(input,altar='current',notify=false,damageScale=1,forceMirror=false,onRound=()=>{})=>{
   const basis=forceMirror?'mirror':CoopPresets.hasPartnerDeck(input)?'partner':input.stageBasis||'mirror';
-  const key=await cacheKey({...input,target:'stage-continuous-v5:'+altar+':'+basis+':'+damageScale});const saved=await read(key);if(saved){if(notify)for(const row of saved.rows)postMessage({id,kind:'stage-progress',mode:input.mode,altar,row});return structuredClone(saved);}
+  const maxDefence=basis==='solo'&&input.stageMaxDefence===true;
+  const key=await cacheKey({...input,target:'stage-continuous-v6:'+altar+':'+basis+':'+damageScale+':'+maxDefence});const saved=await read(key);if(saved){if(notify)for(const row of saved.rows)postMessage({id,kind:'stage-progress',mode:input.mode,altar,row});return structuredClone(saved);}
   const party=CoopPresets.giantInput(input,basis),{cells,marks}=CoopGemTools.active(party),target=CoopTargets.finalBossOf(input.mode),targetId='stage-continuous:'+input.mode;
   // Observe through the end of 100R, without invoking the optional giant invasion.
   CoopTargets.registerTargets([{...target,id:targetId,pinsWave:false}]);
   const p={...CoopEggby.normalize(party.you,CoopEngine),mode:input.mode,targetId,bounties:'none',wave:CoopTargets.lastWave(input.mode)+1,byPlayer:true},other={...CoopEggby.normalize(party.partner,CoopEngine),mode:input.mode,targetId,bounties:'none',wave:p.wave};
-  if(!party.partnerEnabled)Object.assign(other,{traits:[],codexSS:0,codexSSS:0,fortuneCard:0,altar:{},otherDef:0,partnerDef:0});p.partnerParams=other;
+  if(!party.partnerEnabled)Object.assign(other,{traits:[],codexSS:0,codexSSS:0,fortuneCard:0,altar:{},otherDef:0,partnerDef:0});if(maxDefence)Object.assign(p,CoopStages.maxDefenceParams(p,CoopTargets,input.mode));p.partnerParams=other;
   const options={marks,range:{},blackout:'auto',builds:{you:p,partner:other},gold:false,bounties:null,...(damageScale!==1?{benchmarkDamageScale:damageScale}:{})};
   // Boundary probes need only survival, not per-hit telemetry or 100 table rows.
   if(forceMirror&&!notify){const run=CoopBoss.bossRun(cells,p,options),probe={passed:!run.gameOver&&run.waves.some(w=>w.wave===CoopTargets.lastWave(input.mode)),firstRisk:run.gameOver?.wave??null};await write(key,probe);return probe;}
   const trace=CoopStages.recorder(CoopTargets,CoopGeometry,cells),run=CoopBoss.bossRun(cells,p,options,undefined,e=>{trace.event(e);if(e.kind==='waveStacks')onRound(e.wave);if(notify&&e.kind==='waveStacks')postMessage({id,kind:'stage-progress',mode:input.mode,altar,row:{wave:e.wave}});});
-  const report=CoopStages.continuousReport({run,mode:input.mode,altar,T:CoopTargets,rounds:trace.rounds,basis});await write(key,report);return structuredClone(report);
+  const report=CoopStages.continuousReport({run,mode:input.mode,altar,T:CoopTargets,rounds:trace.rounds,basis});report.maxDefence=maxDefence;await write(key,report);return structuredClone(report);
  };
  const reports=[];for(const altar of (data.compareAltars?['current','none']:['current']))for(const mode of modes){
   const base=CoopStages.variant(data,mode,altar),report=await evaluate(base,altar,true),mirror=CoopPresets.giantInput(base,'mirror'),capacityKey=await cacheKey({...mirror,target:'stage-capacity-v1'}),capacity=await read(capacityKey);
