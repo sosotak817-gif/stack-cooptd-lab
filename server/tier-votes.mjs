@@ -2,7 +2,23 @@ import {roster} from './tier-roster.mjs';
 const headers={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const reply=(data,status=200)=>new Response(JSON.stringify(data),{status,headers});
 export function validateBallot(value){return Array.isArray(value)&&value.length===7&&new Set(value).size===7&&value.every(s=>roster.includes(s));}
-export function tally(ballots){const rows=roster.map(slug=>({slug,score:0,votes:0,ranks:Array(7).fill(0)})),map=new Map(rows.map(r=>[r.slug,r]));for(const ballot of ballots){if(!validateBallot(ballot))continue;ballot.forEach((slug,i)=>{const r=map.get(slug);r.score+=7-i;r.votes++;r.ranks[i]++;});}rows.sort((a,b)=>b.score-a.score||a.slug.localeCompare(b.slug));const leader=rows[0],runnerUp=rows[1],zero=!!(leader?.score&&runnerUp?.score&&leader.score*100>=runnerUp.score*110),best=(zero?runnerUp:leader)?.score||0;for(const r of rows)r.tier=zero&&r===leader?'0':!r.score?'미득표':r.score*100>=best*80?'S':r.score*100>=best*60?'A':r.score*100>=best*40?'B':r.score*100>=best*20?'C':'D';return rows;}
+export function tally(ballots){const rows=roster.map(slug=>({slug,score:0,votes:0,ranks:Array(7).fill(0)})),map=new Map(rows.map(r=>[r.slug,r]));for(const ballot of ballots){if(!validateBallot(ballot))continue;ballot.forEach((slug,i)=>{const r=map.get(slug);r.score+=7-i;r.votes++;r.ranks[i]++;});}return assignVoteTiers(rows);}
+export function assignVoteTiers(rows){
+ rows.sort((a,b)=>b.score-a.score||a.slug.localeCompare(b.slug));
+ const scored=rows.filter(r=>r.score>0),limit=Math.floor(scored.length/5);
+ let zeroCount=0,gapNumerator=0,gapDenominator=1;
+ for(let count=1;count<=limit;count++){
+  const upper=scored[count-1],lower=scored[count];
+  if(!lower)continue;
+  const gap=upper.score-lower.score;
+  if(upper.score*100>=lower.score*120&&gap*gapDenominator>gapNumerator*lower.score){
+   zeroCount=count;gapNumerator=gap;gapDenominator=lower.score;
+  }
+ }
+ const best=scored[zeroCount]?.score||0;
+ for(const [i,r]of rows.entries())r.tier=i<zeroCount?'0':!r.score?'미득표':r.score*100>=best*80?'S':r.score*100>=best*60?'A':r.score*100>=best*40?'B':r.score*100>=best*20?'C':'D';
+ return rows;
+}
 const schemas=new WeakMap();
 export async function handleTierVotes({request,env}){try{
  if(!['GET','PUT'].includes(request.method))return reply({error:'지원하지 않는 요청입니다.'},405);
