@@ -17,17 +17,17 @@ function summarize(run,input,T,B,correction){
 async function scan({input,modes,altar='current',evaluate,T,onProgress=()=>{}}){const results=[];for(const mode of modes){const base=variant(input,mode,altar),rows=[],list=targets(T,mode);for(const t of list){const row=await evaluate({...base,target:t.id},t);rows.push(row);onProgress({mode,done:rows.length,total:list.length,row});}const waves=[...new Set(rows.map(r=>r.wave))].map(wave=>{const variants=rows.filter(r=>r.wave===wave);return{wave,pass:variants.every(r=>r.pass),variants};}),first=waves.find(w=>!w.pass),causes={};for(const r of rows.filter(r=>!r.pass))causes[r.cause]=(causes[r.cause]||0)+1;results.push({mode,altar,waves,rows,firstRisk:first?.wave??null,passed:!first,causes:Object.entries(causes).map(([cause,count])=>({cause,count})).sort((a,b)=>b.count-a.count),coverage:list.length,lastWave:T.lastWave(mode)});}return results;}
 // Diagnostic events observe original combat; they never alter damage or survival rules.
 function recorder(T,G,cells){
- const rounds=new Map,homes=new Map(cells.map(c=>[G.tileIndex(c.row,c.col),G.sideOf(c.row)]));let current=fresh();
- function fresh(){return{spawnPool:0,erasedPool:0,eaten:0,addedLayers:0,bossPool:0,youBossDamage:0,damageBySide:{you:0,partner:0},bossBySide:{you:0,partner:0}};}
- return{rounds,event(e){
+ const rounds=new Map,units=cells.map(c=>({id:String(G.tileIndex(c.row,c.col)),slug:c.slug,row:c.row,col:c.col,side:G.sideOf(c.row)})),homes=new Map(units.map(u=>[Number(u.id),u]));let current=fresh();
+ function fresh(){const damageByKind={mob:{you:0,partner:0},boss:{you:0,partner:0},other:{you:0,partner:0}};return{spawnPool:0,erasedPool:0,eaten:0,addedLayers:0,bossPool:0,youBossDamage:0,damageBySide:{you:0,partner:0},bossBySide:damageByKind.boss,damageByKind,unitDamage:{}};}
+ return{rounds,units,event(e){
   if(e.kind==='spawn'){current.spawnPool+=e.pool||0;const t=T.TARGET_BY_ID.get(e.tid);if(t&&['LineBoss','SpecialBoss'].includes(t.type))current.bossPool+=e.pool||0;}
   if(e.kind==='gone'&&e.fate==='cleared')current.erasedPool+=e.pool||0;
   if(e.kind==='ate'){current.eaten+=e.eaten||0;current.addedLayers+=e.layers||0;}
-  if(e.kind==='hit'){const t=T.TARGET_BY_ID.get(e.tid),home=Number(String(e.tower).split(':').at(-1)),side=homes.get(home),damage=Math.max(0,e.dealt||0);if(side==='you'||side==='partner'){current.damageBySide[side]+=damage;if(t&&['LineBoss','SpecialBoss'].includes(t.type)){current.bossBySide[side]+=damage;if(side==='you')current.youBossDamage+=damage;}}}
+  if(e.kind==='hit'){const t=T.TARGET_BY_ID.get(e.tid),home=Number(String(e.tower).split(':').at(-1)),unit=homes.get(home),damage=Number.isFinite(e.dealt)?Math.max(0,e.dealt):0;if(unit&&damage>0){const side=unit.side,kind=t&&['LineBoss','SpecialBoss','QuestBoss','GiantsBoss'].includes(t.type)?'boss':t&&['Monster','DeepSea_SpecialMonster','Giants'].includes(t.type)?'mob':'other',index=kind==='mob'?0:kind==='boss'?1:2,counts=current.unitDamage[unit.id]??=[0,0,0];counts[index]+=damage;current.damageBySide[side]+=damage;current.damageByKind[kind][side]+=damage;if(side==='you'&&t&&['LineBoss','SpecialBoss'].includes(t.type))current.youBossDamage+=damage;}}
   if(e.kind==='waveStacks'){rounds.set(e.wave,current);current=fresh();}
  }};
 }
-function continuousReport({run,mode,altar,T,rounds,basis}){
+function continuousReport({run,mode,altar,T,rounds,basis,units=[]}){
  const lastWave=T.lastWave(mode),firstRisk=run.gameOver?.wave??null,causes={},rows=[];
  for(let wave=1;wave<=lastWave;wave++){
   const w=run.waves.find(w=>w.wave===wave),t=w?T.TARGET_BY_ID.get(w.target):T.waveTarget(mode,wave),e=rounds.get(wave),reached=!!w,failed=firstRisk===wave;
@@ -35,13 +35,15 @@ function continuousReport({run,mode,altar,T,rounds,basis}){
   if(cause)causes[cause]=(causes[cause]||0)+1;
   const required=reached?Math.max(0,(w.carryIn||0)+(e?.spawnPool||0)-(e?.erasedPool||0)):null,damage=reached?Object.values(w.sides).reduce((n,s)=>n+(s.dealt||0),0):null;
   const warning=reached&&!failed&&((w.leftover||0)>0||(w.leaks||0)>0);
-  rows.push({id:t.id,wave,type:t.type,name:T.targetName(t),reached,pass:reached&&!failed,estimated:false,warning,required,damage,remaining:w?.leftover??null,window:w?.scheduled??T.waveSeconds(mode,wave),seconds:w?.killAt??null,cause,tips:failed?['사거리·배치·빙결과 누적 이탈, 저장된 소환·해방 시점을 확인하세요.']:[],lanes:[],damageBySide:e?.damageBySide??{you:0,partner:0},bossBySide:e?.bossBySide??{you:0,partner:0},carryIn:w?.carryIn??null,lives:w?.lives??null,leaks:w?.leaks??null,eaten:e?.eaten||0,addedLayers:e?.addedLayers||0,tracked:w?.tracked??false});
+  rows.push({id:t.id,wave,type:t.type,name:T.targetName(t),reached,pass:reached&&!failed,estimated:false,warning,required,damage,remaining:w?.leftover??null,window:w?.scheduled??T.waveSeconds(mode,wave),seconds:w?.killAt??null,cause,tips:failed?['사거리·배치·빙결과 누적 이탈, 저장된 소환·해방 시점을 확인하세요.']:[],lanes:[],damageBySide:e?.damageBySide??{you:0,partner:0},bossBySide:e?.bossBySide??{you:0,partner:0},damageByKind:e?.damageByKind??{mob:{you:0,partner:0},boss:{you:0,partner:0},other:{you:0,partner:0}},carryIn:w?.carryIn??null,lives:w?.lives??null,leaks:w?.leaks??null,eaten:e?.eaten||0,addedLayers:e?.addedLayers||0,tracked:w?.tracked??false});
  }
  const final=rows.at(-1),w=run.waves.find(w=>w.wave===lastWave),e=rounds.get(lastWave);
  // Capacity, not capped damage share: extrapolate the observed boss-only effective
  // mean rate to its allotted clock. One person = half the shared boss durability.
  const seconds=w?.killAt??w?.seconds,contribution=e?.bossPool>0&&seconds>0?{people:2*e.youBossDamage/seconds*final.window/e.bossPool,wave:lastWave,ownDamage:e.youBossDamage,seconds,window:final.window,requiredPerPerson:e.bossPool/2,estimated:true}:null;
- return{mode,altar,basis,continuous:true,rows,waves:rows.map(r=>({wave:r.wave,pass:r.pass,reached:r.reached,variants:[r]})),firstRisk,passed:!firstRisk&&!!w,causes:Object.entries(causes).map(([cause,count])=>({cause,count})),coverage:run.waves.length,lastWave,bossCapacity:contribution,lives:run.lives};
+ // Keep per-unit counters once per report, outside duplicated wave/row diagnostics.
+ const unitDamageByWave=Object.fromEntries(rows.filter(r=>r.reached).map(r=>[r.wave,rounds.get(r.wave)?.unitDamage||{}]));
+ return{mode,altar,basis,continuous:true,damageSchema:2,units,unitDamageByWave,rows,waves:rows.map(r=>({wave:r.wave,pass:r.pass,reached:r.reached,variants:[r]})),firstRisk,passed:!firstRisk&&!!w,causes:Object.entries(causes).map(([cause,count])=>({cause,count})),coverage:run.waves.length,lastWave,bossCapacity:contribution,lives:run.lives};
 }
 async function personEstimate({evaluate,baseline,onProgress=()=>{}}){
  let evaluated=0,low=0,high=1;const probes=[];

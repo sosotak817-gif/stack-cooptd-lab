@@ -65,7 +65,7 @@ self.onmessage=async({data})=>{if(data.kind==='__scheduler'){schedulerPaused=!!d
  const evaluate=async(input,altar='current',notify=false,damageScale=1,forceMirror=false,onRound=()=>{})=>{
   const basis=forceMirror?'mirror':CoopPresets.hasPartnerDeck(input)?'partner':input.stageBasis||'mirror';
   const maxDefence=basis==='solo'&&input.stageMaxDefence===true;
-  const key=await cacheKey({...input,target:'stage-continuous-v7:'+altar+':'+basis+':'+damageScale+':'+maxDefence});const saved=await read(key);if(saved){if(notify)for(const row of saved.rows)postMessage({id,kind:'stage-progress',mode:input.mode,altar,row});return structuredClone(saved);}
+  const key=await cacheKey({...input,target:'stage-continuous-v8:'+altar+':'+basis+':'+damageScale+':'+maxDefence});const saved=await read(key);if(saved){if(notify)for(const row of saved.rows)postMessage({id,kind:'stage-progress',mode:input.mode,altar,row});return structuredClone(saved);}
   const party=CoopPresets.giantInput(input,basis),{cells,marks}=CoopGemTools.active(party),target=CoopTargets.finalBossOf(input.mode),targetId='stage-continuous:'+input.mode;
   // Observe through the end of 100R, without invoking the optional giant invasion.
   CoopTargets.registerTargets([{...target,id:targetId,pinsWave:false}]);
@@ -75,7 +75,7 @@ self.onmessage=async({data})=>{if(data.kind==='__scheduler'){schedulerPaused=!!d
   // Boundary probes need only survival, not per-hit telemetry or 100 table rows.
   if(forceMirror&&!notify){const run=CoopBoss.bossRun(cells,p,options),probe={passed:!run.gameOver&&run.waves.some(w=>w.wave===CoopTargets.lastWave(input.mode)),firstRisk:run.gameOver?.wave??null};await write(key,probe);return probe;}
   const trace=CoopStages.recorder(CoopTargets,CoopGeometry,cells),run=CoopBoss.bossRun(cells,p,options,undefined,e=>{trace.event(e);if(e.kind==='waveStacks')onRound(e.wave);if(notify&&e.kind==='waveStacks')postMessage({id,kind:'stage-progress',mode:input.mode,altar,row:{wave:e.wave}});});
-  const report=CoopStages.continuousReport({run,mode:input.mode,altar,T:CoopTargets,rounds:trace.rounds,basis});report.maxDefence=maxDefence;await write(key,report);return structuredClone(report);
+  const report=CoopStages.continuousReport({run,mode:input.mode,altar,T:CoopTargets,rounds:trace.rounds,basis,units:trace.units});report.maxDefence=maxDefence;await write(key,report);return structuredClone(report);
  };
  const reports=[];
  for(const altar of (data.compareAltars?['current','none']:['current']))for(const mode of modes){

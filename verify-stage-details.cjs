@@ -1,0 +1,23 @@
+const assert=require('node:assert/strict'),H=require('./ui/stage-tools.js'),C=require('./ui/stage-compare.js');
+const cells=[{slug:'clara',row:6,col:3},{slug:'clara',row:6,col:4},{slug:'ivy',row:3,col:2},{slug:'witch-doctor',row:3,col:3}];
+const targets=new Map([['m',{id:'m',type:'Monster',name:'m'}],['b',{id:'b',type:'SpecialBoss',name:'b'}],['s',{id:'s',type:'DeepSea_SpecialMonster',name:'s'}]]),T={TARGET_BY_ID:targets,lastWave:()=>100,targetName:t=>t.name,waveTarget:(_,wave)=>({...targets.get(wave%10===0?'b':'m'),wave}),waveSeconds:()=>10};
+const trace=H.recorder(T,{tileIndex:(r,c)=>r*7+c,sideOf:r=>r>5?'you':'partner'},cells);
+const hit=(home,tid,dealt)=>trace.event({kind:'hit',tower:'unit:'+home,tid,dealt,lane:home>35?'partner':'you'});
+// Target types, not the current wave label or destination lane, determine buckets.
+hit(45,'m',60);hit(45,'b',20);hit(46,'m',40);hit(23,'b',80);trace.event({kind:'waveStacks',wave:1});
+hit(45,'m',30);hit(46,'b',70);trace.event({kind:'waveStacks',wave:10});
+hit(23,'m',100);trace.event({kind:'waveStacks',wave:33});
+hit(45,'s',50);hit(23,'s',50);trace.event({kind:'waveStacks',wave:34});
+hit(46,'unknown',10);hit(46,'m',-50);hit(45,'m',Infinity);trace.event({kind:'waveStacks',wave:35});
+hit(45,'b',20);trace.event({kind:'waveStacks',wave:40});
+const waves=Array.from({length:40},(_,i)=>{const wave=i+1,e=trace.rounds.get(wave),t=T.waveTarget('deepsea',wave);return{wave,target:t.id,carryIn:0,leftover:0,leaks:0,lives:wave===40?0:5,tracked:true,scheduled:10,seconds:10,sides:{you:{dealt:e?.damageBySide.you||0},partner:{dealt:e?.damageBySide.partner||0}}};});
+const report=H.continuousReport({run:{waves,gameOver:{wave:40,why:'lives'},lives:{left:0}},mode:'deepsea',altar:'current',T,rounds:trace.rounds,basis:'partner',units:trace.units}),before=JSON.stringify(report);
+assert.equal(report.damageSchema,2);assert.equal(report.units.length,4);assert.deepEqual(C.phases(90).map(p=>[p.from,p.to]),[[1,30],[31,60],[61,90]]);assert.deepEqual(C.phases(100).map(p=>[p.from,p.to]),[[1,33],[34,66],[67,100]]);
+assert.deepEqual(C.shares(report.rows,'mob'),{you:180,partner:150});assert.deepEqual(C.shares(report.rows,'boss'),{you:110,partner:80});assert.deepEqual(C.shares(report.rows,'other'),{you:10,partner:0});assert.deepEqual(C.shares(report.rows),{you:300,partner:230});
+assert.equal(report.rows[0].type,'Monster');assert.equal(C.damageOf(report.rows[0],'boss').partner,80);assert.equal(report.rows[9].type,'SpecialBoss');assert.equal(C.damageOf(report.rows[9],'mob').you,30,'leftover mobs on boss rounds remain mob damage');
+const phases=C.phaseSummary(report,'mob');assert.equal(phases[0].reached,33);assert.equal(phases[1].reached,7);assert.equal(phases[2].reached,0);assert.equal(phases[2].lastReached,null);assert.deepEqual(phases[2].damage,{you:0,partner:0});assert.deepEqual(phases[1].damage,{you:50,partner:50});
+for(const kind of ['all','mob','boss','other']){const units=C.unitBreakdown(report,kind),totals=C.shares(report.rows,kind);assert.equal(units.length,4,'zero-damage units remain visible');for(const side of ['you','partner']){const own=units.filter(u=>u.side===side);assert.equal(own.reduce((s,u)=>s+u.damage,0),totals[side]);if(totals[side])assert.ok(Math.abs(own.reduce((s,u)=>s+u.deckShare,0)-1)<1e-12);else assert.ok(own.every(u=>u.deckShare===null));}assert.ok(Math.abs(units.reduce((s,u)=>s+(u.teamShare||0),0)-1)<1e-12);}
+const units=C.unitBreakdown(report),first=units.find(u=>u.id==='45'),second=units.find(u=>u.id==='46'),support=units.find(u=>u.id==='24');assert.equal(first.slug,second.slug);assert.equal(first.damage,180);assert.equal(second.damage,120);assert.equal(first.deckShare,.6);assert.equal(support.damage,0);assert.equal(support.teamShare,0);
+assert.equal(C.unitBreakdown(report,'boss','round',10).find(u=>u.id==='46').damage,70);assert.equal(C.unitBreakdown(report,'mob','middle').find(u=>u.id==='45').damage,50);assert.ok(C.unitBreakdown(report,'all','late').every(u=>u.deckShare===null&&u.teamShare===null));assert.equal(C.rangeRows(report,'round',41).length,0);assert.equal(JSON.stringify(report),before,'filters and summaries must not modify the report');
+assert.equal(report.rows.at(-1).reached,false);assert.deepEqual(report.rows.at(-1).bossBySide,{you:0,partner:0});assert.ok(!Object.hasOwn(report.rows[0],'unitDamage'),'unit telemetry is stored once outside duplicated row diagnostics');
+console.log('Stage details: enemy-based filters, cross-lane attribution, special mobs, unknown targets, 90/100R thirds, partial and unreached phases, distinct same-slug placements, zero units, consistent share denominators, round drilldown and immutable reports passed.');
