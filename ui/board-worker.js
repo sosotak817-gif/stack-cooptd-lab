@@ -1,4 +1,4 @@
-const assetVersion=new URL(self.location?.href||'http://localhost/').searchParams.get('v');importScripts(...['/cache-version.js','/engine.js','/optimizer-core.js','/gem-tools.js','/board-presets.js','/dealer-recommendations.js','/pressure-tools.js','/clara-tools.js','/eggby-tools.js','/stage-tools.js','/wall-tools.js'].map(path=>path+(assetVersion?'?v='+assetVersion:'')));
+const assetVersion=new URL(self.location?.href||'http://localhost/').searchParams.get('v');importScripts(...['/cache-version.js','/engine.js','/optimizer-core.js','/gem-tools.js','/board-presets.js','/dealer-recommendations.js','/pressure-tools.js','/clara-tools.js','/eggby-tools.js','/stage-tools.js','/stage-compare.js','/wall-tools.js'].map(path=>path+(assetVersion?'?v='+assetVersion:'')));
 let schedulerPaused=false,schedulerWaiters=[];function schedulerTurn(){if(schedulerPaused)return new Promise(resolve=>schedulerWaiters.push(resolve));}
 const memory=new Map();let dbPromise;
 function database(){return dbPromise??=new Promise(resolve=>{if(!self.indexedDB){resolve(null);return}const req=indexedDB.open('stack-lab-dps-cache',1);req.onupgradeneeded=()=>req.result.createObjectStore('results',{keyPath:'key'});req.onsuccess=()=>resolve(req.result);req.onerror=()=>resolve(null);req.onblocked=()=>resolve(null)})}
@@ -65,7 +65,7 @@ self.onmessage=async({data})=>{if(data.kind==='__scheduler'){schedulerPaused=!!d
  const evaluate=async(input,altar='current',notify=false,damageScale=1,forceMirror=false,onRound=()=>{})=>{
   const basis=forceMirror?'mirror':CoopPresets.hasPartnerDeck(input)?'partner':input.stageBasis||'mirror';
   const maxDefence=basis==='solo'&&input.stageMaxDefence===true;
-  const key=await cacheKey({...input,target:'stage-continuous-v6:'+altar+':'+basis+':'+damageScale+':'+maxDefence});const saved=await read(key);if(saved){if(notify)for(const row of saved.rows)postMessage({id,kind:'stage-progress',mode:input.mode,altar,row});return structuredClone(saved);}
+  const key=await cacheKey({...input,target:'stage-continuous-v7:'+altar+':'+basis+':'+damageScale+':'+maxDefence});const saved=await read(key);if(saved){if(notify)for(const row of saved.rows)postMessage({id,kind:'stage-progress',mode:input.mode,altar,row});return structuredClone(saved);}
   const party=CoopPresets.giantInput(input,basis),{cells,marks}=CoopGemTools.active(party),target=CoopTargets.finalBossOf(input.mode),targetId='stage-continuous:'+input.mode;
   // Observe through the end of 100R, without invoking the optional giant invasion.
   CoopTargets.registerTargets([{...target,id:targetId,pinsWave:false}]);
@@ -77,12 +77,23 @@ self.onmessage=async({data})=>{if(data.kind==='__scheduler'){schedulerPaused=!!d
   const trace=CoopStages.recorder(CoopTargets,CoopGeometry,cells),run=CoopBoss.bossRun(cells,p,options,undefined,e=>{trace.event(e);if(e.kind==='waveStacks')onRound(e.wave);if(notify&&e.kind==='waveStacks')postMessage({id,kind:'stage-progress',mode:input.mode,altar,row:{wave:e.wave}});});
   const report=CoopStages.continuousReport({run,mode:input.mode,altar,T:CoopTargets,rounds:trace.rounds,basis});report.maxDefence=maxDefence;await write(key,report);return structuredClone(report);
  };
- const reports=[];for(const altar of (data.compareAltars?['current','none']:['current']))for(const mode of modes){
-  const base=CoopStages.variant(data,mode,altar),report=await evaluate(base,altar,true),mirror=CoopPresets.giantInput(base,'mirror'),capacityKey=await cacheKey({...mirror,target:'stage-capacity-v1'}),capacity=await read(capacityKey);
-  if(capacity){report.contribution=structuredClone(capacity);postMessage({id,kind:'stage-capacity-progress',mode,altar,cached:true});}
-  else {const baseline=report.basis==='mirror'?report:await evaluate(base,'capacity',false,1,true);let probe=0;
-   report.contribution=await CoopStages.personEstimate({baseline,onProgress:p=>{probe=p.evaluated+1;postMessage({id,kind:'stage-capacity-progress',mode,altar,probe,scale:p.scale});},evaluate:scale=>evaluate(base,'capacity',false,scale,true,wave=>{if(wave%10===0)postMessage({id,kind:'stage-capacity-progress',mode,altar,probe,scale,wave});})});await write(capacityKey,report.contribution);
-  }reports.push(report);
+ const reports=[];
+ for(const altar of (data.compareAltars?['current','none']:['current']))for(const mode of modes){
+  const report=await evaluate(CoopStages.variant(data,mode,altar),altar,true);reports.push(report);
+  postMessage({id,kind:'stage-team-progress',reports});
+ }
+ // Publish every team result before starting independent, equal-deck probes.
+ for(const report of reports){
+  const {mode,altar}=report,base=CoopStages.variant(data,mode,altar);report.independent={};
+  for(const side of (CoopPresets.hasPartnerDeck(base)?['you','partner']:['you'])){
+   const own=side==='you'?base:CoopStageCompare.swap(base),mirror=CoopPresets.giantInput(own,'mirror'),capacityKey=await cacheKey({...mirror,target:'stage-capacity-v1'}),capacity=await read(capacityKey);
+   if(capacity){report.independent[side]=structuredClone(capacity);postMessage({id,kind:'stage-capacity-progress',mode,altar,side,cached:true});}
+   else {const baseline=side==='you'&&report.basis==='mirror'?report:await evaluate(own,'capacity',false,1,true);let probe=0;
+    report.independent[side]=await CoopStages.personEstimate({baseline,onProgress:p=>{probe=p.evaluated+1;postMessage({id,kind:'stage-capacity-progress',mode,altar,side,probe,scale:p.scale});},evaluate:scale=>evaluate(own,'capacity',false,scale,true)});await write(capacityKey,report.independent[side]);
+   }
+   if(side==='you')report.contribution=report.independent.you;
+   postMessage({id,kind:'stage-independent-progress',reports});
+  }
  }
  if(data.stagePressureSearch){const report=reports.find(r=>r.mode==='deepsea'&&r.altar==='current');if(report){const base=CoopStages.variant(data,'deepsea','current');report.pressureCases=await CoopPressure.scenarioSearch({base,Account:CoopAccount,budget:data.stagePressureBudget??3,maxLevel:data.stagePressureLevel??5,onProgress:p=>postMessage({id,kind:'stage-pressure-progress',...p}),evaluate:async candidate=>{const r=await evaluate(candidate);return{pass:r.passed,firstRisk:r.firstRisk,contribution:null};}});}}
  postMessage({id,kind:'stage-result',reports});return;
