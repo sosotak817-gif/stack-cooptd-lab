@@ -1,8 +1,9 @@
 (function(root){'use strict';
-const C=root.CoopStageCompare,key='stack-lab-stage-decks-v1';let slots=null,box=null;
+const C=root.CoopStageCompare,key='stack-lab-stage-decks-v1';let slots=null,box=null,activeSource='compare';
 const el=(tag,text)=>{const n=document.createElement(tag);if(text!==undefined)n.textContent=text;return n;};
 function saved(){const s=JSON.parse(localStorage.getItem('coop-lab-board-v2'));return CoopPresets.withDefaults(s,CoopEngine,CoopData);}
-function setup(base,changed,dict={}){
+function setup(base,changed,dict={},source='compare'){
+ activeSource=source;if(source==='saved'){if(box)box.hidden=true;return structuredClone(base);}if(box)box.hidden=false;
  if(!slots){try{const value=JSON.parse(localStorage.getItem(key));if(value?.a?.cells?.length&&value.a.account?.perDemon&&(!value.b||value.b.cells?.length&&value.b.account?.perDemon))slots=value;}catch{}slots??={a:C.extract(base,'you'),b:CoopPresets.hasPartnerDeck(base)?C.extract(base,'partner'):null};}
  if(!box){box=el('div');box.className='stage-deck-slots';document.querySelector('#saved-summary').after(box);}
  function update(refresh=true){try{localStorage.setItem(key,JSON.stringify(slots));}catch{document.querySelector('#stage-status').textContent='비교 덱을 이 세션에서만 보관합니다.';}if(refresh)changed();}
@@ -29,14 +30,14 @@ function gemEditor(dict,changed){
  apply.onclick=()=>{try{slots=C.applyGems(slots,unit.value,picks.map(({pick,grade})=>({id:pick.value,grade:grade.value})),target.value,CoopData.GEM_BY_ID,CoopData.GRADES);const names=target.value==='both'?'A/B':target.value.toUpperCase();changed();document.querySelector('#stage-status').textContent=names+' 비교 덱에 보석을 적용했습니다. 다시 분석하면 반영됩니다.';}catch(error){note.textContent=error.message;}};
  target.onchange=candidates;unit.onchange=renderFields;candidates();details.append(controls,current,fields,note,apply);return details;
 }
-const label=side=>(side==='you'?slots?.a?.name:slots?.b?.name)||(side==='you'?'덱 A':'덱 B');
+const label=side=>activeSource==='saved'?(side==='you'?'내 덱':'파트너'):(side==='you'?slots?.a?.name:slots?.b?.name)||(side==='you'?'덱 A':'덱 B');
 const views=new Map;
 function resetViews(){views.clear();}
 function stopPending(){for(const view of views.values())view.stopped=true;for(const n of document.querySelectorAll('.stage-pairing-status[data-pairing-pending]'))n.textContent='미완료';for(const n of document.querySelectorAll('.stage-pairing-verdict[data-pairing-pending]')){n.querySelector('strong').textContent='궁합 비교가 완료되지 않았습니다.';n.querySelector('p').textContent='준비된 조합의 딜량 리포트는 계속 확인할 수 있습니다.';}}
 function render(source,fmt,dict={}){
  const key=source.mode+':'+source.altar;
  if(!views.has(key))views.set(key,{matchup:'ab',kind:'all',axis:'round',scope:'all',side:'all',wave:null,tableOpen:false,stopped:false});
- const state=views.get(key),names=['you','partner'],titles={aa:'A+A',ab:source.basis==='mirror'?'A+A (복제)':source.basis==='solo'?'A 단독':'A+B',bb:'B+B'},kinds={all:'전체',mob:'일반몹',boss:'보스',other:'기타'};
+ const basic=source.analysisSource==='saved',state=views.get(key),names=['you','partner'],titles={aa:'A+A',ab:basic?(source.basis==='mirror'?'동일 덱 2인':source.basis==='solo'?'내 덱 단독':'내 덱 + 파트너'):source.basis==='mirror'?'A+A (복제)':source.basis==='solo'?'A 단독':'A+B',bb:'B+B'},kinds={all:'전체',mob:'일반몹',boss:'보스',other:'기타'};
  let report=source;const section=el('section');section.className='stage-duel';
  const deckLabel=side=>root.StageComparison.label(side);
  function label(side){if(state.matchup==='aa')return deckLabel('you')+(side==='you'?' ①':' ②');if(state.matchup==='bb')return deckLabel('partner')+(side==='you'?' ①':' ②');return side==='partner'&&source.basis==='mirror'?deckLabel('you')+' 복제':side==='partner'&&source.basis==='solo'?'빈 진영':deckLabel(side);}
@@ -45,8 +46,8 @@ function render(source,fmt,dict={}){
  function identity(u){const d=root.CoopData?.DEMON_BY_SLUG.get(u.slug);return{data:d,name:dict[d?.name]||d?.name||u.slug};}
  function portrait(u){const {data,name}=identity(u),img=el('img');if(data)img.src='/assets/units/'+data.img+'.webp';img.alt=name;img.loading='lazy';return img;}
  function makeTable(headers){const wrap=el('div'),table=el('table'),head=el('thead'),tr=el('tr'),body=el('tbody');wrap.className='stage-table-wrap';table.className='stage-table';for(const text of headers){const th=el('th',text);th.scope='col';tr.append(th);}head.append(tr);table.append(head,body);wrap.append(table);return{wrap,table,body};}
- const pairingSection=el('section');pairingSection.className='stage-pairing-section';const pairingCards=el('div');pairingCards.className='stage-pairing-grid';const verdict=el('div');verdict.className='stage-pairing-verdict';pairingSection.append(el('h3','조합 궁합 · A+A / A+B / B+B'),el('p','같은 난이도와 기본 보스 순서에서 비교합니다. 각 덱의 계정·보석·제단·소환 시점을 유지하며, 누적 딜량만으로 조합의 우열을 정하지 않습니다.'),pairingCards,verdict);section.append(pairingSection);
- const dashboard=el('section');dashboard.className='stage-damage-dashboard';dashboard.setAttribute('aria-label','유닛별 딜량 대시보드');const dashboardHead=el('header');dashboardHead.className='stage-damage-heading';const headingCopy=el('div');headingCopy.append(el('span','DAMAGE REPORT'),el('h3','유닛별 딜량'));const matchupBadge=el('span');matchupBadge.className='stage-matchup-badge';dashboardHead.append(headingCopy,matchupBadge);
+ const pairingSection=el('section');pairingSection.className='stage-pairing-section';pairingSection.hidden=basic;const pairingCards=el('div');pairingCards.className='stage-pairing-grid';const verdict=el('div');verdict.className='stage-pairing-verdict';pairingSection.append(el('h3','조합 궁합 · A+A / A+B / B+B'),el('p','같은 난이도와 기본 보스 순서에서 비교합니다. 각 덱의 계정·보석·제단·소환 시점을 유지하며, 누적 딜량만으로 조합의 우열을 정하지 않습니다.'),pairingCards,verdict);section.append(pairingSection);
+ const dashboard=el('section');dashboard.className='stage-damage-dashboard';dashboard.id='stage-damage-'+source.mode+'-'+source.altar;dashboard.tabIndex=-1;dashboard.setAttribute('aria-label','유닛별 딜량 대시보드');const dashboardHead=el('header');dashboardHead.className='stage-damage-heading';const headingCopy=el('div');headingCopy.append(el('span','DAMAGE REPORT'),el('h3','유닛별 딜량'));const matchupBadge=el('span');matchupBadge.className='stage-matchup-badge';dashboardHead.append(headingCopy,matchupBadge);
  const controls=el('div');controls.className='stage-damage-controls';const targetLabel=el('label','피해 대상 '),target=el('select');target.setAttribute('aria-label','딜 지분 대상 필터');targetLabel.append(target);
  const scopeLabel=el('label','전투 구간 '),scope=el('select');scope.setAttribute('aria-label','유닛 상세 구간');scope.append(new Option('전체 도달 구간','all'));for(const p of C.phases(source.lastWave))scope.append(new Option(p.name+' '+p.from+'~'+p.to+'R',p.id));const chosenOption=new Option('선택 라운드','round');scope.append(chosenOption);scopeLabel.append(scope);
  const sideLabel=el('label','표시 진영 '),side=el('select');side.setAttribute('aria-label','유닛 상세 진영');sideLabel.append(side);controls.append(targetLabel,scopeLabel,sideLabel);
@@ -58,9 +59,9 @@ function render(source,fmt,dict={}){
  const axis=el('select');axis.setAttribute('aria-label','라운드 지분 표시 기준');axis.append(new Option('해당 라운드','round'),new Option('누적 지분','cumulative'));axis.value=state.axis;
  const chart=el('div');chart.className='stage-share-chart';chart.setAttribute('role','group');chart.setAttribute('aria-label','라운드별 A B 딜 지분 막대 그래프');const legend=el('p'),detail=el('p','막대를 선택하면 위의 유닛별 딜량에서 해당 단일 라운드를 확인합니다.');detail.className='stage-share-selection';detail.setAttribute('aria-live','polite');
  const rounds=makeTable(['라운드','첫 번째 덱 피해','두 번째 덱 피해','딜 지분']),roundDetails=el('details');roundDetails.open=!!state.roundsOpen;roundDetails.ontoggle=()=>state.roundsOpen=roundDetails.open;roundDetails.append(el('summary','라운드별 피해 수치 보기'),rounds.wrap);section.append(el('h3','라운드별 딜 지분'),axis,legend,chart,detail,roundDetails);
- const independent=el('section');independent.className='stage-independent';independent.append(el('h3','원본 A / B 독립 인분'));
+ const independent=el('section');independent.className='stage-independent';independent.append(el('h3',basic?'기존 저장 덱 독립 인분':'원본 A / B 독립 인분'));
  for(const s of (source.basis==='partner'?names:['you'])){const value=source.independent?.[s]||(s==='you'?source.contribution:null),line=el('p',deckLabel(s)+': '+(value?Number.isFinite(value.people)?value.people.toFixed(1)+'인분':value.lowerBound?'최소 '+value.lowerBound.toFixed(1)+'인분':'탐색 범위 내 산출 불가':state.stopped?'미계산 · 분석 종료':'계산 대기 중'));if(!value)line.dataset.independentPending=deckLabel(s);independent.append(line);}
- independent.append(el('p','동일 덱 2인 전체 전투의 클리어 경계 추정값입니다. 동일 덱 2개가 딱 클리어하는 수준이 1.0인분이며 합계는 고정되지 않습니다. 조합 선택·피해 필터와 관계없이 원본 A와 B의 결과를 표시합니다.'));section.append(independent);
+ independent.append(el('p','동일 덱 2인 전체 전투의 클리어 경계 추정값입니다. 동일 덱 2개가 딱 클리어하는 수준이 1.0인분이며 합계는 고정되지 않습니다. 피해 필터와 관계없이 분석에 사용한 각 덱의 결과를 표시합니다.'));section.append(independent);
  function drawPairings(){
   pairingCards.replaceChildren();for(const matchup of (source.pairingStatus==='unavailable'?['ab']:['aa','ab','bb'])){const result=matchup==='ab'?source:source.pairings?.[matchup],card=el('button');card.type='button';card.className='stage-pairing-card';card.dataset.matchup=matchup;card.setAttribute('aria-label',titles[matchup]+' 딜량 보기');card.setAttribute('aria-pressed',String(state.matchup===matchup));card.disabled=!result;const title=el('div');title.className='stage-pairing-title';const status=el('span');status.className='stage-pairing-status';title.append(el('b',titles[matchup]),status);card.append(title);
    if(result){const o=C.teamOutcome(result);status.textContent=o.passed?'CLEAR':o.firstRisk+'R 종료';status.dataset.pass=String(o.passed);const metrics=el('div');metrics.className='stage-pairing-metrics';for(const [name,value]of [['도달',o.reached+' / '+result.lastWave+'R'],['남은 생명',o.lives??'—'],['누적 이탈',o.leaks+'마리'],['최종 라운드',o.finalSeconds!==null?o.finalSeconds.toFixed(2)+'초':!o.finalReached?'미도달':o.passed?'시간 기록 없음':'미처치']]){const metric=el('span');metric.append(el('small',name),el('strong',String(value)));metrics.append(metric);}card.append(metrics,el('span',state.matchup===matchup?'현재 딜량 리포트':'이 조합의 딜량 보기'));}

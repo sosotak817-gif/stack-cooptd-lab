@@ -79,7 +79,7 @@ self.onmessage=async({data})=>{if(data.kind==='__scheduler'){schedulerPaused=!!d
  };
  const reports=[];
  for(const altar of (data.compareAltars?['current','none']:['current']))for(const mode of modes){
-  const report=await evaluate(CoopStages.variant(data,mode,altar),altar,true);report.pairingStatus=!CoopPresets.hasPartnerDeck(data)?'unavailable':data.stagePairings===false?'skipped':'running';report.pairings={};reports.push(report);
+  const report=await evaluate(CoopStages.variant(data,mode,altar),altar,true);report.analysisSource=data.stageSource==='saved'?'saved':'compare';report.pairingStatus=!CoopPresets.hasPartnerDeck(data)?'unavailable':data.stageSource==='saved'||data.stagePairings===false?'skipped':'running';report.pairings={};reports.push(report);
   postMessage({id,kind:'stage-team-progress',reports});
  }
  // All original A+B team results arrive first; matchup replays precede independent probes.
