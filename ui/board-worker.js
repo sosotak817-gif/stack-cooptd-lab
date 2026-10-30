@@ -65,7 +65,7 @@ self.onmessage=async({data})=>{if(data.kind==='__scheduler'){schedulerPaused=!!d
  const evaluate=async(input,altar='current',notify=false,damageScale=1,forceMirror=false,onRound=()=>{})=>{
   const basis=forceMirror?'mirror':CoopPresets.hasPartnerDeck(input)?'partner':input.stageBasis||'mirror';
   const maxDefence=basis==='solo'&&input.stageMaxDefence===true;
-  const key=await cacheKey({...input,target:'stage-continuous-v8:'+altar+':'+basis+':'+damageScale+':'+maxDefence});const saved=await read(key);if(saved){if(notify)for(const row of saved.rows)postMessage({id,kind:'stage-progress',mode:input.mode,altar,row});return structuredClone(saved);}
+  const key=await cacheKey({...input,target:'stage-continuous-v9:'+altar+':'+basis+':'+damageScale+':'+maxDefence});const saved=await read(key);if(saved){if(notify)for(const row of saved.rows)postMessage({id,kind:'stage-progress',mode:input.mode,altar,row});return structuredClone(saved);}
   const party=CoopPresets.giantInput(input,basis),{cells,marks}=CoopGemTools.active(party),target=CoopTargets.finalBossOf(input.mode),targetId='stage-continuous:'+input.mode;
   // Observe through the end of 100R, without invoking the optional giant invasion.
   CoopTargets.registerTargets([{...target,id:targetId,pinsWave:false}]);
@@ -75,12 +75,21 @@ self.onmessage=async({data})=>{if(data.kind==='__scheduler'){schedulerPaused=!!d
   // Boundary probes need only survival, not per-hit telemetry or 100 table rows.
   if(forceMirror&&!notify){const run=CoopBoss.bossRun(cells,p,options),probe={passed:!run.gameOver&&run.waves.some(w=>w.wave===CoopTargets.lastWave(input.mode)),firstRisk:run.gameOver?.wave??null};await write(key,probe);return probe;}
   const trace=CoopStages.recorder(CoopTargets,CoopGeometry,cells),run=CoopBoss.bossRun(cells,p,options,undefined,e=>{trace.event(e);if(e.kind==='waveStacks')onRound(e.wave);if(notify&&e.kind==='waveStacks')postMessage({id,kind:'stage-progress',mode:input.mode,altar,row:{wave:e.wave}});});
-  const report=CoopStages.continuousReport({run,mode:input.mode,altar,T:CoopTargets,rounds:trace.rounds,basis,units:trace.units});report.maxDefence=maxDefence;await write(key,report);return structuredClone(report);
+  const report=CoopStages.continuousReport({run,mode:input.mode,altar,T:CoopTargets,rounds:trace.rounds,basis,units:trace.units.map(u=>{const cell=cells.find(c=>String(CoopGeometry.tileIndex(c.row,c.col))===u.id),lib=cell?.nolib||cell?.lib===false?0:CoopEngine.effectiveLib(party[u.side],u.slug);return{...u,gemSlots:(party[u.side].perDemon[u.slug]?.gems||[]).map((g,i)=>({...g,active:lib>=[3,10,20][i]}))};})});report.maxDefence=maxDefence;await write(key,report);return structuredClone(report);
  };
  const reports=[];
  for(const altar of (data.compareAltars?['current','none']:['current']))for(const mode of modes){
-  const report=await evaluate(CoopStages.variant(data,mode,altar),altar,true);reports.push(report);
+  const report=await evaluate(CoopStages.variant(data,mode,altar),altar,true);report.pairingStatus=!CoopPresets.hasPartnerDeck(data)?'unavailable':data.stagePairings===false?'skipped':'running';report.pairings={};reports.push(report);
   postMessage({id,kind:'stage-team-progress',reports});
+ }
+ // All original A+B team results arrive first; matchup replays precede independent probes.
+ for(const report of reports){if(report.pairingStatus!=='running')continue;const {mode,altar}=report,base=CoopStages.variant(data,mode,altar);
+  for(const pairing of ['aa','bb']){
+   postMessage({id,kind:'stage-pairing-progress',mode,altar,pairing,phase:'running'});
+   const result=await evaluate(CoopStageCompare.pairingInput(base,pairing),altar,false,1,false,wave=>{if(wave%10===0)postMessage({id,kind:'stage-pairing-progress',mode,altar,pairing,phase:'running',wave});});
+   report.pairings[pairing]=CoopStageCompare.compactTeam(result);if(pairing==='bb')report.pairingStatus='complete';
+   postMessage({id,kind:'stage-pairing-progress',mode,altar,pairing,phase:'done',reports});
+  }
  }
  // Publish every team result before starting independent, equal-deck probes.
  for(const report of reports){
