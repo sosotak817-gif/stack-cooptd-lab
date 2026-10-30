@@ -9,9 +9,12 @@ const assert=require('node:assert/strict');
  assert.ok(!validateBallot([...ballot.slice(0,6),'invalid']));
  const rows=tally([ballot]);
  assert.deepEqual(rows.filter(r=>r.score).map(r=>r.score),[7,6,5,4,3,2,1]);
- assert.deepEqual(rows.filter(r=>r.score).map(r=>r.tier),['S','S','A','B','B','C','D']);
+ assert.deepEqual(rows.filter(r=>r.score).map(r=>r.tier),['0','S','S','A','B','C','D']);
  assert.equal(rows.filter(r=>r.tier==='미득표').length,roster.length-7);
  assert.ok(tally([ballot,[...ballot].reverse()]).filter(r=>r.score).every(r=>r.score===8&&r.tier==='S'));
+ assert.ok(tally([]).every(r=>r.tier==='미득표'));
+ const exact=tally([ballot,[4,3,2,0,1,5,6].map(i=>ballot[i])]);assert.equal(exact[0].score,11);assert.equal(exact[1].score,10);assert.equal(exact[0].tier,'0');assert.equal(exact[1].tier,'S');assert.equal(exact.filter(r=>r.tier==='0').length,1);
+ const below=tally([ballot,[3,2,0,1,4,5,6].map(i=>ballot[i])]);assert.equal(below[0].score,12);assert.equal(below[1].score,11);assert.ok(!below.some(r=>r.tier==='0'));
  const saved=new Map();
  const DB={prepare(sql){
   let args;
