@@ -12,3 +12,16 @@ html:has(body.research-page){height:auto;min-height:100%;overflow-x:clip;overflo
 .research-page main.research{padding-bottom:16px}.research-page .research-tools{position:sticky;top:0;z-index:35}.research-page .research-actionbar{position:sticky;top:66px;z-index:34}@media(max-width:760px){.research-page main.research{padding-bottom:16px}.research-page .research-tools{top:62px}.research-page .research-actionbar{top:117px}}
 
 .research-page .research{font-size:15px;line-height:1.65}.research-page .research :is(button,select){font-size:14px}.research-page .research :is(p,small,.research-status,.research-actionbar>div>span){font-size:13px;line-height:1.7}.research-page .research-tools button{font-size:14px}.research-page .research-context h2{font-size:16px}
+
+@media(max-width:760px){
+ .research-page main.research{padding:4px 5px 12px}
+ .research-page .research-context>summary{padding:7px 10px;font-size:13px}
+ .research-page .research-tools{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:2px;padding:4px;top:52px;border-radius:10px 10px 0 0}
+ .research-page .research-tools button{min-width:0;min-height:48px;padding:4px 0;gap:3px;font-size:11px;white-space:nowrap;border-radius:7px}
+ .research-page .research-tools svg{width:18px;height:18px}
+ .research-page .research-actionbar{position:static;min-height:46px;padding:5px 8px;gap:8px}
+ .research-page .research-actionbar strong{font-size:14px;margin:0}.research-page .research-actionbar>div>span{display:none}
+ .research-page .research-run-actions button{min-height:36px;padding:6px 12px;font-size:13px}
+ .research-page .research-status{font-size:12px;line-height:1.4;min-height:0;max-height:34px;padding:3px 8px}
+ .research-page .research-frames{min-height:120px}
+}

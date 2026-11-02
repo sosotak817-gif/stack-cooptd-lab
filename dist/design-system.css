@@ -85,3 +85,27 @@ html.lab-dark body main :is(button,a,input,select,textarea,summary):focus-visibl
 @media(max-width:600px){html.lab-dark body main :is(input:not([type=checkbox]):not([type=radio]),select,textarea){font-size:16px}html.lab-dark body .contribution{padding:12px 10px;gap:8px}html.lab-dark body .contribution b{font-size:14px}html.lab-dark body .contribution strong{font-size:15px}html.lab-dark body .contribution img{width:34px;height:34px}}
 
 html.lab-dark body details:is(.deck-dps-range,.damage-results)>summary b{display:inline-flex;font-size:16px;align-items:center;gap:8px}
+
+.lab-mobile-menu{display:none}
+@media(max-width:760px){
+ body{padding-top:52px}
+ .lab-sidebar{height:52px;padding:7px 12px;justify-content:space-between}
+ .lab-brand img{width:30px;height:30px}.lab-brand>span{font-size:17px}
+ .lab-mobile-menu{display:block;min-height:36px;padding:5px 12px;border:1px solid #39546c;border-radius:8px;font-size:13px;background:#182c40;color:#d9eafa}
+ .lab-sidebar nav{display:none;max-width:none;margin:0}
+ .lab-sidebar.menu-open nav{display:grid;position:absolute;top:51px;left:0;right:0;grid-template-columns:1fr 1fr;gap:5px;padding:12px;background:#101f30;max-height:calc(100dvh - 125px);overflow-y:auto;border-bottom:1px solid #39546c;box-shadow:0 12px 20px #0005}
+ .lab-sidebar nav a{font-size:13px;min-height:44px;padding:9px 12px;border-radius:8px}.lab-sidebar nav a>span{display:inline}
+ .workspace-frame{top:52px;height:calc(100dvh - 104px - env(safe-area-inset-bottom))}
+ .workspace-dock{padding:5px 8px calc(5px + env(safe-area-inset-bottom));gap:6px}.workspace-dock button{min-height:36px;font-size:12px}
+ html.lab-dark body.mobile-board .metrics{margin:6px 0!important}
+ html.lab-dark body.mobile-board .metrics .power-metric{padding:9px 12px!important;min-height:0}
+ html.lab-dark body.mobile-board #actual-dps{font-size:32px;line-height:1.2}
+ html.lab-dark body.mobile-board .mobile-launcher{margin:6px 0;gap:4px}
+ html.lab-dark body.mobile-board .mobile-launcher button{min-height:44px;font-size:12px;padding:5px 2px}
+ html.lab-dark body.mobile-board .board-panel>.panel-heading{padding:8px;gap:6px;flex-wrap:wrap}
+ html.lab-dark body.mobile-board .board-panel>.panel-heading h2{font-size:15px}
+ html.lab-dark body.mobile-board .board-panel>.panel-heading button{font-size:12px;min-height:36px;padding:5px 8px}
+ html.lab-dark body.mobile-board .mobile-placement-tools{margin:5px 0;gap:5px;grid-template-columns:auto minmax(0,1fr) auto}
+ html.lab-dark body.mobile-board .mobile-placement-tools :is(button,select){min-height:40px;font-size:13px}
+ html.lab-dark body.mobile-board .mobile-placement-tools label{font-size:12px}
+}

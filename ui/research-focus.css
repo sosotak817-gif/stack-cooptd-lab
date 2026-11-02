@@ -5,3 +5,29 @@
 .research-focus #unit-gem-comparison #unit-status{font-size:10px;margin:5px 0!important}.research-focus #unit-gem-comparison .unit-compare-heading{margin-bottom:5px}.research-focus #unit-gem-comparison .unit-compare-heading button{min-height:32px;padding:6px 8px;font-size:10px}.research-focus .unit-combo>small,.research-focus .unit-combo>.unit-comparison-scope{font-size:9px!important}.research-focus .unit-combo>p.combo-delta{font-size:10px;margin:5px 0}.research-focus .unit-combo .gem-row>small{font-size:9px}.research-focus .unit-combo .gem-row{padding:5px 0!important}.research-focus .unit-combo .research-small-gem{width:20px;height:23px;flex-basis:20px}.research-focus .unit-combo .research-gem-trigger{font-size:10px;min-height:34px}.research-focus .unit-combo .gem-info-trigger{padding:5px;margin:0;min-height:30px}.research-focus .unit-combo button{margin-top:3px;margin-bottom:3px}.research-focus .unit-combo .gem-row>div{gap:5px}.research-focus .unit-combo .gem-row>div>select{min-width:48px}.research-focus .unit-combo .gem-row>div>select[hidden]{display:none!important}
 
 html:has(body.research-focus){height:auto;min-height:0;overflow-x:clip;overflow-y:hidden}body.research-focus{height:auto;min-height:0!important;overflow:visible!important}.research-focus main{min-height:0!important}.research-focus .research-view-tabs{padding:3px 0 7px;margin-bottom:0}.research-focus .research-view-tabs button{min-height:33px;padding:6px 9px}.research-focus #journey-baseline{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:8px 10px!important;margin-bottom:8px!important}.research-focus #journey-baseline>h2{margin:0!important;flex:0 0 auto}.research-focus #journey-baseline .journey-metrics{flex:1;gap:8px}.research-focus #journey-baseline .journey-metrics>div{padding:6px 9px}.research-focus #journey-baseline .journey-metrics strong{font-size:18px}.research-focus #journey-results>.panel{margin-top:0!important}.research-focus #journey-results>.panel>.journey-note{margin:5px 0;padding:7px;font-size:10px}.research-focus .research-result-pages{margin:5px 0 7px}.research-focus .growth-result{margin-top:8px}.research-focus .growth-card{height:auto;overflow:visible}@media(max-width:600px){.research-focus #journey-baseline{gap:5px}.research-focus #journey-baseline .journey-metrics{flex-basis:100%}.research-focus #journey-baseline .journey-metrics strong{font-size:17px}}
+
+@media(max-width:600px){
+ html.lab-dark body.research-focus.mobile-board main{padding:4px!important}
+ .research-focus.mobile-board .research-view-tabs{position:static;padding:0 0 4px;gap:4px}
+ .research-focus.mobile-board .research-view-tabs button{min-height:36px;font-size:12px;padding:5px}
+ .research-focus.mobile-board .studio{margin:4px 0!important}
+ .research-focus.mobile-board .panel.board-panel{padding:5px!important;border-radius:9px}
+ .research-focus.mobile-board .board-views{margin:4px 0;gap:5px}
+ .research-focus.mobile-board .field-controls{display:none!important}
+ .research-focus.mobile-board .mobile-launcher{display:grid!important;grid-template-columns:repeat(6,minmax(0,1fr));margin:4px 0!important}
+ .research-focus.mobile-board .board-panel>.panel-heading{padding:3px 0!important}
+ .research-focus.mobile-board .board-panel>.panel-heading h2{margin:0!important}
+ .research-focus.mobile-board .metrics{margin:4px 0!important}
+ .research-focus.mobile-board .metrics .power-metric{border-radius:9px}
+ .research-focus.mobile-board #board-message{margin:4px 0;font-size:12px}
+}
+
+@media(max-width:600px){
+ .research-focus.mobile-board .board-panel{display:flex;flex-direction:column}
+ .research-focus.mobile-board .board-panel>.board-views{order:-3;padding:3px 0;margin:0 0 4px!important}
+ .research-focus.mobile-board .board-panel>.mobile-placement-tools{order:-2}
+ .research-focus.mobile-board .board-panel>#board{order:-1;flex-shrink:0}
+ .research-focus.mobile-board .board-panel>.panel-heading{order:2;margin-top:5px}
+ .research-focus.mobile-board .mobile-placement-tools>label{font-size:0!important;gap:0}
+ .research-focus.mobile-board .research-view-tabs button{min-height:36px!important}
+}
