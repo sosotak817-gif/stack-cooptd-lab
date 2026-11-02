@@ -104,3 +104,5 @@ require('./dist/engine.js');fs.writeFileSync('server/tier-roster.mjs','export co
 // Share the engine's validation catalog with the public guide API.
 const guideCatalog={units:Object.fromEntries(CoopData.DEMONS.map(d=>[d.slug,CoopData.maxLevelFor(d.slug)])),gems:CoopData.GEMS.map(g=>g.id),grades:CoopData.GRADES,targets:CoopTargets.TARGETS.map(t=>t.id),tiles:[...CoopGeometry.tilesOf('you'),...CoopGeometry.tilesOf('partner')].map(t=>t.row+':'+t.col),lastWave:Object.fromEntries(['hard','hell','abyss','deepsea'].map(mode=>[mode,CoopTargets.lastWave(mode)])),accountKeys:[...Object.keys(CoopEngine.DEFAULT_PARAMS),'pressureExplicit']};
 fs.writeFileSync('server/guide-catalog.mjs','export const catalog='+JSON.stringify(guideCatalog)+';\n');
+
+require('./build-mobile-assistant.cjs');

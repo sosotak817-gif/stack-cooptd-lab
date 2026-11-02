@@ -31,3 +31,5 @@ function init(){register(page());for(const element of document.querySelectorAll(
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 window.addEventListener('pageshow',schedule);
 })();
+
+(()=>{const nav=document.querySelector('.lab-sidebar nav');if(!nav||nav.querySelector('[href="/mobile-assistant/"]'))return;const a=document.createElement('a');a.href='/mobile-assistant/';a.textContent='모바일 도우미 · 준비';nav.append(a);})();
