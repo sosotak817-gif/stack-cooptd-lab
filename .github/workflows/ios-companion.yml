@@ -1,0 +1,38 @@
+name: iPhone companion build
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'mobile/ios/**'
+      - '.github/workflows/ios-companion.yml'
+  pull_request:
+    paths:
+      - 'mobile/ios/**'
+      - '.github/workflows/ios-companion.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  simulator-build:
+    runs-on: macos-15
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Validate generated project
+        run: python3 mobile/ios/generate-project.py --check
+      - name: Compile app and extensions
+        run: |
+          xcodebuild -version
+          xcodebuild -project mobile/ios/StackLabCompanion.xcodeproj \
+            -scheme StackLabCompanion -configuration Debug \
+            -destination 'generic/platform=iOS Simulator' \
+            -derivedDataPath "$RUNNER_TEMP/stack-lab-ios" CODE_SIGNING_ALLOWED=NO build
+      - name: Verify extensions are embedded
+        run: |
+          app="$RUNNER_TEMP/stack-lab-ios/Build/Products/Debug-iphonesimulator/StackLabCompanion.app"
+          test -f "$app/StackLabCompanion"
+          test -d "$app/PlugIns/StackLabCompanionWidget.appex"
+          test -d "$app/PlugIns/StackLabCompanionBroadcast.appex"

@@ -7,6 +7,7 @@ struct PlaySummaryAttributes: ActivityAttributes {
         var recommendation: String?
         var reason: String?
         var updatedAt: Date
+        var diagnostic: String?
     }
     var sessionID: String
 }
