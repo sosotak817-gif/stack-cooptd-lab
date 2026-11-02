@@ -4,3 +4,5 @@
 .journey .loss{color:#ffb5b0}#guide-editor{scroll-margin-top:80px}.journey .growth-card h3{margin:6px 0}
 
 .growth-basis>summary{cursor:pointer;font-size:15px;font-weight:650;color:#bedbdf}
+
+.growth-scope{font-weight:700;color:#d0eee6!important}.growth-comparison-basis{margin-top:14px;border-top:1px solid #39556b;padding-top:12px}.growth-comparison-basis summary{cursor:pointer;font-size:12px;color:#badfdf;line-height:1.7}.growth-comparison-basis p{font-size:12px;overflow-wrap:anywhere}.growth-comparison-basis strong{display:block;font-size:16px;color:#cdebdc}

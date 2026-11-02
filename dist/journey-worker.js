@@ -23,7 +23,7 @@ self.onmessage=async({data})=>{
    await schedulerTurn();await new Promise(resolve=>setTimeout(resolve,0));
    const {state,...meta}=candidate;
    if(kind==='diagnosis'){const result=continuous(state);rows.push({...meta,result});}
-   else {const result=await calculate(state);rows.push({...meta,actual:result.actual});}
+   else {const result=await calculate(state);rows.push({...meta,actual:result.actual,comparison:CoopJourney.comparisonEvidence(data,baseline,result,meta.slug)});}
    postMessage({id,kind:'journey-progress',done:i+1,total:options.length});
   }
   const sorted=kind==='diagnosis'?rows.sort((a,b)=>Number(b.result.passed)-Number(a.result.passed)||(b.result.firstRisk??data.goalWave+1)-(a.result.firstRisk??data.goalWave+1)||(a.result.shortfall??Infinity)-(b.result.shortfall??Infinity)):CoopJourney.rank(rows,baseline.actual);

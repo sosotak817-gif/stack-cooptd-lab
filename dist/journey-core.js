@@ -41,6 +41,11 @@ function candidates(input,E,D,{replacement=null,stacks=true,milestones=true,reco
  return output;
 }
 function rank(rows,baseline){return rows.map(row=>({...row,delta:row.actual-baseline,gain:baseline>0?(row.actual/baseline-1)*100:null})).sort((a,b)=>b.delta-a.delta);}
+// Board actual DPS and per-unit theoretical contributions are different metrics.
+function comparisonEvidence(input,before,after,slug){
+ const own=result=>(result.units||[]).filter(unit=>unit.row>5&&unit.slug===slug),summary=result=>{const units=own(result);return{count:units.length,theory:units.reduce((sum,unit)=>sum+(Number.isFinite(unit.dps)?unit.dps:0),0),growth:units[0]?.stats?{level:units[0].stats.level,lib:units[0].stats.lib}:null};};
+ return{scope:'whole-deck-actual',mode:input.mode,target:input.target,partnerEnabled:!!input.partnerEnabled,fullProgress:!!input.fullProgress,omenGrowth:!!input.omenGrowth,pressureContext:!!input.pressureContext,unit:slug?{slug,scope:'own-side-board-theory',before:summary(before),after:summary(after)}:null};
+}
 function diagnosisSummary(report,wave){const target=report.rows.find(r=>r.wave===wave),failure=report.rows.find(r=>r.cause&&r.wave<=wave),row=failure||target;if(!row?.reached)throw Error('목표 라운드 기록이 없습니다.');return{targetWave:wave,row,reachedTarget:!!target?.reached,passed:!failure&&!!target?.pass,shortfall:Number.isFinite(row.required)&&Number.isFinite(row.damage)?Math.max(0,row.required-row.damage):null,firstRisk:failure?.wave??null,lives:report.lives};}
 function guide(value,D,G,T){
  if(!value||value.format!=='stack-lab-guide'||value.version!==1)throw Error('지원하지 않는 공략 코드입니다.');
@@ -49,5 +54,5 @@ function guide(value,D,G,T){
 }
 function encode(value){const bytes=new TextEncoder().encode(JSON.stringify(value));let binary='';for(const byte of bytes)binary+=String.fromCharCode(byte);return 'SLG1.'+btoa(binary).replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'');}
 function decode(code){if(typeof code!=='string'||!code.startsWith('SLG1.')||code.length>2700000||!/^[\w-]+$/.test(code.slice(5)))throw Error('공략 코드를 확인하세요.');try{const binary=atob(code.slice(5).replaceAll('-','+').replaceAll('_','/'));return parse(new TextDecoder('utf-8',{fatal:true}).decode(Uint8Array.from(binary,c=>c.charCodeAt(0))));}catch(error){throw Error('공략 코드를 읽지 못했습니다: '+error.message);}}
-root.CoopJourney={MODES,BOARD_KEY,GUIDES_KEY,parse,validateDeck,describeChange,candidates,rank,diagnosisSummary,guide,encode,decode};if(typeof module!=='undefined')module.exports=root.CoopJourney;
+root.CoopJourney={MODES,BOARD_KEY,GUIDES_KEY,parse,validateDeck,describeChange,candidates,rank,comparisonEvidence,diagnosisSummary,guide,encode,decode};if(typeof module!=='undefined')module.exports=root.CoopJourney;
 })(globalThis);
