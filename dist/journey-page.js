@@ -112,4 +112,5 @@ function decks(){
 }
 window.addEventListener('storage',event=>{if(event.key===J.BOARD_KEY||event.key===null){cancel();clearResult();status('다른 화면에서 저장 덱이 변경되었습니다. 저장 덱 다시 불러오기를 눌러 갱신하세요.');if($('#journey-start'))$('#journey-start').disabled=true;}});
 fetch('/ko.json'+(version?'?v='+version:'')).then(response=>{if(!response.ok)throw Error();return response.json();}).catch(()=>({})).then(value=>{dict=value;if(screen==='guide')roadmapPage();else if(screen==='decks')decks();else research();}).catch(error=>status('콘텐츠를 불러오지 못했습니다: '+error.message));
+window.addEventListener('stack-lab:analysis-result',({detail})=>{if(detail.tool!==screen||!detail.result?.rows)return;cancel();renderResults(detail.result);status('원클릭 분석 결과 · 다시 계산하지 않고 같은 스냅샷의 상세를 표시합니다.');});
 })();
