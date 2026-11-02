@@ -25,3 +25,5 @@ html:has(body.research-page){height:auto;min-height:100%;overflow-x:clip;overflo
  .research-page .research-status{font-size:12px;line-height:1.4;min-height:0;max-height:34px;padding:3px 8px}
  .research-page .research-frames{min-height:120px}
 }
+
+@media(max-width:760px){.research-page .research-tools,.research-page .research-actionbar{position:static;top:auto}}
