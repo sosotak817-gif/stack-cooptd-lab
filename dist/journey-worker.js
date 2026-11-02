@@ -17,7 +17,7 @@ self.onmessage=async({data})=>{
   CoopJourney.validateDeck(data,CoopData,CoopGeometry,CoopTargets);
   if(!CoopJourney.MODES[data.mode])throw Error('어려움~심해 난이도를 선택하세요.');
   if(kind==='diagnosis'&&(!Number.isInteger(data.goalWave)||data.goalWave<1||data.goalWave>CoopTargets.lastWave(data.mode)))throw Error('목표 라운드를 확인하세요.');
-  const baseline=kind==='diagnosis'?continuous(data):await calculate(data),options=CoopJourney.candidates(data,CoopEngine,CoopData,{replacement:data.replacement,stacks:kind!=='diagnosis'}),rows=[];
+  const baseline=kind==='diagnosis'?continuous(data):await calculate(data),options=CoopJourney.candidates(data,CoopEngine,CoopData,{replacement:data.replacement,stacks:kind!=='diagnosis',milestones:kind!=='diagnosis'}),rows=[];
   postMessage({id,kind:'journey-progress',done:0,total:options.length,baseline});
   for(const [i,candidate]of options.entries()){
    await schedulerTurn();await new Promise(resolve=>setTimeout(resolve,0));
