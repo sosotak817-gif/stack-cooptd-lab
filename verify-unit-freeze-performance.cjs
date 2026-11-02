@@ -32,7 +32,7 @@ async function main(){
  assert.equal(full.evaluated,6090);assert.equal(candidates,6090);assert.equal(suppressionCount,406);assert.equal(iceCalls,1,'never recompute Ice Knight per gem candidate');assert.equal(holdCalls,1,'never solve control uptime per gem candidate');
  for(const r of full.rankings)assert.equal(r.dps,H.row(input,r.gems,E,D,Egg,true).dps);
  assert.equal(JSON.stringify(raw),before);
- const page=fs.readFileSync('ui/units-page.js','utf8'),start=page.indexOf('function renderFreezeProfile('),end=page.indexOf('\n',start),box={};vm.runInNewContext('('+page.slice(start,end)+')',{$:()=>box})(input.freezeProfile);assert.ok(box.textContent.includes('기절 비율'));assert.ok(box.textContent.includes('기본 공격 기절'));
+ const page=fs.readFileSync('ui/units-page.js','utf8'),start=page.indexOf('function renderFreezeProfile('),end=page.indexOf('\nfunction ',start+1),box={};vm.runInNewContext('('+page.slice(start,end)+')',{$:()=>box,account,config:{conditions:{}},target:raw.target,mode:raw.mode,T,CoopAccount:A,rows:[]})(input.freezeProfile);assert.match(box.textContent,/기절 [\d.]+%/);assert.ok(box.textContent.includes('기본 공격 기절'));
  console.log({prepareMs,elapsedMs,evaluated:candidates,suppressionCount,iceCalls,holdCalls,stunShare:input.freezeProfile.stunShare,freezeShare:input.freezeProfile.share,top:full.rankings.map(r=>r.key)});
  if(process.argv.includes('--benchmark')){at=performance.now();await H.top(manual(0),E,D,Egg);console.log({freezeOnlyMs:performance.now()-at});}
  console.log('Joint stun/freeze: original standingHold parity, modes, immunity, pre-liberation stun, suppression damage, immutable inputs and one shared solve for 6090 candidates passed.');

@@ -27,6 +27,6 @@ self.onmessage=async({data})=>{
    postMessage({id,kind:'journey-progress',done:i+1,total:options.length});
   }
   const sorted=kind==='diagnosis'?rows.sort((a,b)=>Number(b.result.passed)-Number(a.result.passed)||(b.result.firstRisk??data.goalWave+1)-(a.result.firstRisk??data.goalWave+1)||(a.result.shortfall??Infinity)-(b.result.shortfall??Infinity)):CoopJourney.rank(rows,baseline.actual);
-  postMessage({id,kind:'journey-result',baseline,rows:sorted});
+  postMessage({id,kind:'journey-result',baseline,rows:sorted,input:data});
  }catch(error){postMessage({id,error:error.message});}
 };
