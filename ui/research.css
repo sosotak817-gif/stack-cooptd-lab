@@ -34,3 +34,6 @@ html:has(body.research-page){height:auto;min-height:100%;overflow-x:clip;overflo
 .audit-recommendation[data-decreased=true]>strong{color:#ffb3b3}.audit{scroll-margin-top:12px}@media(max-width:760px){.audit{scroll-margin-top:64px}}
 
 .research-modal-open .workspace-dock{visibility:hidden;pointer-events:none}
+
+.research-page .research-mode{height:auto;min-height:40px;padding:8px}.research-page .research-mode span{position:static;background:none}.research-inline-help{flex:0 0 auto;padding:10px 12px;border-bottom:1px solid #355068;font-size:12px;line-height:1.6;max-height:190px;overflow:auto}.research-inline-help summary{cursor:pointer;font-weight:700}.research-inline-help a{color:#92e7d2}
+.audit-tabs button[aria-pressed="true"]{background:#205952;border-color:#81e8cf;color:#fff}

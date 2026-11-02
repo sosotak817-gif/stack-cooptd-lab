@@ -8,3 +8,5 @@
 .growth-scope{font-weight:700;color:#d0eee6!important}.growth-comparison-basis{margin-top:14px;border-top:1px solid #39556b;padding-top:12px}.growth-comparison-basis summary{cursor:pointer;font-size:12px;color:#badfdf;line-height:1.7}.growth-comparison-basis p{font-size:12px;overflow-wrap:anywhere}.growth-comparison-basis strong{display:block;font-size:16px;color:#cdebdc}
 
 .diagnosis-gem-changes{width:100%;max-width:480px;min-width:270px}.diagnosis-gem-changes .growth-gem-swap{margin-top:10px}.diagnosis-gem-changes .journey-gem{width:100%}
+
+.growth-kind-tabs{display:flex;gap:8px;overflow-x:auto;padding:6px 0 12px}.growth-kind-tabs button{flex-shrink:0;min-height:42px;padding:8px 12px;border:1px solid #59758b;border-radius:9px;background:#172c40;color:#e4eefb;cursor:pointer}.growth-kind-tabs button[aria-selected="true"]{background:#205952;border-color:#81e8cf;color:#fff}.growth-kind-tabs button:focus-visible{outline:2px solid #81e8cf;outline-offset:2px}.journey-help{line-height:1.7}.journey-help summary{cursor:pointer;font-weight:700}
