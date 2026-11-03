@@ -1,5 +1,12 @@
 [
   {
+    "id": "2026-11-03-account-research-stats",
+    "date": "2026-11-03",
+    "type": "feature",
+    "title": "마이페이지 개인 연구 통계",
+    "details": ["내 계정에서 저장 덱 수, 퍼즐 최고 기록 건수, 작성 공략 수를 확인할 수 있습니다."]
+  },
+  {
     "id": "2026-11-03-account-activity",
     "date": "2026-11-03",
     "type": "feature",

@@ -21,10 +21,16 @@
     const activityStatus = get('activity-status');
     puzzles.replaceChildren();
     guides.replaceChildren();
+    const totals = get('activity-totals');
+    totals.textContent = '';
     activityStatus.textContent = '';
     if (!user) return;
     try {
       const activity = await request('/api/me/activity', 'GET', undefined, { 'X-Account-Id': user.id });
+      const count = new Intl.NumberFormat('ko-KR');
+      const { savedDecks, puzzleRecords, publishedGuides } = activity.stats;
+      totals.textContent = '저장 덱 ' + count.format(savedDecks) + '개 · 퍼즐 최고 기록 ' +
+        count.format(puzzleRecords) + '건 · 작성 공략 ' + count.format(publishedGuides) + '개';
       const date = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul' });
       const score = new Intl.NumberFormat('ko-KR', { style: 'percent', maximumFractionDigits: 2 });
       const append = (list, text) => {
