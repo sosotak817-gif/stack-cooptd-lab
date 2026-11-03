@@ -1,7 +1,8 @@
 (async function () {
   const $ = id => document.getElementById(id);
   const version = new URL(document.currentScript.src).search;
-  const api = '/api/weekly-puzzle';
+  const weekly = new URLSearchParams(location.search).get('challenge') === 'weekly';
+  const api = '/api/weekly-puzzle' + (weekly ? '?challenge=weekly' : '');
   const rules = CoopWeekly;
   const account = CoopPresets.newAccount(CoopEngine, CoopData);
   const valid = new Set(CoopGeometry.tilesOf('you').map(({ row, col }) => row * 7 + col));
@@ -10,7 +11,7 @@
   const translation = await fetch('/ko.json' + version).then(r => r.json()).catch(() => ({}));
   const names = new Map(CoopData.DEMONS.map(d => [d.slug, translation[d.name] || d.name]));
   const initial = await fetch(api).then(r => r.json()).catch(() => ({}));
-  const day = initial.currentDay ?? rules.dayAt();
+  const day = initial.currentDay ?? (weekly ? rules.weekAt() * 7 : rules.dayAt());
   const challenge = rules.puzzle(day, CoopPresets.presets);
   const history = [challenge.cells];
   const steps = [];
@@ -24,8 +25,8 @@
   for (const slug of new Set(challenge.cells.map(cell => cell.slug))) {
     growth.perDemon[slug] = { ...growth.perDemon[slug], level: CoopData.maxLevelFor(slug), lib: 20 };
   }
-  $('challenge').textContent = '오늘의 문제 · ' + challenge.name + ' · ' +
-    labels[challenge.mode] + ' 최종 보스 · 매일 00:00 (한국 시간) 갱신';
+  $('challenge').textContent = (weekly ? '이번 주 덱 챌린지 · ' : '오늘의 문제 · ') + challenge.name + ' · ' +
+    labels[challenge.mode] + ' 최종 보스 · ' + (weekly ? '월요일' : '매일') + ' 00:00 (한국 시간) 갱신';
 
   function render() {
     const cells = history.at(-1);
@@ -123,6 +124,10 @@
     event.preventDefault();
     if (submitting || result === null || !(baseline > 0)) return;
     const account = puzzleAccount;
+    if (weekly && !account) {
+      $('submission-status').textContent = '내 계정에서 로그인한 뒤 제출해 주세요.';
+      return;
+    }
     const nickname = account?.nickname || $('nickname').value.trim();
     if (!nickname) {
       $('submission-status').textContent = '닉네임을 입력해 주세요.';
@@ -144,7 +149,7 @@
       }
       $('submission-status').textContent = data.improved ? '주간 기록을 등록했어요.' : '이전 최고 기록을 유지했어요.';
       try {
-        const key = rules.personalKey(day) + (account ? ':account:' + account.id : '');
+        const key = rules.personalKey(day) + (weekly ? ':weekly' : '') + (account ? ':account:' + account.id : '');
         const previous = JSON.parse(localStorage.getItem(key) || 'null');
         if (!previous || attempt.score >= previous.score) localStorage.setItem(key, JSON.stringify(attempt));
       } catch {}

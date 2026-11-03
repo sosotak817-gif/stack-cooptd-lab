@@ -8,7 +8,7 @@ export async function onRequest({ request, env }) {
     if (request.headers.get('X-Account-Id') !== user.id) return reply({ error: '로그인 계정이 변경되었습니다.' }, 409);
     const db = env.DB;
     const [puzzles, guides, totals, achievements] = await db.batch([
-      db.prepare(`SELECT week, score, moves, achieved_at AS achievedAt, json_extract(replay, '$.day') AS day
+      db.prepare(`SELECT week, score, moves, achieved_at AS achievedAt, CASE WHEN revision LIKE '%:weekly:server-score-v1' THEN 'weekly' ELSE 'daily' END AS challenge, json_extract(replay, '$.day') AS day
         FROM daily_puzzle_account_scores WHERE user_id=? ORDER BY achieved_at DESC, week DESC, revision DESC LIMIT 20`).bind(user.id),
       db.prepare(`SELECT id, title, updated_at AS updatedAt FROM deck_guides
         WHERE owner=? ORDER BY updated_at DESC, id LIMIT 20`).bind('account:' + user.id),

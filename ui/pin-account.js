@@ -56,7 +56,7 @@
       }
       if (!activity.achievements.length) append(achievements, '획득한 업적이 없습니다.');
       for (const row of activity.puzzles) {
-        append(puzzles, date.format(row.achievedAt) + ' · ' + score.format(row.score / 100) + ' · 이동 ' + row.moves + '회');
+        append(puzzles, (row.challenge === 'weekly' ? '주간 챌린지' : '오늘의 퍼즐') + ' · ' + date.format(row.achievedAt) + ' · ' + score.format(row.score / 100) + ' · 이동 ' + row.moves + '회');
       }
       for (const row of activity.guides) append(guides, row.title + ' · ' + date.format(row.updatedAt));
       if (!activity.puzzles.length) append(puzzles, '저장된 계정 퍼즐 기록이 없습니다.');

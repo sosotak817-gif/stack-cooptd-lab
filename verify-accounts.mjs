@@ -137,6 +137,19 @@ try{
  assert.equal(ballot.total,1);
  assert.deepEqual(ballot.mine,updatedRanking);
  assert.equal((await vote('GET',otherDeckHeaders)).status,409);
+ const weeklyPath='/api/weekly-puzzle?challenge=weekly';
+ const weeklyCall=(method,headers={},payload)=>puzzleSubmit({env,request:request(weeklyPath,{
+  method,headers,body:payload?JSON.stringify(payload):undefined
+ })});
+ const weeklyEntry={day:globalThis.CoopWeekly.weekAt()*7,revision:puzzleRevision,moves:0,steps:[]};
+ assert.equal((await weeklyCall('POST',{},weeklyEntry)).status,401);
+ assert.equal((await weeklyCall('POST',otherHeaders,{...weeklyEntry,day:weeklyEntry.day-7})).status,409);
+ assert.equal((await weeklyCall('POST',otherHeaders,weeklyEntry)).status,200);
+ const weeklyRows=(await (await weeklyCall('GET')).json()).rows;
+ assert.equal(weeklyRows.length,1);
+ assert.equal(weeklyRows[0].nickname,two.user.nickname);
+ assert.equal(weeklyRows[0].score,0);
+ assert.equal((await (await puzzleSubmit({env,request:request('/api/weekly-puzzle')})).json()).rows.length,2);
  sql.prepare('UPDATE lab_sessions SET expires_at=0').run();assert.equal((await board({headers:otherHeaders})).status,401);
  assert.equal(sql.prepare('SELECT COUNT(*) n FROM lab_boards').get().n,2,'logout and expiry preserve account saves');
  sql.exec(fs.readFileSync('migrations/0009_pin_account_credentials.sql','utf8'));

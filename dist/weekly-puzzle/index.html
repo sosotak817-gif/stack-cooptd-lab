@@ -4,10 +4,10 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>오늘의 배치 퍼즐 · 스택 연구소</title>
-<link rel="icon" href="/logo.svg?v=044416c023d322e8">
-<link rel="stylesheet" href="/board.css?v=044416c023d322e8">
-<link rel="stylesheet" href="/design-system.css?v=044416c023d322e8">
-<script src="/design-shell.js?v=044416c023d322e8" defer></script>
+<link rel="icon" href="/logo.svg?v=3caf69b1d1e7b363">
+<link rel="stylesheet" href="/board.css?v=3caf69b1d1e7b363">
+<link rel="stylesheet" href="/design-system.css?v=3caf69b1d1e7b363">
+<script src="/design-shell.js?v=3caf69b1d1e7b363" defer></script>
 <style>
  .puzzle-layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
 .puzzle-page .dashboard-heading { display: block; }
@@ -21,11 +21,11 @@
 #grid small { display: block; font-size: .68rem; }
 .controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
 </style>
-<script src="/engine.js?v=044416c023d322e8" defer></script>
-<script src="/board-presets.js?v=044416c023d322e8" defer></script>
-<script src="/shared-calculation-version.js?v=044416c023d322e8" defer></script>
-<script src="/weekly-rules.js?v=044416c023d322e8" defer></script>
-<script src="/weekly-page.js?v=044416c023d322e8" defer></script>
+<script src="/engine.js?v=3caf69b1d1e7b363" defer></script>
+<script src="/board-presets.js?v=3caf69b1d1e7b363" defer></script>
+<script src="/shared-calculation-version.js?v=3caf69b1d1e7b363" defer></script>
+<script src="/weekly-rules.js?v=3caf69b1d1e7b363" defer></script>
+<script src="/weekly-page.js?v=3caf69b1d1e7b363" defer></script>
 </head>
 <body>
 <main class="dashboard puzzle-page">
@@ -45,13 +45,14 @@
 <section class="dashboard-panel" id="registration" aria-labelledby="puzzle-ranking-title">
 <header><h2 id="puzzle-ranking-title">주간 기록 등록</h2></header>
 <form id="register" class="controls">
+<p><a href="/weekly-puzzle/?challenge=weekly?v=3caf69b1d1e7b363">주간 덱 챌린지</a> · <a href="/weekly-puzzle/?v=3caf69b1d1e7b363">오늘의 퍼즐</a> · <a href="/account/?v=3caf69b1d1e7b363">내 계정</a></p>
 <p id="puzzle-account-status"></p>
 <label>공개 닉네임 <input id="nickname" maxlength="40" autocomplete="nickname" required></label>
 <button id="submit" disabled>현재 배치 등록</button>
 </form>
 <p id="submission-status" role="status"></p>
 <p>닉네임과 주간 최고 기록의 배치 및 이동 순서가 공개됩니다. 서로 다른 날의 문제는 시작 배치 대비 DPS 향상률로 비교합니다. 향상률이 같으면 수가 적은 기록, 그다음 먼저 달성한 기록이 앞섭니다. 점수는 브라우저에서 계산하는 미검증 기록입니다.</p>
-<a id="view-rankings" class="mint-button" href="/rankings/?v=044416c023d322e8">주간 랭킹과 다른 배치 보기 ↗</a>
+<a id="view-rankings" class="mint-button" href="/rankings/?v=3caf69b1d1e7b363">주간 랭킹과 다른 배치 보기 ↗</a>
 </section>
 </div>
 </main>

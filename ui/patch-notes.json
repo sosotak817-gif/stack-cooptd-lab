@@ -1,5 +1,14 @@
 [
   {
+    "id": "2026-11-03-weekly-deck-challenge",
+    "date": "2026-11-03",
+    "type": "feature",
+    "title": "주간 덱 챌린지",
+    "details": [
+      "매주 월요일 한국 시간 자정에 새 덱 챌린지가 열립니다. 계정으로 제출한 서버 검증 기록은 마이페이지에서 확인할 수 있습니다."
+    ]
+  },
+  {
     "id": "2026-11-03-featured-badge",
     "date": "2026-11-03",
     "type": "feature",

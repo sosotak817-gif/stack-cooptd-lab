@@ -43,7 +43,7 @@ try{
  assert.equal((await getActivity({...b,'X-Account-Id':'account-a'})).status,409);
  assert.deepEqual(await (await getActivity(b)).json(),{puzzles:[],guides:[],achievements:[],stats:{savedDecks:0,puzzleRecords:0,publishedGuides:0}});
  const myActivity=await (await getActivity(a)).json();
- assert.deepEqual(myActivity.puzzles,[{week:1,score:25,moves:2,achievedAt:clock,day:7}]);
+ assert.deepEqual(myActivity.puzzles,[{week:1,score:25,moves:2,achievedAt:clock,challenge:"daily",day:7}]);
  assert.deepEqual(myActivity.guides,[{id:posted.data.post.id,title:guide.title,updatedAt:clock}]);
  assert.deepEqual(myActivity.achievements,[{code:"first-verified-puzzle",title:"첫 검증 퍼즐 기록",earnedAt:clock,featured:0}]);
  assert.deepEqual(myActivity.stats,{savedDecks:1,puzzleRecords:1,publishedGuides:1});

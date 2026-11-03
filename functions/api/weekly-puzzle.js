@@ -5,7 +5,7 @@ import { requireAccountSession } from '../../server/accounts.mjs';
 import { revision } from '../../server/shared-calculation-version.mjs';
 import { verifiedPuzzleScore } from '../../server/puzzle-score.mjs';
 
-const rankingRevision = revision + ':server-score-v1';
+
 
 const { weekAt, dayAt, puzzle, move, moveLimit } = globalThis.CoopWeekly;
 
@@ -38,7 +38,10 @@ async function handle(request, env, retry = true) {
     status, headers: { 'Cache-Control': 'no-store' },
   });
   const now = Date.now();
-  const currentWeek = weekAt(now), currentDay = dayAt(now);
+  const query = new URL(request.url).searchParams;
+  const weekly = query.get('challenge') === 'weekly';
+  const currentWeek = weekAt(now), currentDay = weekly ? currentWeek * 7 : dayAt(now);
+  const rankingRevision = revision + (weekly ? ':weekly' : '') + ':server-score-v1';
   if (!db) return reply({ currentWeek, currentDay, error: '랭킹 DB 연결을 확인해 주세요.' }, 503);
   try {
     if (request.method === 'POST') {
@@ -60,6 +63,7 @@ async function handle(request, env, retry = true) {
           return reply({ error: error.message }, error.status);
         }
       }
+      if (weekly && !account) return reply({ error: '주간 덱 챌린지는 로그인 후 제출할 수 있습니다.' }, 401);
       const nickname = account ? account.nickname : typeof body.nickname === 'string' ? body.nickname.trim().normalize('NFC') : '';
       const { moves } = body;
       if (!nickname || nickname.length > 40 || /[\u0000-\u001f\u007f]/u.test(nickname) ||
@@ -82,7 +86,7 @@ async function handle(request, env, retry = true) {
       const score = verifiedPuzzleScore(challenge, cells, moves);
       const replay = JSON.stringify({ day: currentDay, ...challenge, steps });
       const nicknameKey = nickname.toLowerCase().normalize('NFC');
-      if (dayAt() !== currentDay) return reply({ error: '새 오늘의 퍼즐을 열어 주세요.' }, 409);
+      if ((weekly ? weekAt() * 7 : dayAt()) !== currentDay) return reply({ error: '새 오늘의 퍼즐을 열어 주세요.' }, 409);
       if (account) {
         const saved = await db.prepare(`
           INSERT INTO daily_puzzle_account_scores (week, revision, user_id, score, moves, achieved_at, replay)
@@ -109,15 +113,23 @@ async function handle(request, env, retry = true) {
       return reply({ improved: !!saved.meta.changes });
     }
     if (request.method !== 'GET') return reply({ error: '지원하지 않는 요청입니다.' }, 405);
-    const query = new URL(request.url).searchParams;
     const week = query.has('week') ? Number(query.get('week')) : currentWeek;
     if (!Number.isInteger(week) || week < 0 || week > currentWeek) return reply({ error: '주차를 확인해 주세요.' }, 400);
+    if (weekly) {
+      const { results } = await db.prepare(`
+        SELECT u.nickname,a.score,a.moves,a.replay,1 AS account
+        FROM daily_puzzle_account_scores a JOIN lab_users u ON u.id=a.user_id
+        WHERE a.week=? AND a.revision=?
+        ORDER BY a.score DESC,a.moves ASC,a.achieved_at ASC,a.user_id LIMIT 50
+      `).bind(week,rankingRevision).all();
+      return reply({currentWeek,currentDay,week,rows:results.map(row=>({...row,replay:JSON.parse(row.replay)}))});
+    }
     let rows;
     try {
       const selectedRevision = week === currentWeek ? rankingRevision : (await db.prepare(`
         SELECT revision FROM (
           SELECT revision, achieved_at FROM daily_puzzle_scores WHERE week = ?
-          UNION ALL SELECT revision, achieved_at FROM daily_puzzle_account_scores WHERE week = ?
+          UNION ALL SELECT revision, achieved_at FROM daily_puzzle_account_scores WHERE week = ? AND revision NOT LIKE '%:weekly:server-score-v1'
         ) ORDER BY achieved_at DESC LIMIT 1
       `).bind(week, week).first())?.revision;
       rows = selectedRevision ? (await db.prepare(`
