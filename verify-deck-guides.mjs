@@ -115,6 +115,12 @@ try{
  assert.equal((await visit(a,'192.0.2.7')).status,200);
  assert.equal((await visit(a,'192.0.2.7')).status,200);
  assert.deepEqual(sqlite.prepare("SELECT user_id,code FROM lab_user_achievements WHERE code LIKE 'hidden-lucky-%'").all().map(row=>({...row})),[{user_id:'account-a',code:'hidden-lucky-7'}]);
+ const {onRequest:rankAchievements}=await import('./functions/api/achievement-rankings.js');
+ const ranked=await rankAchievements({env:{DB},request:new Request('https://lab.example/api/achievement-rankings')});
+ assert.equal(ranked.status,200);
+ const {rows:rankRows}=await ranked.json();
+ assert.deepEqual(rankRows.map(row=>[row.nickname,row.general,row.hidden,row.total]),[['account-a',1,5,6]]);
+ assert.ok(rankRows.every(row=>!('user_id' in row)));
  const edit={id:posted.data.post.id,expectedUpdatedAt:posted.data.post.updatedAt,guide};
  assert.equal((await call('PUT',edit,{headers:b})).status,403);
  assert.equal((await call('DELETE',edit,{headers:b})).status,403);
