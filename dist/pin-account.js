@@ -49,6 +49,26 @@
     }
   }
 
+  async function refreshAnalysis(user) {
+    const list = get('analysis-records');
+    const status = get('analysis-status');
+    list.replaceChildren();
+    status.textContent = '';
+    if (!user) return;
+    try {
+      const { records } = await request('/api/me/analysis', 'GET', undefined, { 'X-Account-Id': user.id });
+      const date = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul' });
+      for (const record of records) {
+        const item = document.createElement('li');
+        item.textContent = date.format(record.createdAt) + ' · ' + record.title + ' · ' + record.summary;
+        list.append(item);
+      }
+      if (!records.length) status.textContent = '저장한 분석 요약이 없습니다.';
+    } catch (error) {
+      status.textContent = error.message;
+    }
+  }
+
   async function refresh() {
     const state = await request('/api/auth/me');
     csrf = state.csrf;
@@ -56,7 +76,7 @@
     get('member').hidden = !state.user;
     get('pin-tools').hidden = !state.pinReady || !state.pinAccount;
     get('nickname').textContent = state.user?.nickname || '';
-    await refreshActivity(state.user);
+    await Promise.all([refreshActivity(state.user), refreshAnalysis(state.user)]);
     const list = get('devices');
     const remove = get('remove-device');
     list.replaceChildren();

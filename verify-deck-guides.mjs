@@ -38,6 +38,18 @@ try{
  assert.deepEqual(myActivity.puzzles,[{week:1,score:25,moves:2,achievedAt:clock,day:7}]);
  assert.deepEqual(myActivity.guides,[{id:posted.data.post.id,title:guide.title,updatedAt:clock}]);
  assert.deepEqual(myActivity.stats,{savedDecks:1,puzzleRecords:1,publishedGuides:1});
+ sqlite.exec(fs.readFileSync('migrations/0015_account_analysis.sql','utf8'));
+ const {onRequest:analysis}=await import('./functions/api/me/analysis.js');
+ const analysisCall=(method,headers,input)=>analysis({env:{DB},request:new Request('https://lab.example/api/me/analysis',{
+  method,headers:{Origin:'https://lab.example','Content-Type':'application/json',...headers},body:input?JSON.stringify(input):undefined
+ })});
+ const summary={tool:'research',title:'테스트 분석',summary:'DPS 비교'};
+ assert.equal((await analysisCall('POST',{...a,'X-CSRF-Token':'bad'},summary)).status,403);
+ assert.equal((await analysisCall('POST',a,summary)).status,201);
+ assert.deepEqual(await (await analysisCall('GET',b)).json(),{records:[]});
+ const {records}=await (await analysisCall('GET',a)).json();
+ assert.equal(records.length,1);
+ assert.equal(records[0].summary,summary.summary);
  const edit={id:posted.data.post.id,expectedUpdatedAt:posted.data.post.updatedAt,guide};
  assert.equal((await call('PUT',edit,{headers:b})).status,403);
  assert.equal((await call('DELETE',edit,{headers:b})).status,403);

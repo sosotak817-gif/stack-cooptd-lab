@@ -1,5 +1,12 @@
 [
   {
+    "id": "2026-11-03-account-analysis-summary",
+    "date": "2026-11-03",
+    "type": "feature",
+    "title": "분석 요약을 계정에 저장",
+    "details": ["최근 비교 기록에서 원하는 분석 요약을 계정에 저장하고 마이페이지에서 확인할 수 있습니다. 계정당 최대 30개를 보관합니다."]
+  },
+  {
     "id": "2026-11-03-account-research-stats",
     "date": "2026-11-03",
     "type": "feature",
