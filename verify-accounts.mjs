@@ -8,7 +8,7 @@ class Statement{
  bind(...values){return new Statement(this.query,values);}
  async first(){return sql.prepare(this.query).get(...this.values)||null;}
  async all(){return {results:sql.prepare(this.query).all(...this.values)};}
- async run(){return sql.prepare(this.query).run(...this.values);}
+ async run(){const result=sql.prepare(this.query).run(...this.values);return {...result,meta:{changes:result.changes}};}
 }
 const DB={prepare:query=>new Statement(query),async batch(statements){sql.exec('BEGIN');try{const results=[];for(const s of statements)results.push(await s.run());sql.exec('COMMIT');return results;}catch(error){sql.exec('ROLLBACK');throw error;}}};
 const env={DB,NAVER_CLIENT_ID:'test-client',NAVER_CLIENT_SECRET:'test-secret',NAVER_REDIRECT_URI:'https://lab.example/api/auth/callback'},origin='https://lab.example';
@@ -102,6 +102,18 @@ try{
  assert.equal(settingsRead.revision,1);
  assert.deepEqual(settingsRead.settings,{version:1,you:sample.you,partner:sample.partner,inventory:{you:[],partner:[]}});
  assert.equal((await (await settingsCall('GET',otherDeckHeaders,freshOne.user.id)).json()).settings,null);
+ sql.exec(fs.readFileSync('migrations/0014_account_puzzle_scores.sql','utf8'));
+ const {onRequest:puzzleSubmit}=await import('./functions/api/weekly-puzzle.js');
+ const {revision:puzzleRevision}=await import('./server/shared-calculation-version.mjs');
+ const submitPuzzle=headers=>puzzleSubmit({env,request:request('/api/weekly-puzzle',{
+  method:'POST',headers,body:JSON.stringify({
+   day:globalThis.CoopWeekly.dayAt(),revision:puzzleRevision,score:1,moves:0,steps:[],nickname:'spoofed'
+  })
+ })});
+ assert.equal((await submitPuzzle({...otherHeaders,'X-CSRF-Token':'incorrect'})).status,403);
+ assert.equal((await submitPuzzle(otherHeaders)).status,200);
+ assert.equal(sql.prepare('SELECT user_id FROM daily_puzzle_account_scores').get().user_id,two.user.id);
+ assert.equal((await (await submitPuzzle(otherHeaders)).json()).improved,false);
  sql.prepare('UPDATE lab_sessions SET expires_at=0').run();assert.equal((await board({headers:otherHeaders})).status,401);
  assert.equal(sql.prepare('SELECT COUNT(*) n FROM lab_boards').get().n,2,'logout and expiry preserve account saves');
  sql.exec(fs.readFileSync('migrations/0009_pin_account_credentials.sql','utf8'));
