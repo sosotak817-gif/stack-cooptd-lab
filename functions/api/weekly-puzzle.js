@@ -1,6 +1,7 @@
 import '../../ui/weekly-rules.js';
 import '../../ui/board-presets.js';
 import { catalog } from '../../server/guide-catalog.mjs';
+import { requireAccountSession } from '../../server/accounts.mjs';
 import { revision } from '../../server/shared-calculation-version.mjs';
 
 const { weekAt, dayAt, puzzle, move, moveLimit } = globalThis.CoopWeekly;
@@ -25,10 +26,11 @@ CREATE INDEX IF NOT EXISTS daily_puzzle_leaderboard
 `;
 
 export async function onRequest({ request, env }) {
-  return handle(request, env.DB);
+  return handle(request, env);
 }
 
-async function handle(request, db, retry = true) {
+async function handle(request, env, retry = true) {
+  const db = env.DB;
   const reply = (body, status = 200) => Response.json(body, {
     status, headers: { 'Cache-Control': 'no-store' },
   });
@@ -47,7 +49,15 @@ async function handle(request, db, retry = true) {
       if (body?.day !== currentDay || body?.revision !== revision) {
         return reply({ error: '퍼즐이 갱신됐어요. 새로고침해 주세요.' }, 409);
       }
-      const nickname = typeof body.nickname === 'string' ? body.nickname.trim().normalize('NFC') : '';
+      let account = null;
+      if (request.headers.has('X-CSRF-Token')) {
+        try { account = await requireAccountSession(request, env, true); }
+        catch (error) {
+          if (!error.status) throw error;
+          return reply({ error: error.message }, error.status);
+        }
+      }
+      const nickname = account ? account.nickname : typeof body.nickname === 'string' ? body.nickname.trim().normalize('NFC') : '';
       const { score, moves } = body;
       if (!nickname || nickname.length > 40 || /[\u0000-\u001f\u007f]/u.test(nickname) ||
           !Number.isFinite(score) || score < -100 || score > 1e9 ||
@@ -70,6 +80,19 @@ async function handle(request, db, retry = true) {
       const replay = JSON.stringify({ day: currentDay, ...challenge, steps });
       const nicknameKey = nickname.toLowerCase().normalize('NFC');
       if (dayAt() !== currentDay) return reply({ error: '새 오늘의 퍼즐을 열어 주세요.' }, 409);
+      if (account) {
+        const saved = await db.prepare(`
+          INSERT INTO daily_puzzle_account_scores (week, revision, user_id, score, moves, achieved_at, replay)
+          SELECT ?, ?, ?, ?, ?, ?, ? WHERE EXISTS (
+            SELECT 1 FROM lab_sessions WHERE token_hash = ? AND user_id = ? AND expires_at > ?
+          )
+          ON CONFLICT (week, revision, user_id) DO UPDATE SET
+            score = excluded.score, moves = excluded.moves, achieved_at = excluded.achieved_at, replay = excluded.replay
+          WHERE excluded.score > score OR (excluded.score = score AND excluded.moves < moves)
+        `).bind(currentWeek, revision, account.id, score, moves, Date.now(), replay,
+          account.token_hash, account.id, Date.now()).run();
+        return reply({ improved: !!saved.meta.changes, account: true });
+      }
       const saved = await db.prepare(`
         INSERT INTO daily_puzzle_scores (week, revision, nickname_key, nickname, score, moves, achieved_at, replay)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?)
@@ -103,7 +126,7 @@ async function handle(request, db, retry = true) {
           try { await db.prepare('ALTER TABLE daily_puzzle_scores ADD COLUMN replay TEXT').run(); }
           catch (error) { if (!/duplicate column name: replay/.test(String(error))) throw error; }
         }
-        return handle(request, db, false);
+        return handle(request, env, false);
       } catch (setupError) {
         console.error('weekly puzzle schema', setupError);
       }

@@ -28,7 +28,7 @@ export function validBoard(s){
  if(!s||s.version!==2||!['normal','hard','hell','abyss','deepsea'].includes(s.mode)||typeof s.target!=='string'||!s.target.startsWith(s.mode+':')||!Array.isArray(s.cells)||s.cells.length>40||!s.you?.perDemon||!s.partner?.perDemon)throw fail('올바른 배치 세팅이 아닙니다.');
  const keys=new Set();for(const c of s.cells){if(!Number.isInteger(c.row)||c.row<0||c.row>10||c.row===5||!Number.isInteger(c.col)||c.col<0||c.col>6||typeof c.slug!=='string'||c.slug.length>80||keys.has(c.row+','+c.col))throw fail('배치 위치를 확인해 주세요.');keys.add(c.row+','+c.col);}
 }
-export { body as readBoardBody };
+export { body as readBoardBody, authorized as requireAccountSession };
 async function issueSession(request, env, user, statements = [], pinHash) {
  const now = Date.now(), token = random(), csrf = random(), oldToken = cookies(request)[SESSION];
  statements.push(env.DB.prepare('DELETE FROM lab_sessions WHERE expires_at<=?').bind(now));
