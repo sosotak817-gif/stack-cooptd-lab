@@ -4,9 +4,17 @@ window.StackLabBadge = {
  icon(code, title) {
   const badge = document.createElement('img');
   const names = new Map([
-   ['first-verified-puzzle','첫 검증 퍼즐 기록'], ['first-deck','첫 덱 저장'], ['first-guide','첫 덱 공략 발행'], ['first-weekly-challenge','첫 주간 덱 챌린지']
+   ['first-verified-puzzle','첫 검증 퍼즐 기록'], ['first-deck','첫 덱 저장'], ['first-guide','첫 덱 공략 발행'], ['first-weekly-challenge','첫 주간 덱 챌린지'], ['hidden-stack','스택']
   ]);
   if (!names.has(code)) return document.createTextNode('');
+  if (code === 'hidden-stack') {
+   const gem = document.createElement('span');
+   gem.className = 'lab-badge-icon lab-stack-badge';
+   gem.setAttribute('role','img');
+   gem.setAttribute('aria-label',title || names.get(code));
+   gem.title = title || names.get(code);
+   return gem;
+  }
   badge.className = 'lab-badge-icon';
   badge.src = '/badge-' + code + '.svg';
   badge.alt = title || names.get(code);

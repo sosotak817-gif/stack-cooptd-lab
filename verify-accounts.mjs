@@ -275,7 +275,7 @@ try{
   const responses=await Promise.all([bootstrap(binding),bootstrap(binding)]);
   for(const response of responses)assert.equal((await response.json()).pinReady,true);
   assert.equal(setupBatches,1);
-  assert.equal(bootstrapSql.prepare('SELECT max(version) AS version FROM lab_account_schema').get().version,20);
+  assert.equal(bootstrapSql.prepare('SELECT max(version) AS version FROM lab_account_schema').get().version,21);
   assert.equal(bootstrapSql.prepare('SELECT id FROM lab_vaults').get().id,'existing-vault');
   bootstrapSql.exec("INSERT INTO lab_users VALUES ('existing','provider','Existing',0)");
   bootstrapSql.exec("INSERT INTO lab_decks(id,user_id,name,data,created_at,updated_at) VALUES ('deck','existing','Existing deck','{}',0,0)");
@@ -287,6 +287,11 @@ try{
   assert.equal(setupBatches,2);
   assert.equal(bootstrapSql.prepare('SELECT name FROM lab_decks').get().name,'Existing deck');
   assert.equal(bootstrapSql.prepare('SELECT id FROM lab_vaults').get().id,'existing-vault');
+  for (const [id,nickname] of [['stack','스택'],['other','스택2']]) {
+   bootstrapSql.prepare('INSERT INTO lab_users VALUES (?,?,?,0)').run(id,'local-pin:'+id,nickname);
+   bootstrapSql.prepare('INSERT INTO lab_pin_credentials VALUES (?,?,?)').run(id,nickname,'test-hash');
+  }
+  assert.deepEqual(bootstrapSql.prepare("SELECT user_id FROM lab_user_achievements WHERE code='hidden-stack'").all().map(row=>row.user_id),['stack']);
   assert.deepEqual(bootstrapSql.prepare('PRAGMA foreign_key_check').all(),[]);
  } finally {bootstrapSql.close();}
  console.log('Accounts: OAuth state, server-only token exchange, secure sessions, CSRF, real SQLite saves, conflict handling, account isolation, logout and expiry passed.');

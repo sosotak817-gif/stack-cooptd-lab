@@ -46,3 +46,9 @@ export const weeklyAchievementSchema = [
   "CREATE TRIGGER IF NOT EXISTS lab_award_first_weekly_challenge\nAFTER INSERT ON daily_puzzle_account_scores\nWHEN NEW.revision LIKE '%:weekly:server-score-v1'\nBEGIN\n INSERT OR IGNORE INTO lab_user_achievements VALUES (NEW.user_id,'first-weekly-challenge',NEW.achieved_at);\nEND;",
   "INSERT OR IGNORE INTO lab_user_achievements\nSELECT user_id,'first-weekly-challenge',MIN(achieved_at)\nFROM daily_puzzle_account_scores WHERE revision LIKE '%:weekly:server-score-v1' GROUP BY user_id;"
 ];
+
+export const hiddenStackSchema = [
+  "INSERT OR IGNORE INTO lab_achievements VALUES ('hidden-stack','스택');",
+  "CREATE TRIGGER IF NOT EXISTS lab_award_hidden_stack\nAFTER INSERT ON lab_pin_credentials\nWHEN NEW.nickname_normalized='스택'\nBEGIN\n INSERT OR IGNORE INTO lab_user_achievements\n SELECT id,'hidden-stack',created_at FROM lab_users WHERE id=NEW.user_id AND nickname='스택';\nEND;",
+  "INSERT OR IGNORE INTO lab_user_achievements\nSELECT u.id,'hidden-stack',u.created_at FROM lab_users u\nJOIN lab_pin_credentials c ON c.user_id=u.id\nWHERE u.nickname='스택' AND c.nickname_normalized='스택';"
+];
