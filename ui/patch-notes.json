@@ -1,5 +1,12 @@
 [
   {
+    "id": "2026-11-03-account-dashboard-navigation",
+    "date": "2026-11-03",
+    "type": "fix",
+    "title": "마이페이지에서 대시보드로 이동 수정",
+    "details": ["연구소 로고와 홈 링크를 누르면 대시보드를 전체 화면으로 엽니다. 하단 작업 표시줄에 마이페이지 이름을 표시합니다."]
+  },
+  {
     "id": "2026-11-03-achievement-rankings",
     "date": "2026-11-03",
     "type": "feature",
