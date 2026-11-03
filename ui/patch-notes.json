@@ -1,5 +1,12 @@
 [
   {
+    "id": "2026-11-03-hidden-gem-grades",
+    "date": "2026-11-03",
+    "type": "feature",
+    "title": "히든 배지에 난이도별 보석 등급 적용",
+    "details": ["페이지 방문형은 S, 숨은 요소 발견형은 SS 보석으로 표시합니다. 행운 SSS는 스택 전용 배지로 유지합니다."]
+  },
+  {
     "id": "2026-11-03-more-hidden-discoveries",
     "date": "2026-11-03",
     "type": "feature",

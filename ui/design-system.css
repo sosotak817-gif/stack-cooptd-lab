@@ -1,5 +1,5 @@
 .lab-badge-icon{display:inline-block;vertical-align:middle;margin-inline-start:6px;width:20px;height:20px;object-fit:contain}
-.lab-stack-badge{background:url('/assets/gems/fortune.webp') center/57% no-repeat,url('/assets/gems/stone-sss.webp') center/contain no-repeat}
+.lab-hidden-gem{background-position:center;background-repeat:no-repeat;background-size:57%,contain}
 #home-account,.lab-ranked-name{display:inline-flex;align-items:center;gap:6px}
 #home-account .lab-badge-icon,.lab-ranked-name .lab-badge-icon{margin-inline-start:0;flex:none}
 .lab-badge-glyph{display:inline-grid;place-items:center;border:1px solid var(--mint);border-radius:50%;color:var(--mint);background:var(--surface);font-size:13px;line-height:1}
