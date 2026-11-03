@@ -50,6 +50,18 @@ try{
  const {records}=await (await analysisCall('GET',a)).json();
  assert.equal(records.length,1);
  assert.equal(records[0].summary,summary.summary);
+ sqlite.exec(fs.readFileSync('migrations/0016_account_progress.sql','utf8'));
+ const {onRequest:progress}=await import('./functions/api/me/progress.js');
+ const progressCall=(method,headers,input)=>progress({env:{DB},request:new Request('https://lab.example/api/me/progress',{
+  method,headers:{Origin:'https://lab.example','Content-Type':'application/json',...headers},body:input?JSON.stringify(input):undefined
+ })});
+ const checks={owned:true,save:false};
+ assert.equal((await progressCall('PUT',{...a,'X-CSRF-Token':'bad'},{checks,revision:0})).status,403);
+ assert.equal((await progressCall('PUT',a,{checks:{unknown:true},revision:0})).status,400);
+ assert.equal((await progressCall('PUT',a,{checks,revision:0})).status,200);
+ assert.equal((await progressCall('PUT',a,{checks,revision:0})).status,409);
+ assert.deepEqual(await (await progressCall('GET',a)).json(),{checks,revision:1});
+ assert.deepEqual(await (await progressCall('GET',b)).json(),{checks:{},revision:0});
  const edit={id:posted.data.post.id,expectedUpdatedAt:posted.data.post.updatedAt,guide};
  assert.equal((await call('PUT',edit,{headers:b})).status,403);
  assert.equal((await call('DELETE',edit,{headers:b})).status,403);

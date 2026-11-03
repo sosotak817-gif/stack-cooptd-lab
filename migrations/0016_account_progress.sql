@@ -1,0 +1,5 @@
+CREATE TABLE lab_progress (
+  user_id TEXT PRIMARY KEY NOT NULL REFERENCES lab_users(id) ON DELETE CASCADE,
+  data TEXT NOT NULL,
+  revision INTEGER NOT NULL DEFAULT 1
+);

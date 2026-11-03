@@ -81,8 +81,49 @@ const roadmap=[
 function roadmapPage(){
  $('#journey-description').textContent='처음 세팅하는 날부터 막힌 구간을 넘고 공략을 남기는 단계까지. 진행 상황은 이 브라우저에 저장됩니다.';
  let checks={};try{checks=J.parse(localStorage.getItem('stack-lab-roadmap-v1')||'{}');if(!checks||Array.isArray(checks)||typeof checks!=='object')checks={};}catch{}
+ const inputs=new Map();
  const summary=panel('나의 진행 상황'),counter=el('p');summary.append(counter);host.append(summary);const refresh=()=>counter.textContent=roadmap.flatMap(p=>p.steps).filter(([id])=>checks[id]===true).length+' / 9단계 완료';refresh();
- for(const phase of roadmap){const section=panel(phase.title);section.append(el('p',phase.goal));for(const [id,text]of phase.steps){const label=el('label',undefined,'journey-check'),input=el('input');input.type='checkbox';input.checked=checks[id]===true;input.onchange=()=>{checks[id]=input.checked;refresh();try{localStorage.setItem('stack-lab-roadmap-v1',JSON.stringify(checks));status('진행 상황을 저장했습니다.');}catch{status('저장 공간을 사용할 수 없어 이번 화면에서만 체크합니다.');}};label.append(input,document.createTextNode(text));section.append(label);}section.append(el('h3','자주 하는 실수'),el('p',phase.mistake,'journey-note'));const actions=el('div',undefined,'journey-actions');for(const [text,href]of phase.links)actions.append(link(text,href));section.append(actions);host.append(section);}
+ for(const phase of roadmap){const section=panel(phase.title);section.append(el('p',phase.goal));for(const [id,text]of phase.steps){const label=el('label',undefined,'journey-check'),input=el('input');input.type='checkbox';inputs.set(id,input);input.checked=checks[id]===true;input.onchange=()=>{checks[id]=input.checked;refresh();try{localStorage.setItem('stack-lab-roadmap-v1',JSON.stringify(checks));status('진행 상황을 저장했습니다.');}catch{status('저장 공간을 사용할 수 없어 이번 화면에서만 체크합니다.');}};label.append(input,document.createTextNode(text));section.append(label);}section.append(el('h3','자주 하는 실수'),el('p',phase.mistake,'journey-note'));const actions=el('div',undefined,'journey-actions');for(const [text,href]of phase.links)actions.append(link(text,href));section.append(actions);host.append(section);}
+ let account=null,remote=null,busy=false;
+ const accountStatus=el('p');accountStatus.setAttribute('role','status');
+ async function request(method='GET',data) {
+  const response=await fetch('/api/me/progress',{method,cache:'no-store',headers:{
+   'X-Account-Id':account.user.id,...(data?{'Content-Type':'application/json','X-CSRF-Token':account.csrf}:{})
+  },body:data?JSON.stringify(data):undefined});
+  const result=await response.json();
+  if(!response.ok)throw Error(result.error);
+  return result;
+ }
+ async function run(action) {
+  if(busy)return;
+  busy=true;
+  try{
+   const response=await fetch('/api/auth/me',{cache:'no-store'});
+   if(!response.ok)throw Error('계정 상태를 확인할 수 없습니다.');
+   account=await response.json();
+   if(!account.user)throw Error('내 계정에서 로그인해 주세요.');
+   remote=await request();
+   await action();
+  }catch(error){accountStatus.textContent=error.message;}
+  finally{busy=false;}
+ }
+ summary.append(
+  button('계정에 진행 상황 저장',()=>run(async()=>{
+   if(remote.revision&&!confirm('계정의 기존 진행 상황을 현재 체크로 교체할까요?'))return;
+   const local=Object.fromEntries([...inputs].map(([id,input])=>[id,input.checked]));
+   await request('PUT',{checks:local,revision:remote.revision});
+   accountStatus.textContent='계정에 진행 상황을 저장했습니다.';
+  })),
+  button('계정 진행 상황 불러오기',()=>run(async()=>{
+   if(!remote.revision){accountStatus.textContent='계정에 저장된 진행 상황이 없습니다.';return;}
+   if(!confirm('계정의 진행 상황을 이 브라우저에 적용할까요?'))return;
+   localStorage.setItem('stack-lab-roadmap-v1',JSON.stringify(remote.checks));
+   checks=remote.checks;
+   for(const [id,input] of inputs)input.checked=checks[id]===true;
+   refresh();accountStatus.textContent='계정 진행 상황을 적용했습니다.';
+  })),
+  accountStatus
+ );
  const note=panel('로드맵 사용법');note.append(el('p','특정 유닛·보석 구매 순서나 재화 효율을 단정하지 않습니다. 현재 계정과 목표 난이도를 입력하고 연구소의 계산 결과를 보며 다음 목표를 고르세요. 체크 완료는 사용자 기록이며 게임 계정과 연동되지 않습니다.'));host.append(note);
 }
 function download(value,filename){const url=URL.createObjectURL(new Blob([JSON.stringify(value,null,2)],{type:'application/json'})),anchor=el('a');anchor.href=url;anchor.download=filename;anchor.click();setTimeout(()=>URL.revokeObjectURL(url),30000);}
