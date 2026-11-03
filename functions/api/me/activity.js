@@ -16,8 +16,9 @@ export async function onRequest({ request, env }) {
         (SELECT COUNT(*) FROM lab_decks WHERE user_id=?) AS savedDecks,
         (SELECT COUNT(*) FROM daily_puzzle_account_scores WHERE user_id=?) AS puzzleRecords,
         (SELECT COUNT(*) FROM deck_guides WHERE owner=?) AS publishedGuides`).bind(user.id, user.id, 'account:' + user.id),
-      db.prepare(`SELECT a.title, u.earned_at AS earnedAt FROM lab_user_achievements u
-        JOIN lab_achievements a ON a.code=u.code WHERE u.user_id=? ORDER BY u.earned_at DESC,a.code`).bind(user.id)
+      db.prepare(`SELECT a.code, a.title, u.earned_at AS earnedAt, f.code IS NOT NULL AS featured FROM lab_user_achievements u
+        JOIN lab_achievements a ON a.code=u.code
+        LEFT JOIN lab_featured_badges f ON f.user_id=u.user_id AND f.code=u.code WHERE u.user_id=? ORDER BY u.earned_at DESC,a.code`).bind(user.id)
     ]);
     return reply({ puzzles: puzzles.results, guides: guides.results, stats: totals.results[0], achievements: achievements.results });
   } catch (error) {

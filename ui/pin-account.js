@@ -18,6 +18,8 @@
   async function refreshActivity(user) {
     const achievements = get('activity-achievements');
     achievements.replaceChildren();
+    const featured = get('featured-badge');
+    featured.textContent = '';
     const puzzles = get('activity-puzzles');
     const guides = get('activity-guides');
     const activityStatus = get('activity-status');
@@ -40,7 +42,18 @@
         item.textContent = text;
         list.append(item);
       };
-      for (const badge of activity.achievements) append(achievements, badge.title + ' · ' + date.format(badge.earnedAt));
+      for (const badge of activity.achievements) {
+        append(achievements, badge.title + ' · ' + date.format(badge.earnedAt));
+        if (badge.featured) featured.textContent = '대표 배지 · ' + badge.title;
+        const button = document.createElement('button');
+        button.textContent = badge.featured ? '대표 배지 해제' : '대표 배지로 선택';
+        button.addEventListener('click', () => run(async () => {
+          await request('/api/me/featured-badge', 'PUT', { code: badge.featured ? null : badge.code }, { 'X-Account-Id': user.id });
+          await refreshActivity(user);
+          return '대표 배지 설정을 저장했습니다.';
+        }, button));
+        achievements.lastElementChild.append(' ', button);
+      }
       if (!activity.achievements.length) append(achievements, '획득한 업적이 없습니다.');
       for (const row of activity.puzzles) {
         append(puzzles, date.format(row.achievedAt) + ' · ' + score.format(row.score / 100) + ' · 이동 ' + row.moves + '회');

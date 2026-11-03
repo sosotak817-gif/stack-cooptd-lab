@@ -36,6 +36,7 @@ try{
  sqlite.exec(fs.readFileSync('migrations/0011_account_decks.sql','utf8'));
  sqlite.prepare('INSERT INTO lab_decks(id,user_id,name,data,created_at,updated_at) VALUES(?,?,?,?,?,?)')
   .run('test-deck','account-a','테스트','{}',clock,clock);
+ sqlite.exec(fs.readFileSync('migrations/0018_featured_badges.sql','utf8'));
  const {onRequest:activity}=await import('./functions/api/me/activity.js');
  const getActivity=headers=>activity({env:{DB},request:new Request('https://lab.example/api/me/activity',{headers})});
  assert.equal((await getActivity({})).status,401);
@@ -44,7 +45,7 @@ try{
  const myActivity=await (await getActivity(a)).json();
  assert.deepEqual(myActivity.puzzles,[{week:1,score:25,moves:2,achievedAt:clock,day:7}]);
  assert.deepEqual(myActivity.guides,[{id:posted.data.post.id,title:guide.title,updatedAt:clock}]);
- assert.deepEqual(myActivity.achievements,[{title:"첫 검증 퍼즐 기록",earnedAt:clock}]);
+ assert.deepEqual(myActivity.achievements,[{code:"first-verified-puzzle",title:"첫 검증 퍼즐 기록",earnedAt:clock,featured:0}]);
  assert.deepEqual(myActivity.stats,{savedDecks:1,puzzleRecords:1,publishedGuides:1});
  sqlite.exec(fs.readFileSync('migrations/0015_account_analysis.sql','utf8'));
  const {onRequest:analysis}=await import('./functions/api/me/analysis.js');
@@ -70,6 +71,17 @@ try{
  assert.equal((await progressCall('PUT',a,{checks,revision:0})).status,409);
  assert.deepEqual(await (await progressCall('GET',a)).json(),{checks,revision:1});
  assert.deepEqual(await (await progressCall('GET',b)).json(),{checks:{},revision:0});
+ const {onRequest:featuredBadge}=await import('./functions/api/me/featured-badge.js');
+ const setBadge=(headers,code)=>featuredBadge({env:{DB},request:new Request('https://lab.example/api/me/featured-badge',{
+  method:'PUT',headers:{Origin:'https://lab.example','Content-Type':'application/json',...headers},body:JSON.stringify({code})
+ })});
+ const code='first-verified-puzzle';
+ assert.equal((await setBadge(b,code)).status,400);
+ assert.equal((await setBadge({...a,'X-CSRF-Token':'bad'},code)).status,403);
+ assert.equal((await setBadge(a,code)).status,200);
+ assert.equal((await (await getActivity(a)).json()).achievements[0].featured,1);
+ assert.equal((await setBadge(a,null)).status,200);
+ assert.equal((await (await getActivity(a)).json()).achievements[0].featured,0);
  const edit={id:posted.data.post.id,expectedUpdatedAt:posted.data.post.updatedAt,guide};
  assert.equal((await call('PUT',edit,{headers:b})).status,403);
  assert.equal((await call('DELETE',edit,{headers:b})).status,403);

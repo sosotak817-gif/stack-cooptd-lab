@@ -1,5 +1,12 @@
 [
   {
+    "id": "2026-11-03-featured-badge",
+    "date": "2026-11-03",
+    "type": "feature",
+    "title": "프로필 대표 배지 선택",
+    "details": ["마이페이지에서 획득한 업적 중 하나를 대표 배지로 선택하거나 해제할 수 있습니다."]
+  },
+  {
     "id": "2026-11-03-first-verified-puzzle-badge",
     "date": "2026-11-03",
     "type": "feature",
