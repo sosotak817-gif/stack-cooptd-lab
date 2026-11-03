@@ -1,5 +1,15 @@
 [
   {
+    "id": "2026-11-03-battle-replay",
+    "date": "2026-11-03",
+    "type": "feature",
+    "title": "배치 시뮬레이터 전투 관전",
+    "details": [
+      "현재 배치의 보스전 기대 피해를 재생하고 최근 3초 DPS와 누적 피해를 확인할 수 있습니다.",
+      "일시정지, 배속, 구간 이동과 개체별 이론 DPS 확인을 지원합니다."
+    ]
+  },
+  {
     "id": "2026-11-03-puzzle-layout-comparison",
     "date": "2026-11-03",
     "type": "feature",
