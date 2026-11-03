@@ -1,0 +1,4 @@
+CREATE TABLE IF NOT EXISTS lab_battle_watch (
+ user_id TEXT PRIMARY KEY REFERENCES lab_users(id) ON DELETE CASCADE,
+ started_at INTEGER NOT NULL
+);

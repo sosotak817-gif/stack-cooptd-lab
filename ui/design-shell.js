@@ -4,6 +4,7 @@
 const hiddenBadgeGems = new Map([
  ['hidden-first-visitor', ['awakening', 'sss', '1번째 방문자가 왔습니다! 홈페이지는 이제 각성하세요!']],
  ['hidden-stack', ['fortune', 'sss', '스택']],
+ ['hidden-battle-watch', ['battle', 'ss', '전투 관전']],
  ['hidden-roadmap', ['hero', 's', '연구의 첫걸음']],
  ['hidden-archive', ['precision', 'ss', '기록의 틈새']],
  ['hidden-puzzle-spark', ['combo', 'ss', '퍼즐 속 불씨']]

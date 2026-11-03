@@ -7,11 +7,18 @@
 .battle-metrics div { background: #182a40; padding: .5rem; border-radius: 6px; font-size: .8rem; }
 .battle-metrics strong { display: block; font-size: 1rem; overflow-wrap: anywhere; }
 .battle-lane { margin: .6rem 0; }
-.battle-track { position: relative; height: 1.5rem; margin: .3rem 0; border-radius: 6px; background: #243a55; }
-.battle-boss { position: absolute; left: var(--progress, 0%); font-size: 1rem; }
+.battle-track { position: relative; height: 4rem; margin: .3rem 0; border-radius: 6px; background: linear-gradient(0deg, #243a55, #121e30); overflow: hidden; }
+.battle-boss { position: absolute; left: clamp(0px, var(--progress, 0%), calc(100% - 4rem)); width: 4rem; height: 4rem; object-fit: contain; }
 .battle-boss.hit { filter: drop-shadow(0 0 6px #ff9163); }
 #battle-board { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; max-width: 35rem; }
 #battle-board :is(button,span) { min-width: 0; min-height: 1.9rem; padding: .15rem; }
 #battle-board button[aria-pressed=true] { outline: 2px solid #63edd3; }
 #battle-board img { display: block; width: min(100%, 1.65rem); margin: auto; }
+#battle-board .attacking { background: #244956; }
+#battle-board .attacking img { animation: battle-strike .45s ease-out infinite; }
+@keyframes battle-strike {
+  0%, 100% { transform: translateY(0); }
+  35% { transform: translateY(-.35rem) scale(1.18); filter: drop-shadow(0 0 .35rem #63edd3); }
+}
+@media (prefers-reduced-motion: reduce) { #battle-board .attacking img { animation: none; } }
 #battle-seek { flex: 1 1 12rem; min-width: 0; }
