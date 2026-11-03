@@ -1,5 +1,14 @@
 [
   {
+    "id": "2026-11-03-distinct-dashboard-gems",
+    "date": "2026-11-03",
+    "type": "fix",
+    "title": "홈 도구 카드 보석 아이콘 구분",
+    "details": [
+      "원클릭 분석에 적중의 보석, 오늘의 배치 퍼즐에 연격의 보석을 적용해 보석 추천 카드와 구분했습니다."
+    ]
+  },
+  {
     "id": "2026-11-03-puzzle-ranking-dashboard",
     "date": "2026-11-03",
     "type": "feature",
