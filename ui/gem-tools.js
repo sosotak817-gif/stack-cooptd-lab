@@ -25,5 +25,30 @@ passes++;if(!improved)break}
 const used=new Map;for(const g of groups)for(const gem of bestBuild[g.slug]?.gems||[])if(gem.id)used.set(gemKey(gem),(used.get(gemKey(gem))||0)+g.copies);const unused=stock.map(g=>({...g,count:g.count-(used.get(gemKey(g))||0)})).filter(g=>g.count>0),emptySlots=groups.flatMap(g=>[0,1,2].filter(slot=>g.lib>=[3,10,20][slot]&&!bestBuild[g.slug].gems[slot]?.id).map(slot=>({slug:g.slug,slot,copies:g.copies})));
 return{unused,emptySlots,usedCount:[...used.values()].reduce((a,b)=>a+b,0),stockCount:stock.reduce((n,g)=>n+g.count,0),build:bestBuild,result:best,baseline:baseline.actual,evaluated,passes,cancelled:cancelled(),originalValid:validLoadout(groups,original,stock,gemById),originalPolicyValid:recommendationPolicyValid(groups,original),awakeningPolicy:'ivy-only'};
 }
-root.CoopGemTools={sideOf,gemKey,active,penalty,inventoryOf,usage,collectEquipped,validLoadout,recommend};if(typeof module!=='undefined')module.exports=root.CoopGemTools;
+async function recommendNew({groups,build,inventory,gemById,gem,baseline,evaluate,onProgress}){
+ const stock=structuredClone(inventory), existing=stock.find(item=>gemKey(item)===gemKey(gem));
+ if(existing)existing.count++;else stock.push({...gem,count:1});
+ const choices=[];
+ const data=gemById.get(gem.id);
+ if(!data)throw Error('보석 종류를 확인하세요.');
+ for(const group of groups){
+  if(!recommendable(group.slug,gem))continue;
+  for(const [slot,level] of [3,10,20].entries()){
+   if(group.lib<level||!!data.special!==(slot===1))continue;
+   const candidate=structuredClone(build);
+   const settings=candidate[group.slug]??={};
+   const gems=settings.gems??=[];
+   const replaced=gems[slot];
+   if(replaced?.id&&gemKey(replaced)===gemKey(gem))continue;
+   while(gems.length<=slot)gems.push({id:'',grade:'S'});
+   gems[slot]=gem;
+   if(!validLoadout(groups,candidate,stock,gemById))continue;
+   const result=await evaluate(candidate);
+   choices.push({slug:group.slug,slot,replaced,actual:result.actual});
+   onProgress({evaluated:choices.length,best:Math.max(baseline,...choices.map(choice=>choice.actual))});
+  }
+ }
+ return {baseline,choices:choices.sort((a,b)=>b.actual-a.actual)};
+}
+root.CoopGemTools={sideOf,gemKey,active,penalty,inventoryOf,usage,collectEquipped,validLoadout,recommend,recommendNew};if(typeof module!=='undefined')module.exports=root.CoopGemTools;
 })(globalThis);
