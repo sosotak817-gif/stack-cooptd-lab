@@ -100,7 +100,7 @@
       shownWeek = data.week;
       for (const [i, row] of data.rows.entries()) {
         const tr = $('rows').insertRow();
-        for (const value of [i + 1, row.nickname, percent.format(row.score / 100), row.moves]) {
+        for (const value of [i + 1, row.nickname + (row.account ? ' · 계정' : ' · 익명'), percent.format(row.score / 100), row.moves]) {
           tr.insertCell().textContent = value;
         }
         const action = tr.insertCell();

@@ -109,13 +109,34 @@ async function handle(request, env, retry = true) {
     const query = new URL(request.url).searchParams;
     const week = query.has('week') ? Number(query.get('week')) : currentWeek;
     if (!Number.isInteger(week) || week < 0 || week > currentWeek) return reply({ error: '주차를 확인해 주세요.' }, 400);
-    const selectedRevision = week === currentWeek ? revision : (await db.prepare(
-      'SELECT revision FROM daily_puzzle_scores WHERE week = ? ORDER BY achieved_at DESC LIMIT 1'
-    ).bind(week).first())?.revision;
-    const rows = selectedRevision ? (await db.prepare(`
-      SELECT nickname, score, moves, replay FROM daily_puzzle_scores WHERE week = ? AND revision = ?
-      ORDER BY score DESC, moves ASC, achieved_at ASC, nickname_key ASC LIMIT 50
-    `).bind(week, selectedRevision).all()).results : [];
+    let rows;
+    try {
+      const selectedRevision = week === currentWeek ? revision : (await db.prepare(`
+        SELECT revision FROM (
+          SELECT revision, achieved_at FROM daily_puzzle_scores WHERE week = ?
+          UNION ALL SELECT revision, achieved_at FROM daily_puzzle_account_scores WHERE week = ?
+        ) ORDER BY achieved_at DESC LIMIT 1
+      `).bind(week, week).first())?.revision;
+      rows = selectedRevision ? (await db.prepare(`
+        SELECT nickname, score, moves, replay, account FROM (
+          SELECT nickname, score, moves, replay, achieved_at, nickname_key AS sort_key, 0 AS account
+          FROM daily_puzzle_scores WHERE week = ? AND revision = ?
+          UNION ALL
+          SELECT u.nickname, a.score, a.moves, a.replay, a.achieved_at, a.user_id, 1
+          FROM daily_puzzle_account_scores a JOIN lab_users u ON u.id = a.user_id
+          WHERE a.week = ? AND a.revision = ?
+        ) ORDER BY score DESC, moves ASC, achieved_at ASC, account DESC, sort_key ASC LIMIT 50
+      `).bind(week, selectedRevision, week, selectedRevision).all()).results : [];
+    } catch (error) {
+      if (!/no such table: daily_puzzle_account_scores/.test(String(error))) throw error;
+      const selectedRevision = week === currentWeek ? revision : (await db.prepare(
+        'SELECT revision FROM daily_puzzle_scores WHERE week = ? ORDER BY achieved_at DESC LIMIT 1'
+      ).bind(week).first())?.revision;
+      rows = selectedRevision ? (await db.prepare(`
+        SELECT nickname, score, moves, replay, 0 AS account FROM daily_puzzle_scores WHERE week = ? AND revision = ?
+        ORDER BY score DESC, moves ASC, achieved_at ASC, nickname_key ASC LIMIT 50
+      `).bind(week, selectedRevision).all()).results : [];
+    }
     return reply({ currentWeek, currentDay, week, rows: rows.map(row => ({ ...row, replay: row.replay ? JSON.parse(row.replay) : null })) });
   } catch (error) {
     if (retry && /no such table: daily_puzzle_scores|no such column: replay|has no column named replay/.test(String(error))) {

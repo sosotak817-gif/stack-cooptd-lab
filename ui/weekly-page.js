@@ -105,10 +105,25 @@
       marks: challenge.marks, you: growth, partner: account, partnerEnabled: false });
   }
 
+  let puzzleAccount = null;
+  async function readPuzzleAccount() {
+    const response = await fetch('/api/auth/me', { cache: 'no-store' });
+    if (!response.ok) throw Error('계정 상태를 확인하지 못했어요.');
+    const state = await response.json();
+    puzzleAccount = state.user && state.csrf ? { ...state.user, csrf: state.csrf } : null;
+    $('nickname').disabled = !!puzzleAccount;
+    $('nickname').value = puzzleAccount?.nickname || '';
+    $('nickname').required = !puzzleAccount;
+    $('puzzle-account-status').textContent = puzzleAccount
+      ? puzzleAccount.nickname + ' 계정으로 제출합니다.'
+      : '브라우저에서 입력한 닉네임으로 제출합니다.';
+  }
+  readPuzzleAccount().catch(() => {});
   $('register').onsubmit = async event => {
     event.preventDefault();
     if (submitting || result === null || !(baseline > 0)) return;
-    const nickname = $('nickname').value.trim();
+    const account = puzzleAccount;
+    const nickname = account?.nickname || $('nickname').value.trim();
     if (!nickname) {
       $('submission-status').textContent = '닉네임을 입력해 주세요.';
       return;
@@ -119,14 +134,17 @@
     const attempt = { day, mode: challenge.mode, cells: history.at(-1), marks: challenge.marks,
       score: Math.round((result / baseline - 1) * 1e8) / 1e6 };
     try {
-      const response = await fetch(api, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      const response = await fetch(api, { method: 'POST', headers: { 'Content-Type': 'application/json', ...(account ? { 'X-CSRF-Token': account.csrf } : {}) },
         body: JSON.stringify({ day, revision: COOP_SHARED_REVISION, nickname,
           score: attempt.score, moves: steps.length, steps }) });
       const data = await response.json();
-      if (!response.ok) throw Error(data.error);
+      if (!response.ok) {
+        if (account && [401, 403].includes(response.status)) await readPuzzleAccount().catch(() => {});
+        throw Error(data.error);
+      }
       $('submission-status').textContent = data.improved ? '주간 기록을 등록했어요.' : '이전 최고 기록을 유지했어요.';
       try {
-        const key = rules.personalKey(day);
+        const key = rules.personalKey(day) + (account ? ':account:' + account.id : '');
         const previous = JSON.parse(localStorage.getItem(key) || 'null');
         if (!previous || attempt.score >= previous.score) localStorage.setItem(key, JSON.stringify(attempt));
       } catch {}

@@ -114,6 +114,13 @@ try{
  assert.equal((await submitPuzzle(otherHeaders)).status,200);
  assert.equal(sql.prepare('SELECT user_id FROM daily_puzzle_account_scores').get().user_id,two.user.id);
  assert.equal((await (await submitPuzzle(otherHeaders)).json()).improved,false);
+ sql.exec(fs.readFileSync('migrations/0008_daily_puzzle.sql','utf8'));
+ sql.exec('ALTER TABLE daily_puzzle_scores ADD COLUMN replay TEXT');
+ const anonymous=await submitPuzzle({});
+ assert.equal(anonymous.status,200);
+ const standings=await (await puzzleSubmit({env,request:request('/api/weekly-puzzle')})).json();
+ assert.deepEqual(standings.rows.map(row=>[row.nickname,row.account]).sort((a,b)=>a[1]-b[1]),[['spoofed',0],[two.user.nickname,1]]);
+ assert.ok(standings.rows.every(row=>!('user_id' in row)));
  sql.prepare('UPDATE lab_sessions SET expires_at=0').run();assert.equal((await board({headers:otherHeaders})).status,401);
  assert.equal(sql.prepare('SELECT COUNT(*) n FROM lab_boards').get().n,2,'logout and expiry preserve account saves');
  sql.exec(fs.readFileSync('migrations/0009_pin_account_credentials.sql','utf8'));
