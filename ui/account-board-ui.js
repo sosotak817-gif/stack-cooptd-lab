@@ -22,6 +22,12 @@
       <button data-load>계정 세팅을 이 브라우저에 적용</button>
       <button data-restore hidden>계정의 직전 버전 복원</button>
     </div>
+    <details data-settings hidden>
+      <summary>성장·보석·전투 설정</summary>
+      <p>배치, 맵, 보스를 유지하면서 설정만 따로 저장하거나 적용합니다.</p>
+      <button data-settings-save>현재 설정을 계정에 저장</button>
+      <button data-settings-load>계정 설정을 이 브라우저에 적용</button>
+    </details>
     <section data-merge hidden>
       <h3>이 브라우저와 계정의 배치 비교</h3>
       <p data-merge-summary></p>
@@ -48,6 +54,9 @@
   const deckName = dialog.querySelector('[data-deck-name]');
   const deckList = dialog.querySelector('[data-deck-list]');
   const deckActions = ['load', 'update', 'delete'];
+  const settingsPanel = dialog.querySelector('[data-settings]');
+  const settingsLoad = dialog.querySelector('[data-settings-load]');
+  let accountSettings = null;
   const mergePanel = dialog.querySelector('[data-merge]');
   const mergeAccount = dialog.querySelector('[data-merge-account]');
   const mergeSummary = dialog.querySelector('[data-merge-summary]');
@@ -75,6 +84,7 @@
     controls.hidden = true;
     deckPanel.hidden = true;
     mergePanel.hidden = true;
+    settingsPanel.hidden = true;
     session = await api('/api/auth/me');
     remote = null;
     if (!session.user) return '계정에 로그인해 주세요.';
@@ -89,6 +99,7 @@
     load.hidden = !remote.board;
     await refreshDecks();
     await compareInitial();
+    await refreshSettings();
     return session.user.nickname + (remote.board
       ? ' · 저장된 배치 ' + remote.board.cells.length + '개 · 버전 ' + remote.revision
       : ' · 저장된 계정 세팅이 없습니다.');
@@ -106,6 +117,7 @@
         controls.hidden = true;
         deckPanel.hidden = true;
         mergePanel.hidden = true;
+        settingsPanel.hidden = true;
         status.textContent = error.message + ' 창을 다시 열어 최신 상태를 확인해 주세요.';
       } else {
         status.textContent = error.message;
@@ -176,6 +188,44 @@
     await refresh();
     return '계정에 직전 세팅을 복원했습니다. 현재 버전 ' + restored.revision + ' · 브라우저에 적용하려면 불러오기를 선택하세요.';
   }));
+
+  async function refreshSettings() {
+    const headers = { 'X-Account-Id': session.user.id };
+    accountSettings = await api('/api/me/settings', { headers });
+    settingsLoad.hidden = !accountSettings.settings;
+    settingsPanel.hidden = false;
+  }
+
+  for (const action of ['save', 'load']) {
+    dialog.querySelector('[data-settings-' + action + ']').addEventListener('click', () => run(async () => {
+      if (!session?.user || !accountSettings || settingsPanel.hidden) return '계정 상태를 다시 확인해 주세요.';
+      const adapter = window.StackLabAccount;
+      await adapter.ready;
+      const current = adapter.snapshot();
+      const headers = { 'X-Account-Id': session.user.id };
+      if (action === 'save') {
+        if (accountSettings.settings && !confirm('계정에 저장된 설정을 교체할까요?')) return '설정 저장을 취소했습니다.';
+        const { you, partner, inventory } = current;
+        await api('/api/me/settings', {
+          method: 'PUT',
+          headers: { ...headers, 'Content-Type': 'application/json', 'X-CSRF-Token': session.csrf },
+          body: JSON.stringify({ settings: { version: 1, you, partner, inventory }, revision: accountSettings.revision })
+        });
+        await refreshSettings();
+        return '성장·보석·전투 설정을 계정에 저장했습니다.';
+      }
+      if (!confirm('계정에 저장된 성장·보석·전투 설정을 적용할까요?')) return '설정 적용을 취소했습니다.';
+      const latest = await api('/api/me/settings', { headers });
+      if (!latest.settings || latest.revision !== accountSettings.revision ||
+          JSON.stringify(current) !== JSON.stringify(adapter.snapshot())) {
+        await refreshSettings();
+        return '비교한 설정이 변경되었습니다. 다시 확인해 주세요.';
+      }
+      const { you, partner, inventory } = latest.settings;
+      adapter.load({ ...current, you, partner, inventory });
+      return '배치는 유지하고 계정 설정을 적용했습니다.';
+    }));
+  }
 
   async function compareInitial() {
     const id = session.user.id;
