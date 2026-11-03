@@ -67,3 +67,17 @@ body .patch-dashboard .patch-type.performance{background:#443521;color:#ffe0a8}
 @media(max-width:650px){.stage-result-view .stage-phase-grid{gap:5px}.stage-result-view .stage-phase-card{padding:9px 6px}.stage-result-view .stage-phase-card h4{font-size:12px}.stage-result-view .stage-phase-card strong{font-size:16px}.stage-result-view .stage-phase-card p{font-size:12px}.stage-result-view .stage-phase-card button{width:100%;min-height:40px;padding:5px 2px;font-size:12px!important}.stage-report .stage-duel{padding:8px}.stage-report>header h2{font-size:18px;margin:4px 0}.stage-report>header .stage-tag{font-size:12px}}
 
 .stage-report .stage-summary-grid strong{color:#86f5d9}.portal .stage-report{padding:16px}.stage-report>p{font-size:13px;line-height:1.7}#stage-results,.stage-report-picker{scroll-margin-top:16px}@media(max-width:760px){#stage-results,.stage-report-picker{scroll-margin-top:64px}}
+
+.pin-account{max-width:760px;padding-top:32px;color:#463b69;font-family:system-ui,sans-serif}
+body:has(.pin-account){margin:0;min-height:100vh;background:linear-gradient(145deg,#f3edff,#f7f9ff)}
+.pin-account .pin-home{color:#6249b3;font-weight:700;text-decoration:none}
+.pin-account .panel{background:#fff;border:1px solid #e8defd;border-radius:22px;box-shadow:0 10px 35px #6c55b012}
+.pin-account form{display:grid;gap:12px;margin:16px 0 24px}
+.pin-account form[hidden]{display:none}
+.pin-account label{display:grid;gap:6px;font-weight:650}
+.pin-account input,.pin-account select{box-sizing:border-box;width:100%;padding:11px 12px;border:1px solid #dcd1ef;border-radius:10px;font:inherit;color:inherit;background:#fcfaff}
+.pin-account button{justify-self:start;border:1px solid #e0d5f5;border-radius:12px;padding:10px 15px;font:inherit;color:#533d91;background:#f5efff;cursor:pointer}
+.pin-account button.portal-primary{background:linear-gradient(120deg,#795ee0,#657ee4);margin-top:0}
+.pin-account :focus-visible{outline:3px solid #9781ec;outline-offset:2px}
+.pin-account #status{min-height:1.8em;color:#5b4687}
+@media(max-width:600px){.pin-account{padding-inline:14px}.pin-account .panel{padding:18px}}

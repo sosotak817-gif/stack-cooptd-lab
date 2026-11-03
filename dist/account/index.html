@@ -8,16 +8,16 @@
 <script src="/pin-account.js" defer></script>
 </head>
 <body>
-<main>
-<a href="/">스택 연구소 홈</a>
+<main class="portal pin-account">
+<a class="pin-home" href="/">← 스택 연구소 홈</a>
 <h1>내 계정</h1>
 <p id="status" role="status" aria-live="polite">계정 상태를 확인하고 있습니다.</p>
-<section id="guest" hidden>
+<section id="guest" class="panel" hidden>
   <h2>로그인</h2>
   <form data-path="/api/auth/login">
     <label>닉네임 <input name="nickname" autocomplete="username" required maxlength="32"></label>
     <label>PIN <input name="pin" type="password" autocomplete="current-password" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" required></label>
-    <button>로그인</button>
+    <button class="portal-primary">로그인</button>
   </form>
   <h2>계정 만들기</h2>
   <form data-path="/api/auth/register">
@@ -25,7 +25,7 @@
     <button type="button" id="check-name">닉네임 중복 확인</button>
     <label>PIN <input name="pin" type="password" autocomplete="new-password" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" required></label>
     <label>PIN 재입력 <input name="pinConfirmation" type="password" autocomplete="new-password" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" required></label>
-    <button>가입</button>
+    <button class="portal-primary">가입</button>
   </form>
   <details>
     <summary>PIN을 잊으셨나요?</summary>
@@ -38,7 +38,7 @@
     </form>
   </details>
 </section>
-<section id="member" hidden>
+<section id="member" class="panel" hidden>
   <h2 id="nickname"></h2>
   <p id="featured-badge"></p>
   <form data-path="/api/auth/logout"><button>로그아웃</button></form>

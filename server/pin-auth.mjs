@@ -5,9 +5,13 @@ const windowMs = 15 * 60_000;
 export const pinIdentityPrefix = 'local-pin:';
 export const pinReady = env => !!env.DB && /^[a-f0-9]{64}$/.test(env.PIN_PEPPER || '');
 
-function derive(pin, salt, pepper) {
+const currentVersion = 'pbkdf2-sha256-v2';
+const legacyVersion = 'pbkdf2-sha256-v1';
+const knownVersion = version => version === currentVersion || version === legacyVersion;
+
+function derive(pin, salt, pepper, version = currentVersion) {
   return new Promise((resolve, reject) => {
-    pbkdf2(pin + pepper, salt, 600_000, 32, 'sha256', (error, key) => {
+    pbkdf2(pin + pepper, salt, version === legacyVersion ? 600_000 : 100_000, 32, 'sha256', (error, key) => {
       if (error) reject(error);
       else resolve(key);
     });
@@ -21,7 +25,10 @@ async function throttle(db, scope, key, limit, now, hash, fail) {
     ON CONFLICT(scope,key_hash,window_start) DO UPDATE SET attempts=attempts+1
     WHERE attempts < ? RETURNING attempts
   `).bind(scope, await hash(key), windowStart, limit).first();
-  if (!result) throw fail('요청이 너무 많습니다. 잠시 후 다시 시도해 주세요.', 429);
+  if (!result) {
+    const minutes = Math.ceil((windowStart + windowMs - now) / 60_000);
+    throw fail('요청 횟수를 초과했습니다. 약 ' + minutes + '분 후 다시 시도해 주세요.', 429);
+  }
 }
 
 export async function handlePinAuth(request, env, action, auth) {
@@ -32,32 +39,34 @@ export async function handlePinAuth(request, env, action, auth) {
   if (!source) throw fail('접속 정보를 확인할 수 없습니다.', 403);
 
   const now = Date.now();
-  await throttle(env.DB, action + ':source', source + env.PIN_PEPPER, action === 'register' ? 5 : 30, now, hash, fail);
   await env.DB.prepare('DELETE FROM lab_auth_attempts WHERE window_start < ?').bind(now - 2 * windowMs).run();
   const input = await body(request);
   const nickname = typeof input?.nickname === 'string' ? input.nickname.normalize('NFKC').trim() : '';
   if (!/^[가-힣a-zA-Z0-9_]{2,16}$/.test(nickname)) {
     throw fail('닉네임은 한글, 영문, 숫자, 밑줄로 2~16자여야 합니다.');
   }
+  if (action !== 'nickname' && (typeof input.pin !== 'string' || !/^\d{8}$/.test(input.pin))) {
+    throw fail('PIN은 숫자 8자리여야 합니다.');
+  }
+  if (action === 'register' && input.pin !== input.pinConfirmation) throw fail('PIN 재입력이 일치하지 않습니다.');
+  await throttle(env.DB, action + ':source', source + env.PIN_PEPPER, action === 'register' ? 5 : 30, now, hash, fail);
   const normalized = nickname.toLowerCase();
   const existing = await env.DB.prepare(`
     SELECT u.id,u.nickname,c.pin_hash FROM lab_pin_credentials c
     JOIN lab_users u ON u.id=c.user_id WHERE c.nickname_normalized=?
   `).bind(normalized).first();
   if (action === 'nickname') return reply({ available: !existing });
-  if (typeof input.pin !== 'string' || !/^\d{8}$/.test(input.pin)) throw fail('PIN은 숫자 8자리여야 합니다.');
 
   if (action === 'login') {
     await throttle(env.DB, 'login:nickname', normalized + env.PIN_PEPPER, 8, now, hash, fail);
     const [version, salt, expected] = (existing?.pin_hash || '').split('$');
-    const key = await derive(input.pin, salt || '0'.repeat(64), env.PIN_PEPPER);
-    if (version !== 'pbkdf2-sha256-v1' || !/^[a-f0-9]{64}$/.test(expected || '') || !timingSafeEqual(encoder.encode(key.toString('hex')), encoder.encode(expected))) {
+    const key = await derive(input.pin, salt || '0'.repeat(64), env.PIN_PEPPER, version);
+    if (!knownVersion(version) || !/^[a-f0-9]{64}$/.test(expected || '') || !timingSafeEqual(encoder.encode(key.toString('hex')), encoder.encode(expected))) {
       throw fail('닉네임 또는 PIN을 확인해 주세요.', 401);
     }
     return startSession(request, env, existing, [], 200, existing.pin_hash);
   }
 
-  if (input.pin !== input.pinConfirmation) throw fail('PIN 재입력이 일치하지 않습니다.');
   if (existing) throw fail('이미 사용 중인 닉네임입니다.', 409);
   const id = crypto.randomUUID();
   const salt = random();
@@ -66,7 +75,7 @@ export async function handlePinAuth(request, env, action, auth) {
     env.DB.prepare('INSERT INTO lab_users(id,naver_id,nickname,created_at) VALUES(?,?,?,?)')
       .bind(id, pinIdentityPrefix + id, nickname, now),
     env.DB.prepare('INSERT INTO lab_pin_credentials(user_id,nickname_normalized,pin_hash) VALUES(?,?,?)')
-      .bind(id, normalized, 'pbkdf2-sha256-v1$' + salt + '$' + key.toString('hex'))
+      .bind(id, normalized, currentVersion + '$' + salt + '$' + key.toString('hex'))
   ];
   try {
     return await startSession(request, env, { id, nickname }, statements, 201);
@@ -93,14 +102,14 @@ export async function changePin(request, env, user, auth) {
     .bind(user.id).first();
   if (!current) throw fail('PIN 계정이 필요합니다.', 403);
   const [version, salt, expected] = current.pin_hash.split('$');
-  const key = await derive(input.pin, salt, env.PIN_PEPPER);
-  if (version !== 'pbkdf2-sha256-v1' || !/^[a-f0-9]{64}$/.test(expected || '') ||
+  const key = await derive(input.pin, salt, env.PIN_PEPPER, version);
+  if (!knownVersion(version) || !/^[a-f0-9]{64}$/.test(expected || '') ||
       !timingSafeEqual(encoder.encode(key.toString('hex')), encoder.encode(expected))) {
     throw fail('현재 PIN을 확인해 주세요.', 401);
   }
   const newSalt = random();
   const newKey = await derive(input.newPin, newSalt, env.PIN_PEPPER);
-  const newHash = 'pbkdf2-sha256-v1$' + newSalt + '$' + newKey.toString('hex');
+  const newHash = currentVersion + '$' + newSalt + '$' + newKey.toString('hex');
   const [updated] = await env.DB.batch([
     env.DB.prepare(`UPDATE lab_pin_credentials SET pin_hash=? WHERE user_id=? AND pin_hash=?
       AND EXISTS (SELECT 1 FROM lab_sessions WHERE token_hash=? AND expires_at>?)`)
@@ -143,8 +152,8 @@ export async function manageRecovery(request, env, user, id, auth) {
     throw fail('현재 PIN을 확인해 주세요.', 401);
   }
   const [version, salt, expected] = current.pin_hash.split('$');
-  const key = await derive(input.pin, salt, env.PIN_PEPPER);
-  if (version !== 'pbkdf2-sha256-v1' || !/^[a-f0-9]{64}$/.test(expected || '') ||
+  const key = await derive(input.pin, salt, env.PIN_PEPPER, version);
+  if (!knownVersion(version) || !/^[a-f0-9]{64}$/.test(expected || '') ||
       !timingSafeEqual(encoder.encode(key.toString('hex')), encoder.encode(expected))) {
     throw fail('현재 PIN을 확인해 주세요.', 401);
   }
@@ -212,7 +221,7 @@ export async function resetPin(request, env, auth) {
 
   const salt = random();
   const key = await derive(input.newPin, salt, env.PIN_PEPPER);
-  const newHash = 'pbkdf2-sha256-v1$' + salt + '$' + key.toString('hex');
+  const newHash = currentVersion + '$' + salt + '$' + key.toString('hex');
   const changedAt = Date.now();
   const [updated] = await db.batch([
     db.prepare(`UPDATE lab_pin_credentials SET pin_hash=? WHERE user_id=?
