@@ -22,6 +22,13 @@
       <button data-load>계정 세팅을 이 브라우저에 적용</button>
       <button data-restore hidden>계정의 직전 버전 복원</button>
     </div>
+    <section data-merge hidden>
+      <h3>이 브라우저와 계정의 배치 비교</h3>
+      <p data-merge-summary></p>
+      <button data-merge-keep>브라우저 배치도 별도 덱으로 보관</button>
+      <button data-merge-account>계정 배치를 이 브라우저에 적용</button>
+      <button data-merge-local>현재 브라우저 배치 계속 사용</button>
+    </section>
     <details data-decks hidden>
       <summary>계정에 저장한 덱</summary>
       <label>덱 이름 <input data-deck-name maxlength="60"></label>
@@ -41,6 +48,12 @@
   const deckName = dialog.querySelector('[data-deck-name]');
   const deckList = dialog.querySelector('[data-deck-list]');
   const deckActions = ['load', 'update', 'delete'];
+  const mergePanel = dialog.querySelector('[data-merge]');
+  const mergeAccount = dialog.querySelector('[data-merge-account]');
+  const mergeSummary = dialog.querySelector('[data-merge-summary]');
+  const mergeResolved = new Set();
+  const mergeKey = 'stack-lab-account-board-choice-v1:';
+  let comparedLocal = null;
   let decks = [];
   let backup = null;
   let session = null;
@@ -61,6 +74,7 @@
   async function refresh() {
     controls.hidden = true;
     deckPanel.hidden = true;
+    mergePanel.hidden = true;
     session = await api('/api/auth/me');
     remote = null;
     if (!session.user) return '계정에 로그인해 주세요.';
@@ -74,6 +88,7 @@
     controls.hidden = false;
     load.hidden = !remote.board;
     await refreshDecks();
+    await compareInitial();
     return session.user.nickname + (remote.board
       ? ' · 저장된 배치 ' + remote.board.cells.length + '개 · 버전 ' + remote.revision
       : ' · 저장된 계정 세팅이 없습니다.');
@@ -90,6 +105,7 @@
       if ([401, 403, 409].includes(error.status)) {
         controls.hidden = true;
         deckPanel.hidden = true;
+        mergePanel.hidden = true;
         status.textContent = error.message + ' 창을 다시 열어 최신 상태를 확인해 주세요.';
       } else {
         status.textContent = error.message;
@@ -160,6 +176,64 @@
     await refresh();
     return '계정에 직전 세팅을 복원했습니다. 현재 버전 ' + restored.revision + ' · 브라우저에 적용하려면 불러오기를 선택하세요.';
   }));
+
+  async function compareInitial() {
+    const id = session.user.id;
+    try {
+      if (localStorage.getItem(mergeKey + id)) return;
+    } catch {}
+    if (mergeResolved.has(id)) return;
+    const adapter = window.StackLabAccount;
+    await adapter.ready;
+    const local = adapter.snapshot();
+    comparedLocal = JSON.stringify(local);
+    if (remote.board && comparedLocal === JSON.stringify(remote.board)) return;
+    mergeSummary.textContent = '이 브라우저 배치 ' + local.cells.length + '개 · ' +
+      (remote.board ? '계정 배치 ' + remote.board.cells.length + '개' : '계정의 현재 배치 없음');
+    mergeAccount.hidden = !remote.board;
+    mergePanel.hidden = false;
+  }
+
+  function finishMerge(id) {
+    mergeResolved.add(id);
+    try {
+      localStorage.setItem(mergeKey + id, '1');
+    } catch {}
+    mergePanel.hidden = true;
+  }
+
+  for (const choice of ['keep', 'account', 'local']) {
+    dialog.querySelector('[data-merge-' + choice + ']').addEventListener('click', () => run(async () => {
+      if (mergePanel.hidden || !session?.user) return '계정 세팅을 다시 확인해 주세요.';
+      const id = session.user.id;
+      const adapter = window.StackLabAccount;
+      const local = adapter.snapshot();
+      if (JSON.stringify(local) !== comparedLocal) {
+        await compareInitial();
+        return '브라우저 배치가 변경되었습니다. 다시 비교해 주세요.';
+      }
+      if (choice === 'keep') {
+        const { deck } = await api('/api/me/decks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': session.csrf },
+          body: JSON.stringify({ accountId: id, name: '이 브라우저에서 가져온 덱', board: local })
+        });
+        finishMerge(id);
+        await refreshDecks(deck.id);
+        return '브라우저 배치를 계정에 별도 덱으로 저장했습니다.';
+      }
+      if (choice === 'account') {
+        const latest = await api('/api/account/board', { headers: { 'X-Account-Id': id } });
+        if (!latest.board || latest.revision !== remote.revision || JSON.stringify(adapter.snapshot()) !== comparedLocal) {
+          await refresh();
+          return '비교한 배치가 변경되었습니다. 다시 선택해 주세요.';
+        }
+        adapter.load(latest.board);
+      }
+      finishMerge(id);
+      return choice === 'account' ? '계정 배치를 이 브라우저에 적용했습니다.' : '현재 브라우저 배치를 계속 사용합니다.';
+    }));
+  }
 
   async function refreshDecks(preferredId = deckList.value) {
     const { decks: latest } = await api('/api/me/decks');
