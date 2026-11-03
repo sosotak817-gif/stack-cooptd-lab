@@ -7,6 +7,7 @@ class Statement{
  constructor(query,values=[]){this.query=query;this.values=values;}
  bind(...values){return new Statement(this.query,values);}
  async first(){return sql.prepare(this.query).get(...this.values)||null;}
+ async all(){return {results:sql.prepare(this.query).all(...this.values)};}
  async run(){return sql.prepare(this.query).run(...this.values);}
 }
 const DB={prepare:query=>new Statement(query),async batch(statements){sql.exec('BEGIN');try{const results=[];for(const s of statements)results.push(await s.run());sql.exec('COMMIT');return results;}catch(error){sql.exec('ROLLBACK');throw error;}}};
@@ -83,5 +84,37 @@ try{
  assert.equal((await (await auth('/api/auth/me',{headers:{Cookie:secondCookie}})).json()).user,null);
  assert.equal((await pinRequest('login',{nickname:input.nickname,pin:input.pin})).status,401);
  assert.equal((await pinRequest('login',{nickname:input.nickname,pin:changePayload.newPin})).status,200);
+ const recoveryLogin = await pinRequest('login',{nickname:input.nickname,pin:changePayload.newPin});
+ assert.equal(recoveryLogin.status,200);
+ const recoverySessionCookie = cookieOf(recoveryLogin,'__Host-stack_session');
+ const recoverySession = await recoveryLogin.json();
+ const devices = (path, method, payload, extra={}) => handleAuth({env:pinEnv,request:request(path,{
+  method,headers:{Cookie:recoverySessionCookie,'X-CSRF-Token':recoverySession.csrf,...extra},
+  body:payload ? JSON.stringify(payload) : undefined
+ })});
+ const deviceInput = {name:'테스트 브라우저',pin:changePayload.newPin};
+ const firstDevice = await devices('/api/devices','POST',deviceInput);
+ assert.equal(firstDevice.status,201);
+ const firstDeviceId = (await firstDevice.json()).id;
+ const firstToken = cookieOf(firstDevice,'__Host-stack_recovery');
+ assert.ok(firstToken);
+ assert.match(firstDevice.headers.get('Set-Cookie'),/HttpOnly; Secure; SameSite=Lax/);
+ assert.equal((await devices('/api/devices','POST',deviceInput)).status,201);
+ assert.equal((await devices('/api/devices','POST',deviceInput)).status,201);
+ assert.equal((await devices('/api/devices','POST',deviceInput)).status,409);
+ const listed = await (await devices('/api/devices','GET')).json();
+ assert.equal(listed.devices.length,3);
+ assert.ok(listed.devices.every(device=>!('token_hash' in device)));
+ assert.equal((await devices('/api/devices/'+firstDeviceId,'DELETE',deviceInput)).status,200);
+ const resetPayload = {nickname:input.nickname,newPin:'11223344',pinConfirmation:'11223344'};
+ assert.equal((await pinRequest('reset-pin',resetPayload,{Cookie:firstToken})).status,401);
+ const replacement = await devices('/api/devices','POST',deviceInput);
+ assert.equal(replacement.status,201);
+ const resetCookie = cookieOf(replacement,'__Host-stack_recovery');
+ assert.equal((await pinRequest('reset-pin',resetPayload,{Cookie:resetCookie,Origin:'https://evil.example'})).status,403);
+ assert.equal((await pinRequest('reset-pin',resetPayload,{Cookie:resetCookie})).status,200);
+ assert.equal((await pinRequest('reset-pin',resetPayload,{Cookie:resetCookie})).status,401);
+ assert.equal((await (await auth('/api/auth/me',{headers:{Cookie:recoverySessionCookie}})).json()).user,null);
+ assert.equal((await pinRequest('login',{nickname:input.nickname,pin:resetPayload.newPin})).status,200);
  console.log('Accounts: OAuth state, server-only token exchange, secure sessions, CSRF, real SQLite saves, conflict handling, account isolation, logout and expiry passed.');
 }finally{globalThis.fetch=oldFetch;sql.close();}

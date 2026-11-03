@@ -115,3 +115,118 @@ export async function changePin(request, env, user, auth) {
   if (!(updated.meta?.changes ?? updated.changes)) throw fail('계정 정보가 변경되었습니다. 다시 로그인해 주세요.', 409);
   return reply({ ok: true });
 }
+
+const recoveryAge = 180 * 86400;
+const recoveryCookie = '__Host-stack_recovery';
+
+function recoveryResponse(response, cookie, token = '') {
+  response.headers.append('Set-Cookie', cookie(recoveryCookie, token, token ? recoveryAge : 0));
+  return response;
+}
+
+export async function manageRecovery(request, env, user, id, auth) {
+  const { body, fail, hash, random, reply, cookie, cookies } = auth;
+  if (!pinReady(env)) throw fail('PIN 계정 설정을 확인해 주세요.', 503);
+  const now = Date.now();
+  const db = env.DB;
+  if (request.method === 'GET') {
+    const rows = await db.prepare(`SELECT id,name,created_at,last_used_at,expires_at
+      FROM lab_recovery_devices WHERE user_id=? AND revoked_at IS NULL AND expires_at>?
+      ORDER BY created_at DESC`).bind(user.id, now).all();
+    return reply({ devices: rows.results });
+  }
+
+  await throttle(db, 'recovery:user', user.id, 8, now, hash, fail);
+  const input = await body(request);
+  const current = await db.prepare('SELECT pin_hash FROM lab_pin_credentials WHERE user_id=?').bind(user.id).first();
+  if (!current || typeof input?.pin !== 'string' || !/^\d{8}$/.test(input.pin)) {
+    throw fail('현재 PIN을 확인해 주세요.', 401);
+  }
+  const [version, salt, expected] = current.pin_hash.split('$');
+  const key = await derive(input.pin, salt, env.PIN_PEPPER);
+  if (version !== 'pbkdf2-sha256-v1' || !/^[a-f0-9]{64}$/.test(expected || '') ||
+      !timingSafeEqual(encoder.encode(key.toString('hex')), encoder.encode(expected))) {
+    throw fail('현재 PIN을 확인해 주세요.', 401);
+  }
+
+  const validSession = `EXISTS (SELECT 1 FROM lab_pin_credentials c JOIN lab_sessions s ON s.user_id=c.user_id
+    WHERE c.user_id=? AND c.pin_hash=? AND s.token_hash=? AND s.expires_at>?)`;
+  const sessionValues = [user.id, current.pin_hash, user.token_hash, Date.now()];
+  const oldToken = cookies(request)[recoveryCookie];
+  const oldHash = /^[a-f0-9]{64}$/.test(oldToken || '') ? await hash(oldToken) : '';
+
+  if (request.method === 'DELETE') {
+    const revoked = await db.prepare(`UPDATE lab_recovery_devices SET revoked_at=?
+      WHERE user_id=? AND id=? AND revoked_at IS NULL AND ${validSession} RETURNING token_hash`)
+      .bind(now, user.id, id, ...sessionValues).first();
+    if (!revoked) throw fail('등록된 복구 브라우저를 확인해 주세요.', 404);
+    const response = reply({ ok: true });
+    return revoked.token_hash === oldHash ? recoveryResponse(response, cookie) : response;
+  }
+
+  const name = typeof input.name === 'string' ? input.name.trim() : '';
+  if (!name || name.length > 50 || /[\u0000-\u001f\u007f]/.test(name)) {
+    throw fail('복구 브라우저 이름을 1~50자로 입력해 주세요.');
+  }
+  const token = random();
+  const deviceId = crypto.randomUUID();
+  const [inserted] = await db.batch([
+    db.prepare(`INSERT INTO lab_recovery_devices(id,user_id,name,token_hash,created_at,expires_at)
+      SELECT ?,?,?,?,?,? WHERE ${validSession} AND
+      (SELECT count(*) FROM lab_recovery_devices WHERE user_id=? AND revoked_at IS NULL
+        AND expires_at>? AND token_hash<>?) < 3`)
+      .bind(deviceId, user.id, name, await hash(token), now, now + recoveryAge * 1000,
+        ...sessionValues, user.id, now, oldHash),
+    db.prepare(`UPDATE lab_recovery_devices SET revoked_at=? WHERE user_id=? AND token_hash=?
+      AND revoked_at IS NULL AND EXISTS (SELECT 1 FROM lab_recovery_devices WHERE id=?)`)
+      .bind(now, user.id, oldHash, deviceId)
+  ]);
+  if (!(inserted.meta?.changes ?? inserted.changes)) {
+    throw fail('복구 브라우저는 최대 3개까지 등록할 수 있습니다. 등록 상태를 확인해 주세요.', 409);
+  }
+  return recoveryResponse(reply({ id: deviceId }, 201), cookie, token);
+}
+
+export async function resetPin(request, env, auth) {
+  const { body, fail, hash, random, reply, cookie, cookies, sameOrigin } = auth;
+  if (!pinReady(env)) throw fail('PIN 계정 설정을 확인해 주세요.', 503);
+  sameOrigin(request);
+  const source = request.headers.get('CF-Connecting-IP');
+  if (!source) throw fail('접속 정보를 확인할 수 없습니다.', 403);
+  const now = Date.now();
+  const db = env.DB;
+  await throttle(db, 'reset-pin:source', source + env.PIN_PEPPER, 8, now, hash, fail);
+  const input = await body(request);
+  const nickname = typeof input?.nickname === 'string' ? input.nickname.normalize('NFKC').trim().toLowerCase() : '';
+  if (typeof input?.newPin !== 'string' || !/^\d{8}$/.test(input.newPin) || input.newPin !== input.pinConfirmation) {
+    throw fail('새 PIN 숫자 8자리와 재입력을 확인해 주세요.');
+  }
+  const token = cookies(request)[recoveryCookie];
+  if (!/^[a-f0-9]{64}$/.test(token || '')) throw fail('등록한 복구 브라우저에서 시도해 주세요.', 401);
+  const tokenHash = await hash(token);
+  const device = await db.prepare(`SELECT d.id,d.user_id FROM lab_recovery_devices d
+    JOIN lab_pin_credentials c ON c.user_id=d.user_id
+    WHERE d.token_hash=? AND d.revoked_at IS NULL AND d.expires_at>? AND c.nickname_normalized=?`)
+    .bind(tokenHash, now, nickname).first();
+  if (!device) throw fail('등록한 복구 브라우저에서 시도해 주세요.', 401);
+
+  const salt = random();
+  const key = await derive(input.newPin, salt, env.PIN_PEPPER);
+  const newHash = 'pbkdf2-sha256-v1$' + salt + '$' + key.toString('hex');
+  const changedAt = Date.now();
+  const [updated] = await db.batch([
+    db.prepare(`UPDATE lab_pin_credentials SET pin_hash=? WHERE user_id=?
+      AND EXISTS (SELECT 1 FROM lab_recovery_devices WHERE id=? AND token_hash=?
+        AND revoked_at IS NULL AND expires_at>?)`)
+      .bind(newHash, device.user_id, device.id, tokenHash, changedAt),
+    db.prepare(`DELETE FROM lab_sessions WHERE user_id=? AND EXISTS
+      (SELECT 1 FROM lab_pin_credentials WHERE user_id=? AND pin_hash=?)`)
+      .bind(device.user_id, device.user_id, newHash),
+    db.prepare(`UPDATE lab_recovery_devices SET revoked_at=?,last_used_at=CASE WHEN id=? THEN ? ELSE last_used_at END
+      WHERE user_id=? AND revoked_at IS NULL AND EXISTS
+      (SELECT 1 FROM lab_pin_credentials WHERE user_id=? AND pin_hash=?)`)
+      .bind(changedAt, device.id, changedAt, device.user_id, device.user_id, newHash)
+  ]);
+  if (!(updated.meta?.changes ?? updated.changes)) throw fail('등록한 복구 브라우저에서 시도해 주세요.', 401);
+  return recoveryResponse(reply({ ok: true }), cookie);
+}

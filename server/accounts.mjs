@@ -1,4 +1,4 @@
-import { changePin, handlePinAuth, pinIdentityPrefix, pinReady } from './pin-auth.mjs';
+import { changePin, handlePinAuth, pinIdentityPrefix, pinReady, manageRecovery, resetPin } from './pin-auth.mjs';
 
 const jsonHeaders={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:jsonHeaders});
@@ -77,6 +77,14 @@ export async function handleAuth({request,env}){
    const user=await env.DB.prepare('INSERT INTO lab_users(id,naver_id,nickname,created_at) VALUES(?,?,?,?) ON CONFLICT(naver_id) DO UPDATE SET nickname=excluded.nickname RETURNING id,nickname').bind(userId,profile.response.id,nickname,now).first();
    const issued = await issueSession(request, env, user);
    return redirect('/?login=success',[cookie(STATE,'',0),issued.cookie]);
+  }
+  if(path==='/api/auth/reset-pin'&&request.method==='POST'){
+   return await resetPin(request,env,{body,fail,hash,random,reply,cookie,cookies,sameOrigin});
+  }
+  const deviceId = path.match(/^\/api\/devices\/([a-f0-9-]{36})$/)?.[1];
+  if((path==='/api/devices'&&['GET','POST'].includes(request.method))||(deviceId&&request.method==='DELETE')){
+   const user=await authorized(request,env,request.method!=='GET');
+   return await manageRecovery(request,env,user,deviceId,{body,fail,hash,random,reply,cookie,cookies});
   }
   if(path==='/api/auth/change-pin'&&request.method==='POST'){
    const user=await authorized(request,env,true);
