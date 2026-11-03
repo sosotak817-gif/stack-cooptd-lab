@@ -20,12 +20,15 @@
     <div data-controls hidden>
       <button data-save>이 브라우저 세팅을 계정에 저장</button>
       <button data-load>계정 세팅을 이 브라우저에 적용</button>
+      <button data-restore hidden>계정의 직전 버전 복원</button>
     </div>`;
   document.body.append(dialog);
   const status = dialog.querySelector('[role=status]');
   const controls = dialog.querySelector('[data-controls]');
   const save = dialog.querySelector('[data-save]');
   const load = dialog.querySelector('[data-load]');
+  const restore = dialog.querySelector('[data-restore]');
+  let backup = null;
   let session = null;
   let remote = null;
   let busy = false;
@@ -47,6 +50,12 @@
     remote = null;
     if (!session.user) return '계정에 로그인해 주세요.';
     remote = await api('/api/account/board', { headers: { 'X-Account-Id': session.user.id } });
+    backup = null;
+    if (remote.board) {
+      const result = await api('/api/account/board?backup=1', { headers: { 'X-Account-Id': session.user.id } });
+      if (result.backup?.currentRevision === remote.revision) backup = result.backup;
+    }
+    restore.hidden = !backup;
     controls.hidden = false;
     load.hidden = !remote.board;
     return session.user.nickname + (remote.board
@@ -57,7 +66,7 @@
   async function run(task) {
     if (busy) return;
     busy = true;
-    save.disabled = load.disabled = true;
+    save.disabled = load.disabled = restore.disabled = true;
     status.textContent = '계정 세팅을 확인하고 있습니다.';
     try {
       status.textContent = await task();
@@ -69,7 +78,7 @@
         status.textContent = error.message;
       }
     } finally {
-      save.disabled = load.disabled = false;
+      save.disabled = load.disabled = restore.disabled = false;
       busy = false;
     }
   }
@@ -115,5 +124,23 @@
     }
     adapter.load(latest.board);
     return session.user.nickname + ' 계정의 세팅을 적용했습니다.';
+  }));
+
+  restore.addEventListener('click', () => run(async () => {
+    if (!session?.user || !backup) return '복원할 버전을 다시 확인해 주세요.';
+    if (!confirm(session.user.nickname + ' 계정의 세팅을 버전 ' + backup.revision + '으로 복원할까요?')) {
+      return '계정 세팅 복원을 취소했습니다.';
+    }
+    const restored = await api('/api/account/board?backup=1', {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': session.csrf,
+        'X-Account-Id': session.user.id
+      },
+      body: JSON.stringify({ revision: backup.currentRevision, backupRevision: backup.revision })
+    });
+    await refresh();
+    return '계정에 직전 세팅을 복원했습니다. 현재 버전 ' + restored.revision + ' · 브라우저에 적용하려면 불러오기를 선택하세요.';
   }));
 })();

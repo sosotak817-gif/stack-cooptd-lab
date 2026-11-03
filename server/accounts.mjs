@@ -109,6 +109,24 @@ export async function handleBoard({request,env}){
   const user=await authorized(request,env,write);
   const accountId=request.headers.get('X-Account-Id');
   if(accountId!==null&&accountId!==user.id)throw fail('로그인 계정이 변경되었습니다.',409);
+  const backup = new URL(request.url).searchParams.get('backup') === '1';
+  if(backup && !write){
+   const row=await env.DB.prepare(`SELECT b.revision,b.updated_at,current.revision AS current_revision
+    FROM lab_board_backups b JOIN lab_boards current ON current.user_id=b.user_id WHERE b.user_id=?`).bind(user.id).first();
+   return reply({backup:row?{revision:row.revision,updatedAt:row.updated_at,currentRevision:row.current_revision}:null});
+  }
+  if(backup){
+   const input=await body(request);
+   if(!Number.isSafeInteger(input?.revision)||input.revision<1||
+      !Number.isSafeInteger(input.backupRevision)||input.backupRevision<1)throw fail('복원할 저장 버전을 확인해 주세요.');
+   const row=await env.DB.prepare(`UPDATE lab_boards SET data=backup.data,revision=lab_boards.revision+1,updated_at=?
+    FROM lab_board_backups backup
+    WHERE lab_boards.user_id=? AND lab_boards.revision=?
+      AND backup.user_id=lab_boards.user_id AND backup.revision=?
+    RETURNING revision,updated_at`).bind(Date.now(),user.id,input.revision,input.backupRevision).first();
+   if(!row)throw fail('복원할 세팅이 변경되었습니다. 다시 비교해 주세요.',409);
+   return reply({revision:row.revision,updatedAt:row.updated_at});
+  }
   if(!write){const row=await env.DB.prepare('SELECT data,revision,updated_at FROM lab_boards WHERE user_id=?').bind(user.id).first();return reply(row?{board:JSON.parse(row.data),revision:row.revision,updatedAt:row.updated_at}:{board:null,revision:0,updatedAt:null});}
   const input=await body(request);validBoard(input?.board);if(!Number.isInteger(input.revision)||input.revision<0)throw fail('저장 버전을 확인해 주세요.');
   const row=await env.DB.prepare('INSERT INTO lab_boards(user_id,data,revision,updated_at) SELECT ?,?,1,? WHERE ?=0 OR EXISTS(SELECT 1 FROM lab_boards WHERE user_id=?) ON CONFLICT(user_id) DO UPDATE SET data=excluded.data,revision=lab_boards.revision+1,updated_at=excluded.updated_at WHERE lab_boards.revision=? RETURNING revision,updated_at').bind(user.id,JSON.stringify(input.board),Date.now(),input.revision,user.id,input.revision).first();

@@ -42,6 +42,16 @@ try{
  assert.deepEqual(JSON.parse(previous.data),sample);
  assert.equal((await board(put(2))).status,409);
  assert.deepEqual(sql.prepare('SELECT * FROM lab_board_backups WHERE user_id=?').get(one.user.id),previous);
+ const backup = options=>handleBoard({env,request:request('/api/account/board?backup=1',options)});
+ assert.deepEqual((await (await backup({headers})).json()).backup,{
+  revision:2,updatedAt:previous.updated_at,currentRevision:3
+ });
+ const restore=(revision,backupRevision)=>({method:'PUT',headers,body:JSON.stringify({revision,backupRevision})});
+ assert.equal((await backup(restore(2,2))).status,409);
+ assert.equal((await backup(restore(3,1))).status,409);
+ assert.equal((await backup(restore(3,2))).status,200);
+ assert.deepEqual((await (await board({headers})).json()).board,sample);
+ assert.deepEqual(JSON.parse(sql.prepare('SELECT data FROM lab_board_backups WHERE user_id=?').get(one.user.id).data),revised);
  profile='naver-two';const two=await login(),otherHeaders={Cookie:two.cookie,'X-CSRF-Token':two.csrf};assert.equal((await (await board({headers:otherHeaders})).json()).board,null);
  assert.equal((await board({headers:{...otherHeaders,'X-Account-Id':one.user.id}})).status,409);
  assert.equal((await board({...put(0),headers:{...otherHeaders,'X-Account-Id':one.user.id}})).status,409);
