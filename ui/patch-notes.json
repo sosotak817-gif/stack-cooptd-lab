@@ -1,5 +1,12 @@
 [
   {
+    "id": "2026-11-03-dashboard-home-links",
+    "date": "2026-11-03",
+    "type": "fix",
+    "title": "연구소 홈 링크에서 대시보드 열기",
+    "details": ["사이드바 로고와 계정 화면의 스택 연구소 홈 링크를 누르면 대시보드로 이동합니다."]
+  },
+  {
     "id": "2026-11-03-account-dark-dashboard-theme",
     "date": "2026-11-03",
     "type": "fix",
