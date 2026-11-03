@@ -3,6 +3,9 @@ import '../../ui/board-presets.js';
 import { catalog } from '../../server/guide-catalog.mjs';
 import { requireAccountSession } from '../../server/accounts.mjs';
 import { revision } from '../../server/shared-calculation-version.mjs';
+import { verifiedPuzzleScore } from '../../server/puzzle-score.mjs';
+
+const rankingRevision = revision + ':server-score-v1';
 
 const { weekAt, dayAt, puzzle, move, moveLimit } = globalThis.CoopWeekly;
 
@@ -58,9 +61,8 @@ async function handle(request, env, retry = true) {
         }
       }
       const nickname = account ? account.nickname : typeof body.nickname === 'string' ? body.nickname.trim().normalize('NFC') : '';
-      const { score, moves } = body;
+      const { moves } = body;
       if (!nickname || nickname.length > 40 || /[\u0000-\u001f\u007f]/u.test(nickname) ||
-          !Number.isFinite(score) || score < -100 || score > 1e9 ||
           !Number.isInteger(moves) || moves < 0 || moves > moveLimit) {
         return reply({ error: '닉네임과 계산 기록을 확인해 주세요.' }, 400);
       }
@@ -77,6 +79,7 @@ async function handle(request, env, retry = true) {
         }
         cells = move(cells, from, to);
       }
+      const score = verifiedPuzzleScore(challenge, cells, moves);
       const replay = JSON.stringify({ day: currentDay, ...challenge, steps });
       const nicknameKey = nickname.toLowerCase().normalize('NFC');
       if (dayAt() !== currentDay) return reply({ error: '새 오늘의 퍼즐을 열어 주세요.' }, 409);
@@ -89,7 +92,7 @@ async function handle(request, env, retry = true) {
           ON CONFLICT (week, revision, user_id) DO UPDATE SET
             score = excluded.score, moves = excluded.moves, achieved_at = excluded.achieved_at, replay = excluded.replay
           WHERE excluded.score > score OR (excluded.score = score AND excluded.moves < moves)
-        `).bind(currentWeek, revision, account.id, score, moves, Date.now(), replay,
+        `).bind(currentWeek, rankingRevision, account.id, score, moves, Date.now(), replay,
           account.token_hash, account.id, Date.now()).run();
         return reply({ improved: !!saved.meta.changes, account: true });
       }
@@ -102,7 +105,7 @@ async function handle(request, env, retry = true) {
           replay = excluded.replay
         WHERE excluded.score > score OR (excluded.score = score AND
           (excluded.moves < moves OR (excluded.moves = moves AND daily_puzzle_scores.replay IS NULL)))
-      `).bind(currentWeek, revision, nicknameKey, nickname, score, moves, Date.now(), replay).run();
+      `).bind(currentWeek, rankingRevision, nicknameKey, nickname, score, moves, Date.now(), replay).run();
       return reply({ improved: !!saved.meta.changes });
     }
     if (request.method !== 'GET') return reply({ error: '지원하지 않는 요청입니다.' }, 405);
@@ -111,7 +114,7 @@ async function handle(request, env, retry = true) {
     if (!Number.isInteger(week) || week < 0 || week > currentWeek) return reply({ error: '주차를 확인해 주세요.' }, 400);
     let rows;
     try {
-      const selectedRevision = week === currentWeek ? revision : (await db.prepare(`
+      const selectedRevision = week === currentWeek ? rankingRevision : (await db.prepare(`
         SELECT revision FROM (
           SELECT revision, achieved_at FROM daily_puzzle_scores WHERE week = ?
           UNION ALL SELECT revision, achieved_at FROM daily_puzzle_account_scores WHERE week = ?
@@ -129,7 +132,7 @@ async function handle(request, env, retry = true) {
       `).bind(week, selectedRevision, week, selectedRevision).all()).results : [];
     } catch (error) {
       if (!/no such table: daily_puzzle_account_scores/.test(String(error))) throw error;
-      const selectedRevision = week === currentWeek ? revision : (await db.prepare(
+      const selectedRevision = week === currentWeek ? rankingRevision : (await db.prepare(
         'SELECT revision FROM daily_puzzle_scores WHERE week = ? ORDER BY achieved_at DESC LIMIT 1'
       ).bind(week).first())?.revision;
       rows = selectedRevision ? (await db.prepare(`

@@ -121,6 +121,9 @@ try{
  const standings=await (await puzzleSubmit({env,request:request('/api/weekly-puzzle')})).json();
  assert.deepEqual(standings.rows.map(row=>[row.nickname,row.account]).sort((a,b)=>a[1]-b[1]),[['spoofed',0],[two.user.nickname,1]]);
  assert.ok(standings.rows.every(row=>!('user_id' in row)));
+ assert.ok(standings.rows.every(row=>row.score===0),'server ignores fabricated client score for zero moves');
+ assert.ok(sql.prepare('SELECT revision FROM daily_puzzle_account_scores').get().revision.endsWith(':server-score-v1'));
+
  sql.prepare('UPDATE lab_sessions SET expires_at=0').run();assert.equal((await board({headers:otherHeaders})).status,401);
  assert.equal(sql.prepare('SELECT COUNT(*) n FROM lab_boards').get().n,2,'logout and expiry preserve account saves');
  sql.exec(fs.readFileSync('migrations/0009_pin_account_credentials.sql','utf8'));
