@@ -1,5 +1,12 @@
 [
   {
+    "id": "2026-11-03-weekly-challenge-badge",
+    "date": "2026-11-03",
+    "type": "feature",
+    "title": "첫 주간 덱 챌린지 업적",
+    "details": ["서버가 검증한 첫 주간 챌린지 기록에 달력 배지를 수여합니다. 기존 검증 기록에도 적용됩니다."]
+  },
+  {
     "id": "2026-11-03-research-achievements",
     "date": "2026-11-03",
     "type": "feature",

@@ -76,7 +76,7 @@ const accountAssetVersion=accountVersion.digest('hex').slice(0,12);
 const writeAccountPage=(source,target)=>fs.writeFileSync(path.join(dist,target),fs.readFileSync('ui/'+source,'utf8').replaceAll('__ACCOUNT_VERSION__',accountAssetVersion));
 writeAccountPage('home.html','index.html');
 fs.copyFileSync('ui/home-account.js',path.join(dist,'home-account.js'));
-for(const code of ['first-verified-puzzle','first-deck','first-guide'])fs.copyFileSync('ui/badge-'+code+'.svg',path.join(dist,'badge-'+code+'.svg'));
+for(const code of ['first-verified-puzzle','first-deck','first-guide','first-weekly-challenge'])fs.copyFileSync('ui/badge-'+code+'.svg',path.join(dist,'badge-'+code+'.svg'));
 fs.mkdirSync(path.join(dist,'account'),{recursive:true});
 writeAccountPage('pin-account.html','account/index.html');
 fs.copyFileSync('ui/pin-account.js',path.join(dist,'pin-account.js'));

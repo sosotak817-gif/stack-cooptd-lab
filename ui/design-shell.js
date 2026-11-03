@@ -4,7 +4,7 @@ window.StackLabBadge = {
  icon(code, title) {
   const badge = document.createElement('img');
   const names = new Map([
-   ['first-verified-puzzle','첫 검증 퍼즐 기록'], ['first-deck','첫 덱 저장'], ['first-guide','첫 덱 공략 발행']
+   ['first-verified-puzzle','첫 검증 퍼즐 기록'], ['first-deck','첫 덱 저장'], ['first-guide','첫 덱 공략 발행'], ['first-weekly-challenge','첫 주간 덱 챌린지']
   ]);
   if (!names.has(code)) return document.createTextNode('');
   badge.className = 'lab-badge-icon';

@@ -1,4 +1,4 @@
-import { accountSchema, researchAchievementSchema } from './account-schema.mjs';
+import { accountSchema, researchAchievementSchema, weeklyAchievementSchema } from './account-schema.mjs';
 import { changePin, handlePinAuth, pinIdentityPrefix, pinReady, manageRecovery, resetPin } from './pin-auth.mjs';
 
 const jsonHeaders={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
@@ -18,13 +18,14 @@ async function initializeAccounts(db) {
  if (!initializedAccounts.has(db)) {
   const setup = (async () => {
    const installed = await db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='lab_account_schema'").first();
-   if (installed && await db.prepare('SELECT 1 FROM lab_account_schema WHERE version=19').first()) return;
+   if (installed && await db.prepare('SELECT 1 FROM lab_account_schema WHERE version=20').first()) return;
    const baseInstalled=installed && await db.prepare('SELECT 1 FROM lab_account_schema WHERE version=18').first();
    await db.batch([
     ...(baseInstalled ? [] : accountSchema.map(sql => db.prepare(sql))),
     ...researchAchievementSchema.map(sql => db.prepare(sql)),
+    ...weeklyAchievementSchema.map(sql => db.prepare(sql)),
     db.prepare('CREATE TABLE IF NOT EXISTS lab_account_schema (version INTEGER PRIMARY KEY)'),
-    db.prepare('INSERT OR IGNORE INTO lab_account_schema(version) VALUES (18), (19)')
+    db.prepare('INSERT OR IGNORE INTO lab_account_schema(version) VALUES (18), (19), (20)')
    ]);
   })();
   initializedAccounts.set(db, setup);

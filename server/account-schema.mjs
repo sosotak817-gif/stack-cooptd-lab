@@ -40,3 +40,9 @@ export const researchAchievementSchema = [
   "INSERT OR IGNORE INTO lab_user_achievements\nSELECT user_id,'first-deck',MIN(created_at) FROM lab_decks GROUP BY user_id;",
   "INSERT OR IGNORE INTO lab_user_achievements\nSELECT u.id,'first-guide',MIN(g.created_at) FROM lab_users u JOIN deck_guides g ON g.owner='account:'||u.id GROUP BY u.id;"
 ];
+
+export const weeklyAchievementSchema = [
+  "INSERT OR IGNORE INTO lab_achievements VALUES ('first-weekly-challenge','첫 주간 덱 챌린지');",
+  "CREATE TRIGGER IF NOT EXISTS lab_award_first_weekly_challenge\nAFTER INSERT ON daily_puzzle_account_scores\nWHEN NEW.revision LIKE '%:weekly:server-score-v1'\nBEGIN\n INSERT OR IGNORE INTO lab_user_achievements VALUES (NEW.user_id,'first-weekly-challenge',NEW.achieved_at);\nEND;",
+  "INSERT OR IGNORE INTO lab_user_achievements\nSELECT user_id,'first-weekly-challenge',MIN(achieved_at)\nFROM daily_puzzle_account_scores WHERE revision LIKE '%:weekly:server-score-v1' GROUP BY user_id;"
+];
