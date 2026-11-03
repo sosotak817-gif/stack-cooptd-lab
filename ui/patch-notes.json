@@ -1,5 +1,15 @@
 [
   {
+    "id": "2026-11-03-board-dps-baseline",
+    "date": "2026-11-03",
+    "type": "feature",
+    "title": "배치 DPS 비교 기준 고정",
+    "details": [
+      "실전 평균 DPS를 기준으로 고정하고 배치 변경 후 현재 DPS와 변화율을 비교할 수 있습니다.",
+      "맵이나 계산 대상이 달라지면 조건 변경을 표시합니다."
+    ]
+  },
+  {
     "id": "2026-11-03-iphone-companion-device-probe",
     "date": "2026-11-03",
     "type": "feature",
