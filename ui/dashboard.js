@@ -13,7 +13,7 @@ async function ranking(){
   const percent=new Intl.NumberFormat('ko-KR',{style:'percent',maximumFractionDigits:2,signDisplay:'exceptZero'});
   rows.slice(0,3).forEach(({nickname,score,badgeCode,badgeTitle},i)=>{
    const item=el('li');
-   const name=el('b',nickname);
+   const name=el('b',nickname,'lab-ranked-name');
    if(badgeCode&&window.StackLabBadge)name.append(window.StackLabBadge.icon(badgeCode,badgeTitle));
    item.append(el('span',String(i+1),'rank-medal'),name,el('strong',percent.format(score/100)));
    list.append(item);

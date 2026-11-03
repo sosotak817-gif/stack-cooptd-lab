@@ -104,7 +104,11 @@
           const cell = tr.insertCell();
           cell.textContent = value;
           if (index === 1) {
-            if (row.badgeCode) cell.append(window.StackLabBadge.icon(row.badgeCode, row.badgeTitle));
+            const name = document.createElement('span');
+            name.className = 'lab-ranked-name';
+            name.textContent = value;
+            if (row.badgeCode) name.append(window.StackLabBadge.icon(row.badgeCode, row.badgeTitle));
+            cell.replaceChildren(name);
             cell.append(row.account ? ' · 계정' : ' · 익명');
           }
         }

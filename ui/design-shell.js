@@ -6,7 +6,17 @@ window.StackLabBadge = {
   const names = new Map([
    ['first-verified-puzzle','첫 검증 퍼즐 기록'], ['first-deck','첫 덱 저장'], ['first-guide','첫 덱 공략 발행'], ['first-weekly-challenge','첫 주간 덱 챌린지'], ['hidden-stack','스택']
   ]);
-  if (!names.has(code)) return document.createTextNode('');
+  if (!names.has(code)) {
+   const glyph = ({"first-deck": "▣", "decks-3": "▤", "decks-5": "▥", "decks-10": "▦", "decks-20": "◆", "first-guide": "▧", "guides-3": "✎", "guides-5": "✒", "guides-10": "✦", "first-verified-puzzle": "✓", "daily-3": "◇", "daily-5": "◈", "daily-10": "✶", "daily-20": "✷", "first-weekly-challenge": "▩", "weekly-3": "⚑", "weekly-5": "★", "weekly-10": "✪", "analysis-3": "⌕", "analysis-10": "▨"})[code];
+   if (typeof glyph !== 'string') return document.createTextNode('');
+   const icon = document.createElement('span');
+   icon.className = 'lab-badge-icon lab-badge-glyph';
+   icon.textContent = glyph;
+   icon.title = title;
+   icon.setAttribute('role','img');
+   icon.setAttribute('aria-label',title);
+   return icon;
+  }
   if (code === 'hidden-stack') {
    const gem = document.createElement('span');
    gem.className = 'lab-badge-icon lab-stack-badge';
