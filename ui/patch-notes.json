@@ -1,5 +1,15 @@
 [
   {
+    "id": "2026-11-03-puzzle-ranking-dashboard",
+    "date": "2026-11-03",
+    "type": "feature",
+    "title": "대시보드 주간 퍼즐 랭킹과 공통 디자인",
+    "details": [
+      "대시보드와 사이드바에 주간 퍼즐 랭킹을 표시하고, 기존 솔로 DPS 랭킹 화면을 숨겼습니다.",
+      "배치 퍼즐 화면에 연구소의 공통 메뉴와 카드 스타일을 적용했습니다."
+    ]
+  },
+  {
     "id": "2026-11-03-daily-placement-puzzle",
     "date": "2026-11-03",
     "type": "feature",
