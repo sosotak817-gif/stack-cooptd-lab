@@ -1,5 +1,14 @@
 [
   {
+    "id": "2026-11-03-account-deck-session-check",
+    "date": "2026-11-03",
+    "type": "fix",
+    "title": "계정 전환 후 이전 덱 화면 보호",
+    "details": [
+      "다른 탭에서 계정을 전환한 경우 이전 계정 세팅 창에서 덱 조회와 변경을 중단하고 다시 열도록 안내합니다."
+    ]
+  },
+  {
     "id": "2026-11-03-account-settings-sync",
     "date": "2026-11-03",
     "type": "feature",

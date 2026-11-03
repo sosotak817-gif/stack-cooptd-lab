@@ -61,8 +61,8 @@ try{
  assert.equal((await auth('/api/auth/logout',{method:'POST',headers})).status,200);assert.equal((await (await auth('/api/auth/session',{headers})).json()).user,null);
  sql.exec(fs.readFileSync('migrations/0011_account_decks.sql','utf8'));
  sql.exec(fs.readFileSync('migrations/0013_account_deck_backups.sql','utf8'));
- const decks=(method,id,payload,sessionHeaders=otherHeaders)=>handleDecks({env,request:request('/api/me/decks'+(id?'/'+id:''),{
-  method,headers:sessionHeaders,body:payload?JSON.stringify(payload):undefined
+ const decks=(method,id,payload,sessionHeaders=otherHeaders,accountId=two.user.id)=>handleDecks({env,request:request('/api/me/decks'+(id?'/'+id:''),{
+  method,headers:{...sessionHeaders,'X-Account-Id':accountId},body:payload?JSON.stringify(payload):undefined
  })});
  const deckInput={accountId:two.user.id,name:'첫 번째 덱',board:sample};
  assert.equal((await decks('POST',null,{...deckInput,accountId:one.user.id})).status,409);
@@ -75,8 +75,10 @@ try{
  profile='naver-one';
  const freshOne=await login();
  const otherDeckHeaders={Cookie:freshOne.cookie,'X-CSRF-Token':freshOne.csrf};
- assert.equal((await decks('GET',deckId,null,otherDeckHeaders)).status,404);
- assert.equal((await decks('DELETE',deckId,{accountId:freshOne.user.id,revision:1},otherDeckHeaders)).status,409);
+ assert.equal((await decks('GET',null,null,otherDeckHeaders)).status,409);
+ assert.equal((await decks('GET',deckId,null,otherDeckHeaders)).status,409);
+ assert.equal((await decks('GET',deckId,null,otherDeckHeaders,freshOne.user.id)).status,404);
+ assert.equal((await decks('DELETE',deckId,{accountId:freshOne.user.id,revision:1},otherDeckHeaders,freshOne.user.id)).status,409);
  assert.equal((await decks('PUT',deckId,{...deckInput,name:'수정한 덱',revision:1})).status,200);
  assert.equal((await decks('DELETE',deckId,{accountId:two.user.id,revision:1})).status,409);
  const deckBackup=sql.prepare('SELECT * FROM lab_deck_backups WHERE deck_id=?').get(deckId);

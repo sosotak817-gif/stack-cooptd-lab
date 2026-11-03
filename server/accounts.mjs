@@ -144,6 +144,7 @@ export async function handleDecks({request,env}) {
    return reply({error:'지원하지 않는 요청입니다.'},405);
   }
   const user=await authorized(request,env,method!=='GET');
+  if(request.headers.get('X-Account-Id')!==user.id)throw fail('로그인 계정이 변경되었습니다.',409);
   const db=env.DB;
   if(method==='GET'){
    if(!id){

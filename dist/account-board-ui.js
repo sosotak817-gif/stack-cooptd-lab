@@ -265,7 +265,7 @@
       if (choice === 'keep') {
         const { deck } = await api('/api/me/decks', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': session.csrf },
+          headers: { 'X-Account-Id': id, 'Content-Type': 'application/json', 'X-CSRF-Token': session.csrf },
           body: JSON.stringify({ accountId: id, name: '이 브라우저에서 가져온 덱', board: local })
         });
         finishMerge(id);
@@ -286,7 +286,7 @@
   }
 
   async function refreshDecks(preferredId = deckList.value) {
-    const { decks: latest } = await api('/api/me/decks');
+    const { decks: latest } = await api('/api/me/decks', { headers: { 'X-Account-Id': session.user.id } });
     decks = latest;
     deckList.replaceChildren(...decks.map(deck => new Option(deck.name, deck.id)));
     if (decks.some(deck => deck.id === preferredId)) deckList.value = preferredId;
@@ -306,7 +306,7 @@
       if (action === 'load') {
         const before = JSON.stringify(adapter.snapshot());
         if (!confirm(selected.name + ' 덱을 이 브라우저에 적용할까요?')) return '덱 적용을 취소했습니다.';
-        const { deck } = await api(path);
+        const { deck } = await api(path, { headers: { 'X-Account-Id': session.user.id } });
         if (deck.revision !== selected.revision || JSON.stringify(adapter.snapshot()) !== before) {
           await refreshDecks();
           return '비교한 덱이 변경되었습니다. 다시 선택해 주세요.';
@@ -326,7 +326,7 @@
       }
       const result = await api(path, {
         method: { new: 'POST', update: 'PUT', delete: 'DELETE' }[action],
-        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': session.csrf },
+        headers: { 'X-Account-Id': session.user.id, 'Content-Type': 'application/json', 'X-CSRF-Token': session.csrf },
         body: JSON.stringify(payload)
       });
       deckName.value = '';
