@@ -1,5 +1,12 @@
 [
   {
+    "id": "2026-11-03-pin-length-range",
+    "date": "2026-11-03",
+    "type": "feature",
+    "title": "계정 PIN을 숫자 4~8자리로 설정",
+    "details": ["가입, PIN 변경과 재설정에서 숫자 4~8자리를 사용할 수 있습니다. 기존 8자리 PIN도 그대로 사용할 수 있습니다."]
+  },
+  {
     "id": "2026-11-03-pin-account-form-polish",
     "date": "2026-11-03",
     "type": "fix",

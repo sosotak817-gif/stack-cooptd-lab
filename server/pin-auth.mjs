@@ -45,8 +45,8 @@ export async function handlePinAuth(request, env, action, auth) {
   if (!/^[가-힣a-zA-Z0-9_]{2,16}$/.test(nickname)) {
     throw fail('닉네임은 한글, 영문, 숫자, 밑줄로 2~16자여야 합니다.');
   }
-  if (action !== 'nickname' && (typeof input.pin !== 'string' || !/^\d{8}$/.test(input.pin))) {
-    throw fail('PIN은 숫자 8자리여야 합니다.');
+  if (action !== 'nickname' && (typeof input.pin !== 'string' || !/^\d{4,8}$/.test(input.pin))) {
+    throw fail('PIN은 숫자 4~8자리여야 합니다.');
   }
   if (action === 'register' && input.pin !== input.pinConfirmation) throw fail('PIN 재입력이 일치하지 않습니다.');
   await throttle(env.DB, action + ':source', source + env.PIN_PEPPER, action === 'register' ? 5 : 30, now, hash, fail);
@@ -93,10 +93,10 @@ export async function changePin(request, env, user, auth) {
   const now = Date.now();
   await throttle(env.DB, 'change-pin:user', user.id, 8, now, hash, fail);
   const input = await body(request);
-  if (typeof input?.pin !== 'string' || !/^\d{8}$/.test(input.pin) ||
-      typeof input.newPin !== 'string' || !/^\d{8}$/.test(input.newPin) ||
+  if (typeof input?.pin !== 'string' || !/^\d{4,8}$/.test(input.pin) ||
+      typeof input.newPin !== 'string' || !/^\d{4,8}$/.test(input.newPin) ||
       input.newPin !== input.pinConfirmation || input.newPin === input.pin) {
-    throw fail('현재 PIN과 서로 다른 새 PIN 8자리 및 재입력을 확인해 주세요.');
+    throw fail('현재 PIN과 서로 다른 새 PIN 4~8자리 및 재입력을 확인해 주세요.');
   }
   const current = await env.DB.prepare('SELECT pin_hash FROM lab_pin_credentials WHERE user_id=?')
     .bind(user.id).first();
@@ -148,7 +148,7 @@ export async function manageRecovery(request, env, user, id, auth) {
   await throttle(db, 'recovery:user', user.id, 8, now, hash, fail);
   const input = await body(request);
   const current = await db.prepare('SELECT pin_hash FROM lab_pin_credentials WHERE user_id=?').bind(user.id).first();
-  if (!current || typeof input?.pin !== 'string' || !/^\d{8}$/.test(input.pin)) {
+  if (!current || typeof input?.pin !== 'string' || !/^\d{4,8}$/.test(input.pin)) {
     throw fail('현재 PIN을 확인해 주세요.', 401);
   }
   const [version, salt, expected] = current.pin_hash.split('$');
@@ -207,8 +207,8 @@ export async function resetPin(request, env, auth) {
   await throttle(db, 'reset-pin:source', source + env.PIN_PEPPER, 8, now, hash, fail);
   const input = await body(request);
   const nickname = typeof input?.nickname === 'string' ? input.nickname.normalize('NFKC').trim().toLowerCase() : '';
-  if (typeof input?.newPin !== 'string' || !/^\d{8}$/.test(input.newPin) || input.newPin !== input.pinConfirmation) {
-    throw fail('새 PIN 숫자 8자리와 재입력을 확인해 주세요.');
+  if (typeof input?.newPin !== 'string' || !/^\d{4,8}$/.test(input.newPin) || input.newPin !== input.pinConfirmation) {
+    throw fail('새 PIN 숫자 4~8자리와 재입력을 확인해 주세요.');
   }
   const token = cookies(request)[recoveryCookie];
   if (!/^[a-f0-9]{64}$/.test(token || '')) throw fail('등록한 복구 브라우저에서 시도해 주세요.', 401);

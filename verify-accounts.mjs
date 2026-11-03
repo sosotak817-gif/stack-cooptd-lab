@@ -168,6 +168,9 @@ try{
  assert.equal((await pinRequest('register',input,{Origin:'https://evil.example'})).status,403);
  assert.deepEqual(await (await pinRequest('nickname',input)).json(),{available:true});
  assert.equal((await pinRequest('register',{...input,pinConfirmation:'11111111'})).status,400);
+ for(const pin of ['123','123456789','12ab']) {
+  assert.equal((await pinRequest('register',{...input,pin,pinConfirmation:pin})).status,400);
+ }
  const registered = await pinRequest('register',input);
  assert.equal(registered.status,201);
  const pinUser = await registered.json();
@@ -191,7 +194,7 @@ try{
  sql.prepare("DELETE FROM lab_auth_attempts WHERE scope='login:source'").run();
  const changeCookie = cookieOf(loggedIn,'__Host-stack_session');
  const changeSession = await (await auth('/api/auth/me',{headers:{Cookie:changeCookie}})).json();
- const changePayload = {pin:input.pin,newPin:'87654321',pinConfirmation:'87654321'};
+ const changePayload = {pin:input.pin,newPin:'0765',pinConfirmation:'0765'};
  const otherSession = await pinRequest('login',{nickname:input.nickname,pin:input.pin});
  // Clear the prior login throttle before opening the second session for this test.
  assert.equal(otherSession.status,429);
@@ -232,7 +235,7 @@ try{
  assert.equal(listed.devices.length,3);
  assert.ok(listed.devices.every(device=>!('token_hash' in device)));
  assert.equal((await devices('/api/devices/'+firstDeviceId,'DELETE',deviceInput)).status,200);
- const resetPayload = {nickname:input.nickname,newPin:'11223344',pinConfirmation:'11223344'};
+ const resetPayload = {nickname:input.nickname,newPin:'112233',pinConfirmation:'112233'};
  assert.equal((await pinRequest('reset-pin',resetPayload,{Cookie:firstToken})).status,401);
  const replacement = await devices('/api/devices','POST',deviceInput);
  assert.equal(replacement.status,201);
