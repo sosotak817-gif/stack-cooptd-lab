@@ -91,3 +91,9 @@ body .patch-dashboard .patch-type.performance{background:#443521;color:#ffe0a8}
 .pin-account .account-guest details{grid-column:1/-1}
 .pin-account summary{cursor:pointer;font-weight:750}
 @media(max-width:600px){.pin-account .account-guest{grid-template-columns:1fr}.home-account-actions{justify-content:flex-start}}
+
+.stage-report .stage-summary-grid>div:first-child{border:1px solid #32726f;background:#142c38}
+@media(min-width:900px){.stage-report .stage-summary-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.stage-growth{margin:0 0 1rem;padding:1rem;border:1px solid #344b65;border-radius:12px;background:#142437}
+.stage-growth h3,.stage-growth p{margin:.25rem 0}
+.stage-growth li+li{margin-top:.65rem}

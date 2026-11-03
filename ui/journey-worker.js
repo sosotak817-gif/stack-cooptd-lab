@@ -6,7 +6,7 @@ function continuous(input){
  const basis=CoopPresets.hasPartnerDeck(input)?'partner':input.stageBasis||'mirror',party=CoopPresets.giantInput(input,basis),{cells,marks}=CoopGemTools.active(party),target=CoopTargets.finalBossOf(input.mode),targetId='journey-continuous:'+input.mode;
  CoopTargets.registerTargets([{...target,id:targetId,pinsWave:false}]);
  const p={...CoopEggby.normalize(party.you,CoopEngine),mode:input.mode,targetId,bounties:'none',wave:input.goalWave+1,byPlayer:true},other={...CoopEggby.normalize(party.partner,CoopEngine),mode:input.mode,targetId,bounties:'none',wave:p.wave};
- if(!party.partnerEnabled)Object.assign(other,{traits:[],codexSS:0,codexSSS:0,fortuneCard:0,altar:{},otherDef:0,partnerDef:0});p.partnerParams=other;
+ if(!party.partnerEnabled)Object.assign(other,{traits:[],codexSS:0,codexSSS:0,fortuneCard:0,altar:{},otherDef:0,partnerDef:0});if(basis==='solo'&&input.stageMaxDefence===true)Object.assign(p,CoopStages.maxDefenceParams(p,CoopTargets,input.mode));p.partnerParams=other;
  const trace=CoopStages.recorder(CoopTargets,CoopGeometry,cells),run=CoopBoss.bossRun(cells,p,{marks,range:{},blackout:'auto',builds:{you:p,partner:other},gold:false,bounties:null},undefined,event=>trace.event(event));
  return CoopJourney.diagnosisSummary(CoopStages.continuousReport({run,mode:input.mode,altar:'current',T:CoopTargets,rounds:trace.rounds,basis}),input.goalWave);
 }

@@ -17,6 +17,17 @@ async function main(){
   await page.click('#start-stages');await page.waitForFunction(()=>document.querySelector('#stage-status').textContent.includes('분석 완료'),{timeout:120000});
   assert.equal(await page.locator('.stage-report-picker button').count(),4);assert.equal(await page.locator('.stage-report:visible').count(),1);
   const panel=()=>page.locator('.stage-report:visible');assert.ok(await panel().locator('[data-stage-view=overview]').isVisible());assert.ok(await panel().locator('.stage-damage-dashboard').isHidden());
+  const capacity=panel().locator('.stage-summary-grid > div').first();
+  assert.match(await capacity.textContent(),/^내 덱 독립 인분/);
+  assert.match(await capacity.locator('strong').textContent(),/인분|산출 불가/);
+  const failed=page.locator('.stage-report[data-outcome$="첫 실패"]').first();
+  assert.ok(await failed.count(),'fixture must exercise failed stage results');
+  const failedKey=await failed.getAttribute('data-report-key');
+  await page.locator('.stage-report-picker button[data-report-key="'+failedKey+'"]').click();
+  const growth=panel().locator('[data-stage-growth]');
+  await growth.getByRole('heading',{name:'성장 추천'}).waitFor();
+  await page.waitForFunction(()=>/첫 실패 지연이 확인된 성장 후보가 없습니다|각 후보를 현재 덱에 하나씩/.test(document.querySelector('.stage-report:not([hidden]) [data-stage-growth]')?.textContent||''),null,{timeout:120000});
+  await page.locator('.stage-report-picker button').first().click();
   const originalRows=await panel().locator('.stage-share-bar').count();assert.ok(originalRows>0);
   await panel().getByRole('button',{name:'유닛 딜량',exact:true}).click();assert.ok(await panel().locator('.stage-damage-dashboard').isVisible());assert.ok(await panel().locator('[data-stage-view=overview]').isHidden());
   await panel().getByRole('button',{name:'라운드 흐름',exact:true}).click();assert.ok(await panel().locator('.stage-share-chart').isVisible());await panel().locator('.stage-share-bar').first().click();assert.ok(await panel().locator('.stage-damage-dashboard').isVisible());assert.match(await panel().locator('.stage-unit-scope').textContent(),/1R/);
