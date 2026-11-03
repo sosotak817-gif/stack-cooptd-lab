@@ -117,8 +117,10 @@ async function handle(request, env, retry = true) {
     if (!Number.isInteger(week) || week < 0 || week > currentWeek) return reply({ error: '주차를 확인해 주세요.' }, 400);
     if (weekly) {
       const { results } = await db.prepare(`
-        SELECT u.nickname,a.score,a.moves,a.replay,1 AS account
+        SELECT u.nickname,a.score,a.moves,a.replay,1 AS account,f.code AS badgeCode,b.title AS badgeTitle
         FROM daily_puzzle_account_scores a JOIN lab_users u ON u.id=a.user_id
+        LEFT JOIN lab_featured_badges f ON f.user_id=a.user_id
+        LEFT JOIN lab_achievements b ON b.code=f.code
         WHERE a.week=? AND a.revision=?
         ORDER BY a.score DESC,a.moves ASC,a.achieved_at ASC,a.user_id LIMIT 50
       `).bind(week,rankingRevision).all();
@@ -133,12 +135,14 @@ async function handle(request, env, retry = true) {
         ) ORDER BY achieved_at DESC LIMIT 1
       `).bind(week, week).first())?.revision;
       rows = selectedRevision ? (await db.prepare(`
-        SELECT nickname, score, moves, replay, account FROM (
-          SELECT nickname, score, moves, replay, achieved_at, nickname_key AS sort_key, 0 AS account
+        SELECT nickname, score, moves, replay, account, badgeCode, badgeTitle FROM (
+          SELECT nickname, score, moves, replay, achieved_at, nickname_key AS sort_key, 0 AS account, NULL AS badgeCode, NULL AS badgeTitle
           FROM daily_puzzle_scores WHERE week = ? AND revision = ?
           UNION ALL
-          SELECT u.nickname, a.score, a.moves, a.replay, a.achieved_at, a.user_id, 1
+          SELECT u.nickname, a.score, a.moves, a.replay, a.achieved_at, a.user_id, 1, f.code, b.title
           FROM daily_puzzle_account_scores a JOIN lab_users u ON u.id = a.user_id
+          LEFT JOIN lab_featured_badges f ON f.user_id=a.user_id
+          LEFT JOIN lab_achievements b ON b.code=f.code
           WHERE a.week = ? AND a.revision = ?
         ) ORDER BY score DESC, moves ASC, achieved_at ASC, account DESC, sort_key ASC LIMIT 50
       `).bind(week, selectedRevision, week, selectedRevision).all()).results : [];

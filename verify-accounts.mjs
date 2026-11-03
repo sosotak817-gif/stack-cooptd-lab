@@ -118,9 +118,14 @@ try{
  sql.exec('ALTER TABLE daily_puzzle_scores ADD COLUMN replay TEXT');
  const anonymous=await submitPuzzle({});
  assert.equal(anonymous.status,200);
+ sql.exec(fs.readFileSync('migrations/0017_account_achievements.sql','utf8'));
+ sql.exec(fs.readFileSync('migrations/0018_featured_badges.sql','utf8'));
+ sql.prepare("INSERT INTO lab_featured_badges VALUES (?,'first-verified-puzzle')").run(two.user.id);
  const standings=await (await puzzleSubmit({env,request:request('/api/weekly-puzzle')})).json();
  assert.deepEqual(standings.rows.map(row=>[row.nickname,row.account]).sort((a,b)=>a[1]-b[1]),[['spoofed',0],[two.user.nickname,1]]);
  assert.ok(standings.rows.every(row=>!('user_id' in row)));
+ assert.equal(standings.rows.find(row=>row.account).badgeCode,'first-verified-puzzle');
+ assert.equal(standings.rows.find(row=>!row.account).badgeCode,null);
  assert.ok(standings.rows.every(row=>row.score===0),'server ignores fabricated client score for zero moves');
  assert.ok(sql.prepare('SELECT revision FROM daily_puzzle_account_scores').get().revision.endsWith(':server-score-v1'));
 

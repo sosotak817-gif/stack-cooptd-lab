@@ -100,8 +100,13 @@
       shownWeek = data.week;
       for (const [i, row] of data.rows.entries()) {
         const tr = $('rows').insertRow();
-        for (const value of [i + 1, row.nickname + (row.account ? ' · 계정' : ' · 익명'), percent.format(row.score / 100), row.moves]) {
-          tr.insertCell().textContent = value;
+        for (const [index, value] of [i + 1, row.nickname, percent.format(row.score / 100), row.moves].entries()) {
+          const cell = tr.insertCell();
+          cell.textContent = value;
+          if (index === 1) {
+            if (row.badgeCode) cell.append(window.StackLabBadge.icon(row.badgeCode, row.badgeTitle));
+            cell.append(row.account ? ' · 계정' : ' · 익명');
+          }
         }
         const action = tr.insertCell();
         if (row.replay) {

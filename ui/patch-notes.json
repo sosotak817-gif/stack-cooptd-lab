@@ -1,5 +1,12 @@
 [
   {
+    "id": "2026-11-03-featured-badge-icons",
+    "date": "2026-11-03",
+    "type": "feature",
+    "title": "닉네임 옆 대표 배지 아이콘",
+    "details": ["홈의 계정 메뉴와 퍼즐 랭킹에서 대표 배지를 닉네임 오른쪽에 아이콘으로 표시합니다."]
+  },
+  {
     "id": "2026-11-03-dashboard-home-links",
     "date": "2026-11-03",
     "type": "fix",

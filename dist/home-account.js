@@ -13,11 +13,8 @@
       link.textContent = state.user?.nickname || '로그인';
       if (state.user) {
         remember();
-        if (state.featuredBadge) {
-          const badge = document.createElement('small');
-          badge.className = 'home-featured-badge';
-          badge.textContent = state.featuredBadge;
-          link.append(badge);
+        if (state.featuredBadge && window.StackLabBadge) {
+          link.append(window.StackLabBadge.icon(state.featuredBadgeCode, state.featuredBadge));
         }
         return;
       }

@@ -11,9 +11,11 @@ async function ranking(){
   list.replaceChildren();
   if(!rows.length){list.append(el('li','이번 주 첫 기록에 도전해 보세요.','empty-message'));return;}
   const percent=new Intl.NumberFormat('ko-KR',{style:'percent',maximumFractionDigits:2,signDisplay:'exceptZero'});
-  rows.slice(0,3).forEach(({nickname,score},i)=>{
+  rows.slice(0,3).forEach(({nickname,score,badgeCode,badgeTitle},i)=>{
    const item=el('li');
-   item.append(el('span',String(i+1),'rank-medal'),el('b',nickname),el('strong',percent.format(score/100)));
+   const name=el('b',nickname);
+   if(badgeCode&&window.StackLabBadge)name.append(window.StackLabBadge.icon(badgeCode,badgeTitle));
+   item.append(el('span',String(i+1),'rank-medal'),name,el('strong',percent.format(score/100)));
    list.append(item);
   });
  }catch{list.replaceChildren(el('li','퍼즐 랭킹을 불러오지 못했어요.','empty-message'));}
