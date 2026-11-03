@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>주간 배치 퍼즐 · 스택 연구소</title>
+<link rel="stylesheet" href="/board.css">
+<style>
+main { max-width: 64rem; margin: 2rem auto; padding: 0 1rem; }
+section { margin: 1rem 0; padding: 1rem; }
+#grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; max-width: 38rem; }
+#grid button, #grid span { min-width: 0; min-height: 3rem; padding: 3px; overflow-wrap: anywhere; }
+#grid img { display: block; width: min(100%, 2rem); margin: auto; }
+#grid button[aria-pressed=true] { outline: 2px solid #63edd3; }
+#grid small { display: block; font-size: .68rem; }
+.controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
+table { width: 100%; text-align: left; }
+</style>
+<script src="/engine.js" defer></script>
+<script src="/board-presets.js" defer></script>
+<script src="/shared-calculation-version.js" defer></script>
+<script src="/weekly-rules.js" defer></script>
+<script src="/weekly-page.js" defer></script>
+</head>
+<body>
+<main>
+<a href="/">← 스택 연구소 홈</a>
+<h1>주간 배치 퍼즐</h1>
+<p id="challenge"></p>
+<p>같은 덱으로 최대 세 수 안에 최종 보스 상대 DPS를 높여 보세요. 유닛을 고른 뒤 빈 칸이나 다른 유닛을 누르면 한 수를 사용합니다. 장판은 제자리에 남습니다.</p>
+<section class="panel" aria-label="배치 퍼즐">
+<div class="controls"><strong id="moves"></strong><button id="undo" type="button">한 수 되돌리기</button><button id="reset" type="button">처음부터</button></div>
+<p id="result" role="status"></p>
+<div id="grid" aria-label="내 진영 배치"></div>
+</section>
+<section class="panel" aria-label="주간 랭킹">
+<h2>주간 랭킹 · TOP 50</h2>
+<form id="register" class="controls">
+<label>공개 닉네임 <input id="nickname" maxlength="40" autocomplete="nickname" required></label>
+<button id="submit" disabled>현재 배치 등록</button>
+</form>
+<p id="submission-status" role="status"></p>
+<p>브라우저별 주간 최고 기록을 저장합니다. DPS가 같으면 수가 적은 기록, 그다음 먼저 달성한 기록이 앞섭니다. 점수는 브라우저에서 계산하는 미검증 기록입니다.</p>
+<div class="controls">
+<button id="previous" type="button">이전 주</button><strong id="ranking-week"></strong><button id="next" type="button">다음 주</button>
+</div>
+<p id="ranking-status" role="status"></p>
+<table><thead><tr><th scope="col">순위</th><th scope="col">닉네임</th><th scope="col">DPS</th><th scope="col">사용한 수</th></tr></thead><tbody id="rows"></tbody></table>
+</section>
+</main>
+</body>
+</html>
