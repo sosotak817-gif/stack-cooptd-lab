@@ -12,6 +12,25 @@ const deck={version:2,unitDefaultsVersion:1,mode:'hard',target:CoopTargets.final
 const guide={format:'stack-lab-guide',version:1,title:'클라라 초반 공략',mode:'hard',wave:90,operation:'1. 소환\n2. 보스 집중',requirements:'해방 조건 확인',alternatives:'대체는 다시 계산',deck};
 async function call(method='GET',data,{token=alice,query={},headers={},raw,noDB=false}={}){const response=await handleDeckGuides({env:noDB?{}:{DB},request:new Request('https://lab.example/api/deck-guides?'+new URLSearchParams(query),{method,headers:{Origin:'https://lab.example','Content-Type':'application/json',...(token?{Authorization:'Bearer '+token}:{}),...headers},...(method!=='GET'?{body:raw??JSON.stringify(data)}:{})})});return{status:response.status,data:await response.json()};}
 try{
+ sqlite.exec(fs.readFileSync('migrations/0002_accounts.sql','utf8'));
+ for(const [id,token] of [['account-a',alice],['account-b',bob]]){
+  const hash=Buffer.from(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(token))).toString('hex');
+  sqlite.prepare('INSERT INTO lab_users VALUES(?,?,?,?)').run(id,id,id,clock);
+  sqlite.prepare('INSERT INTO lab_sessions VALUES(?,?,?,?)').run(hash,id,id,clock+86400000);
+ }
+ const accountHeaders=(id,token)=>({'X-Account-Id':id,'X-CSRF-Token':id,Cookie:'__Host-stack_session='+token});
+ const a=accountHeaders('account-a',alice),b=accountHeaders('account-b',bob);
+ const posted=await call('POST',{nickname:'spoofed',guide},{headers:a});
+ assert.equal(posted.status,201);
+ assert.equal(posted.data.post.nickname,'account-a');
+ const edit={id:posted.data.post.id,expectedUpdatedAt:posted.data.post.updatedAt,guide};
+ assert.equal((await call('PUT',edit,{headers:b})).status,403);
+ assert.equal((await call('DELETE',edit,{headers:b})).status,403);
+ assert.equal((await call('PUT',edit,{headers:{...a,'X-CSRF-Token':'bad'}})).status,403);
+ const accountEdit=await call('PUT',edit,{headers:a,token:null});
+ assert.equal(accountEdit.status,200);
+ assert.equal((await call('DELETE',{...edit,expectedUpdatedAt:accountEdit.data.post.updatedAt},{headers:a,token:null})).status,200);
+
  assert.equal((await call('GET',null,{noDB:true})).status,503);
  assert.equal((await call()).data.total,0,'schema is initialized on first use without a deployment migration step');
  for(const query of [{page:'0'},{page:'-1'},{page:'1.5'},{mode:'toString'},{mode:'bad'},{q:'x'.repeat(81)}])assert.equal((await call('GET',null,{query})).status,400);

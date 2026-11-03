@@ -1,3 +1,4 @@
+import { requireAccountSession } from './accounts.mjs';
 import Journey from '../ui/journey-core.js';
 import {catalog} from './guide-catalog.mjs';
 
@@ -28,7 +29,10 @@ export async function handleDeckGuides({request,env}){
   const method=request.method,url=new URL(request.url);if(!['GET','POST','PUT','DELETE'].includes(method))return new Response(null,{status:405,headers:{...headers,Allow:'GET, POST, PUT, DELETE'}});
   if(!env.DB)throw fail('공략 게시판 서버에 연결할 수 없습니다. 잠시 후 다시 시도해 주세요.',503);
   const db=env.DB;await initialize(db);
-  const owner=await identity(request,method!=='GET');
+  const account=request.headers.has('X-Account-Id')
+   ? await requireAccountSession(request,env,method!=='GET') : null;
+  if(account&&request.headers.get('X-Account-Id')!==account.id)throw fail('로그인 계정이 변경되었습니다.',409);
+  const owner=account?'account:'+account.id:await identity(request,method!=='GET');
   if(method==='GET'){
    if(url.searchParams.has('id'))return reply({post:await detail(db,postId(url.searchParams.get('id')),owner)});
    const pageText=url.searchParams.get('page')||'1',mode=url.searchParams.get('mode')||'',q=(url.searchParams.get('q')||'').trim(),mine=url.searchParams.get('mine')==='1';
@@ -40,9 +44,9 @@ export async function handleDeckGuides({request,env}){
   }
   if(request.headers.get('Origin')!==url.origin)throw fail('사이트에서 직접 게시해 주세요.',403);
   const input=await body(request);if(!input||typeof input!=='object'||Array.isArray(input))throw fail('게시글 형식을 확인해 주세요.');validateTree(input);
-  let current=null;if(method!=='POST'){const id=postId(input.id);current=await db.prepare('SELECT id,owner,updated_at FROM deck_guides WHERE id=?').bind(id).first();if(!current)throw fail('게시글을 찾을 수 없습니다.',404);if(current.owner!==owner)throw fail('이 브라우저에서 작성한 글만 수정·삭제할 수 있습니다.',403);if(!Number.isSafeInteger(input.expectedUpdatedAt)||input.expectedUpdatedAt!==current.updated_at)throw fail('게시글이 변경되었습니다. 다시 열어 확인해 주세요.',409);}
+  let current=null;if(method!=='POST'){const id=postId(input.id);current=await db.prepare('SELECT id,owner,updated_at FROM deck_guides WHERE id=?').bind(id).first();if(!current)throw fail('게시글을 찾을 수 없습니다.',404);if(current.owner!==owner)throw fail('작성자만 수정·삭제할 수 있습니다.',403);if(!Number.isSafeInteger(input.expectedUpdatedAt)||input.expectedUpdatedAt!==current.updated_at)throw fail('게시글이 변경되었습니다. 다시 열어 확인해 주세요.',409);}
   if(method==='DELETE'){const result=await db.prepare('DELETE FROM deck_guides WHERE id=? AND owner=? AND updated_at=?').bind(current.id,owner,current.updated_at).run();if(!result.meta.changes)throw fail('게시글이 변경되었습니다. 다시 확인해 주세요.',409);return reply({deleted:true,id:current.id});}
-  const author=nickname(input.nickname),guide=publicGuide(input.guide),encoded=JSON.stringify(guide);if(new TextEncoder().encode(encoded).length>240000)throw fail('덱 설정이 너무 큽니다. 공략 파일로 공유해 주세요.',413);
+  const author=nickname(account?.nickname??input.nickname),guide=publicGuide(input.guide),encoded=JSON.stringify(guide);if(new TextEncoder().encode(encoded).length>240000)throw fail('덱 설정이 너무 큽니다. 공략 파일로 공유해 주세요.',413);
   const slugs=[...new Set(guide.deck.cells.filter(c=>guide.deck.partnerEnabled||c.row>5).map(c=>c.slug))],summary=guide.operation.slice(0,160),now=Math.max(Date.now(),(current?.updated_at||0)+1);
   if(method==='POST'){
    const id=crypto.randomUUID(),result=await db.prepare('INSERT INTO deck_guides(id,owner,nickname,title,mode,wave,summary,units,guide,created_at,updated_at) SELECT ?,?,?,?,?,?,?,?,?,?,? WHERE (SELECT COUNT(*) FROM deck_guides WHERE owner=?)<50 AND NOT EXISTS (SELECT 1 FROM deck_guides WHERE owner=? AND created_at>?)').bind(id,owner,author,guide.title,guide.mode,guide.wave,summary,JSON.stringify(slugs),encoded,now,now,owner,owner,now-30000).run();
