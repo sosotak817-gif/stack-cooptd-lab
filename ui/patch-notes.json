@@ -1,5 +1,12 @@
 [
   {
+    "id": "2026-11-03-more-hidden-discoveries",
+    "date": "2026-11-03",
+    "type": "feature",
+    "title": "연구소 히든 업적 추가",
+    "details": ["페이지 방문과 숨은 요소 클릭으로 발견할 수 있는 히든 업적을 추가했습니다. 일반 업적의 달성률 집계에서는 제외됩니다."]
+  },
+  {
     "id": "2026-11-03-hidden-discovery",
     "date": "2026-11-03",
     "type": "feature",

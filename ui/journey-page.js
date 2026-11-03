@@ -79,6 +79,8 @@ const roadmap=[
  {title:'후반 · 누적 성장과 파트너 조합 검증',goal:'소환·해방 시점과 파트너·제단을 맞추고, 반복해서 쓸 수 있는 공략으로 남기세요.',steps:[['timing','스택 유닛의 소환·해방 시점을 실제 운영과 맞췄습니다.'],['partner','저장 파트너 또는 동일 덱 2인 가정을 확인했습니다.'],['publish','필수 조건·대체 유닛·운영 순서를 적어 공략 코드를 만들었습니다.']],mistake:'동일 덱 2인 결과를 임의 파트너와의 결과로 해석하지 마세요. 가정 스택 증가와 실제 누적 성장 결과를 구분하고, 대체 유닛은 다시 계산해 확인하세요.',links:[['전체 스테이지 검증','/stages/'],['공략 작성·공유','/decks/']]}
 ];
 function roadmapPage(){
+ const discoveryStatus=el('p');discoveryStatus.id='archive-discovery-status';discoveryStatus.setAttribute('role','status');host.append(discoveryStatus);
+ const discoveryScript=document.createElement('script');discoveryScript.src='/archive-discovery.js';document.head.append(discoveryScript);
  $('#journey-description').textContent='처음 세팅하는 날부터 막힌 구간을 넘고 공략을 남기는 단계까지. 진행 상황은 이 브라우저에 저장됩니다.';
  let checks={};try{checks=J.parse(localStorage.getItem('stack-lab-roadmap-v1')||'{}');if(!checks||Array.isArray(checks)||typeof checks!=='object')checks={};}catch{}
  const inputs=new Map();

@@ -83,13 +83,24 @@ try{
  assert.equal((await setBadge(a,null)).status,200);
  assert.equal((await (await getActivity(a)).json()).achievements[0].featured,0);
  const {onRequest:discover}=await import('./functions/api/me/archive-discovery.js');
- const discovery=headers=>discover({env:{DB},request:new Request('https://lab.example/api/me/archive-discovery',{
+ const discovery=(headers,spot='archive')=>discover({env:{DB},request:new Request('https://lab.example/api/me/archive-discovery?spot='+spot,{
   method:'POST',headers:{Origin:'https://lab.example',...headers}
  })});
  assert.equal((await discovery({})).status,401);
  assert.equal((await discovery({...a,'X-CSRF-Token':'bad'})).status,403);
  assert.deepEqual(await (await discovery(a)).json(),{earned:true});
  assert.deepEqual(await (await discovery(a)).json(),{earned:false});
+ assert.equal((await discovery(a,'hidden-stack')).status,404);
+ for(const spot of ['roadmap','puzzle']){
+  assert.equal((await (await discovery(a,spot)).json()).earned,true);
+  assert.equal((await (await discovery(a,spot)).json()).earned,false);
+ }
+ const {publicAchievements}=await import('./server/achievements.mjs');
+ const badgeCodes=new Set(['hidden-stack','hidden-archive','hidden-roadmap','hidden-puzzle-spark']);
+ const publicList=publicAchievements({},badgeCodes);
+ assert.equal(publicList.length,20);
+ assert.ok(publicList.every(badge=>!badgeCodes.has(badge.code)&&!badge.complete));
+
  assert.ok((await (await getActivity(a)).json()).achievements.some(badge=>badge.code==='hidden-archive'));
  const edit={id:posted.data.post.id,expectedUpdatedAt:posted.data.post.updatedAt,guide};
  assert.equal((await call('PUT',edit,{headers:b})).status,403);

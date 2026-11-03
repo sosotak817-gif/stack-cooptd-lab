@@ -7,7 +7,7 @@ window.StackLabBadge = {
    ['first-verified-puzzle','첫 검증 퍼즐 기록'], ['first-deck','첫 덱 저장'], ['first-guide','첫 덱 공략 발행'], ['first-weekly-challenge','첫 주간 덱 챌린지'], ['hidden-stack','스택']
   ]);
   if (!names.has(code)) {
-   const glyph = code === 'hidden-archive' ? '✧' : ({"first-deck": "▣", "decks-3": "▤", "decks-5": "▥", "decks-10": "▦", "decks-20": "◆", "first-guide": "▧", "guides-3": "✎", "guides-5": "✒", "guides-10": "✦", "first-verified-puzzle": "✓", "daily-3": "◇", "daily-5": "◈", "daily-10": "✶", "daily-20": "✷", "first-weekly-challenge": "▩", "weekly-3": "⚑", "weekly-5": "★", "weekly-10": "✪", "analysis-3": "⌕", "analysis-10": "▨"})[code];
+   const glyph = code === 'hidden-archive' ? '✧' : code === 'hidden-roadmap' ? '⌖' : code === 'hidden-puzzle-spark' ? '✦' : ({"first-deck": "▣", "decks-3": "▤", "decks-5": "▥", "decks-10": "▦", "decks-20": "◆", "first-guide": "▧", "guides-3": "✎", "guides-5": "✒", "guides-10": "✦", "first-verified-puzzle": "✓", "daily-3": "◇", "daily-5": "◈", "daily-10": "✶", "daily-20": "✷", "first-weekly-challenge": "▩", "weekly-3": "⚑", "weekly-5": "★", "weekly-10": "✪", "analysis-3": "⌕", "analysis-10": "▨"})[code];
    if (typeof glyph !== 'string') return document.createTextNode('');
    const icon = document.createElement('span');
    icon.className = 'lab-badge-icon lab-badge-glyph';
