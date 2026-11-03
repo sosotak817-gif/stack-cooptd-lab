@@ -1,5 +1,10 @@
 import {requireAccountSession} from '../../../server/accounts.mjs';
 
+const milestones = new Map([
+ ['finish', { code: 'hidden-battle-watch', title: '전투 관전', duration: 60000 }],
+ ['finish-long', { code: 'hidden-battle-witness', title: '전장의 증인', duration: 600000 }]
+]);
+
 export async function onRequest({request,env}) {
  const reply=(body,status=200)=>Response.json(body,{status,headers:{'Cache-Control':'no-store'}});
  if(request.method!=='POST')return reply({error:'지원하지 않는 요청입니다.'},405);
@@ -15,15 +20,17 @@ export async function onRequest({request,env}) {
    ]);
    return reply({started:true});
   }
-  if(action!=='finish')return reply({error:'지원하지 않는 요청입니다.'},400);
-  const [,award,watch]=await db.batch([
-   db.prepare("INSERT OR IGNORE INTO lab_achievements VALUES ('hidden-battle-watch','전투 관전')"),
+  const milestone=milestones.get(action);
+  if(!milestone)return reply({error:'지원하지 않는 요청입니다.'},400);
+  const {code,title,duration}=milestone, cutoff=now-duration;
+  const [watch,,award]=await db.batch([
+   db.prepare('SELECT 1 FROM lab_battle_watch WHERE user_id=? AND started_at<=?').bind(user.id,cutoff),
+   db.prepare('INSERT OR IGNORE INTO lab_achievements VALUES (?,?)').bind(code,title),
    db.prepare(`INSERT OR IGNORE INTO lab_user_achievements
-    SELECT user_id,'hidden-battle-watch',? FROM lab_battle_watch WHERE user_id=? AND started_at<=?`).bind(now,user.id,now-60000),
-   db.prepare('DELETE FROM lab_battle_watch WHERE user_id=? AND started_at<=?').bind(user.id,now-60000)
+    SELECT user_id,?,? FROM lab_battle_watch WHERE user_id=? AND started_at<=?`).bind(code,now,user.id,cutoff)
   ]);
-  if(!watch.meta.changes)return reply({error:'관전 시간이 부족합니다.'},409);
-  return reply({earned:!!award.meta.changes});
+  if(!watch.results.length)return reply({error:'관전 시간이 부족합니다.'},409);
+  return reply({earned:!!award.meta.changes,title});
  }catch(error){
   return reply({error:error.status?error.message:'관전 기록을 저장하지 못했습니다.'},error.status||503);
  }

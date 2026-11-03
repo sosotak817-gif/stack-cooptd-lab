@@ -3,7 +3,8 @@
   const dialog = $('battle-replay');
   const format = new Intl.NumberFormat('ko-KR', { notation: 'compact', maximumFractionDigits: 2 });
   let worker, timeout, frame, data, time, last, playing, lanes;
-  let tiles, watched, discovery, retryAt;
+  const milestones = [[60000, 'finish'], [600000, 'finish-long']];
+  let tiles, watched, discovery, retryAt, milestoneIndex;
 
   async function discover() {
     const session = await fetch('/api/auth/me', { cache: 'no-store' });
@@ -19,17 +20,19 @@
   function countWatch(now) {
     if (last === null || document.hidden || !dialog.open) return;
     watched += Math.min(250, now - last);
-    if (watched < 60000 || now < retryAt) return;
+    const milestone = milestones[milestoneIndex];
+    if (!milestone || watched < milestone[0] || now < retryAt) return;
     retryAt = now + 5000;
     const attempt = discovery;
     attempt?.then(async request => {
       if (!request || attempt !== discovery || !dialog.open) return;
-      const response = await request('finish');
+      const response = await request(milestone[1]);
       if (!response.ok || attempt !== discovery) return;
-      const { earned } = await response.json();
-      discovery = null;
+      const { earned, title } = await response.json();
+      if (attempt !== discovery || milestone !== milestones[milestoneIndex]) return;
+      milestoneIndex++;
       if (earned) {
-        $('battle-status').textContent = '히든 업적 획득 · 전투 관전';
+        $('battle-status').textContent = '히든 업적 획득 · ' + title;
         window.top.dispatchEvent(new window.top.Event('stack-lab:achievement-earned'));
       }
     }).catch(() => {});
@@ -156,6 +159,7 @@
     stop();
     releaseWorker();
     watched = 0;
+    milestoneIndex = 0;
     retryAt = 0;
     discovery = null;
     $('battle-content').hidden = true;
