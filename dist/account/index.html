@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>내 계정 | 스택 연구소</title>
+<link rel="stylesheet" href="/portal.css">
+<script src="/pin-account.js" defer></script>
+</head>
+<body>
+<main>
+<a href="/">스택 연구소 홈</a>
+<h1>내 계정</h1>
+<p id="status" role="status" aria-live="polite">계정 상태를 확인하고 있습니다.</p>
+<section id="guest" hidden>
+  <h2>로그인</h2>
+  <form data-path="/api/auth/login">
+    <label>닉네임 <input name="nickname" autocomplete="username" required maxlength="32"></label>
+    <label>PIN <input name="pin" type="password" autocomplete="current-password" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" required></label>
+    <button>로그인</button>
+  </form>
+  <h2>계정 만들기</h2>
+  <form data-path="/api/auth/register">
+    <label>닉네임 <input name="nickname" autocomplete="username" required maxlength="32"></label>
+    <button type="button" id="check-name">닉네임 중복 확인</button>
+    <label>PIN <input name="pin" type="password" autocomplete="new-password" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" required></label>
+    <label>PIN 재입력 <input name="pinConfirmation" type="password" autocomplete="new-password" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" required></label>
+    <button>가입</button>
+  </form>
+  <details>
+    <summary>PIN을 잊으셨나요?</summary>
+    <p>미리 등록한 브라우저에서만 재설정할 수 있습니다. 재설정하면 모든 로그인 세션과 복구 브라우저 등록이 해제됩니다.</p>
+    <form data-path="/api/auth/reset-pin">
+      <label>닉네임 <input name="nickname" autocomplete="username" required maxlength="32"></label>
+      <label>새 PIN <input name="newPin" type="password" autocomplete="new-password" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" required></label>
+      <label>새 PIN 재입력 <input name="pinConfirmation" type="password" autocomplete="new-password" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" required></label>
+      <button>PIN 재설정</button>
+    </form>
+  </details>
+</section>
+<section id="member" hidden>
+  <h2 id="nickname"></h2>
+  <form data-path="/api/auth/logout"><button>로그아웃</button></form>
+  <div id="pin-tools" hidden>
+    <h3>PIN 변경</h3>
+    <p>변경하면 다른 세션과 복구 브라우저 등록이 해제됩니다.</p>
+    <form data-path="/api/auth/change-pin">
+      <label>현재 PIN <input name="pin" type="password" autocomplete="current-password" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" required></label>
+      <label>새 PIN <input name="newPin" type="password" autocomplete="new-password" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" required></label>
+      <label>새 PIN 재입력 <input name="pinConfirmation" type="password" autocomplete="new-password" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" required></label>
+      <button>PIN 변경</button>
+    </form>
+    <h3>PIN 복구 브라우저</h3>
+    <p>현재 브라우저 프로필을 등록합니다. 최대 3개까지 등록할 수 있고 각 등록은 180일간 유효합니다.</p>
+    <form data-path="/api/devices">
+      <label>브라우저 이름 <input name="name" required maxlength="50"></label>
+      <label>현재 PIN <input name="pin" type="password" autocomplete="current-password" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" required></label>
+      <button>이 브라우저 등록</button>
+    </form>
+    <ul id="devices"></ul>
+    <form data-method="DELETE" id="remove-device" hidden>
+      <label>해제할 브라우저 <select name="device" required></select></label>
+      <label>현재 PIN <input name="pin" type="password" autocomplete="current-password" inputmode="numeric" pattern="[0-9]{8}" maxlength="8" required></label>
+      <button>등록 해제</button>
+    </form>
+  </div>
+</section>
+</main>
+</body>
+</html>

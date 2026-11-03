@@ -71,6 +71,9 @@ for(const route of ['dps-compare','dps-rank','board','boss-sim','charts','ticket
  const temp=p+'.codex-tmp';fs.writeFileSync(temp,s);fs.renameSync(temp,p);
 }
 fs.copyFileSync('ui/home.html',path.join(dist,'index.html'));
+fs.mkdirSync(path.join(dist,'account'),{recursive:true});
+fs.copyFileSync('ui/pin-account.html',path.join(dist,'account/index.html'));
+fs.copyFileSync('ui/pin-account.js',path.join(dist,'pin-account.js'));
 fs.mkdirSync(path.join(dist,'research'),{recursive:true});fs.copyFileSync('ui/research.html',path.join(dist,'research/index.html'));
 
 const journeyPages={growth:'내 덱 다음 성장 추천',diagnosis:'막힌 스테이지 진단',guide:'초보자 성장 로드맵',decks:'덱 공략 공유'};

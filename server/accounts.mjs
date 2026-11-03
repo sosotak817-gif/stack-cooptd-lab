@@ -58,7 +58,13 @@ export async function handleAuth({request,env}){
    return await handlePinAuth(request,env,action,{body,fail,hash,random,reply,sameOrigin,startSession});
   }
   if((path==='/api/auth/session'||path==='/api/auth/me')&&request.method==='GET'){
-   const user=await session(request,env);return reply({ready:ready(env),...(path.endsWith('/me')?{pinReady:pinReady(env)}:{}),user:user?{id:user.id,nickname:user.nickname}:null,csrf:user?.csrf||null});
+   const user=await session(request,env);
+   const result={ready:ready(env),user:user?{id:user.id,nickname:user.nickname}:null,csrf:user?.csrf||null};
+   if(path==='/api/auth/me'){
+    result.pinReady=pinReady(env);
+    result.pinAccount=!!(user&&result.pinReady&&await env.DB.prepare('SELECT 1 FROM lab_pin_credentials WHERE user_id=?').bind(user.id).first());
+   }
+   return reply(result);
   }
   if(path==='/api/auth/naver'&&request.method==='GET'){
    if(!ready(env))return redirect('/?login_error=unavailable');
