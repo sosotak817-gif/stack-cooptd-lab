@@ -9,7 +9,7 @@ class Statement{
  async first(){return sql.prepare(this.query).get(...this.values)||null;}
  async run(){return sql.prepare(this.query).run(...this.values);}
 }
-const DB={prepare:query=>new Statement(query),async batch(statements){sql.exec('BEGIN');try{for(const s of statements)await s.run();sql.exec('COMMIT');}catch(error){sql.exec('ROLLBACK');throw error;}}};
+const DB={prepare:query=>new Statement(query),async batch(statements){sql.exec('BEGIN');try{const results=[];for(const s of statements)results.push(await s.run());sql.exec('COMMIT');return results;}catch(error){sql.exec('ROLLBACK');throw error;}}};
 const env={DB,NAVER_CLIENT_ID:'test-client',NAVER_CLIENT_SECRET:'test-secret',NAVER_REDIRECT_URI:'https://lab.example/api/auth/callback'},origin='https://lab.example';
 const request=(path,options={})=>new Request(origin+path,{...options,headers:{Origin:origin,'Content-Type':'application/json',...options.headers}});
 const cookieOf=(response,key)=>response.headers.getSetCookie().find(s=>s.startsWith(key+'='))?.split(';')[0];
@@ -68,5 +68,20 @@ try{
  sql.prepare("UPDATE lab_auth_attempts SET attempts=7 WHERE scope='login:nickname'").run();
  assert.equal((await pinRequest('login',{nickname:'test_연구',pin:'12345678'})).status,401);
  assert.equal((await pinRequest('login',{nickname:'TEST_연구',pin:input.pin},{'CF-Connecting-IP':'192.0.2.2'})).status,429);
+ const changeCookie = cookieOf(loggedIn,'__Host-stack_session');
+ const changeSession = await (await auth('/api/auth/me',{headers:{Cookie:changeCookie}})).json();
+ const changePayload = {pin:input.pin,newPin:'87654321',pinConfirmation:'87654321'};
+ const otherSession = await pinRequest('login',{nickname:input.nickname,pin:input.pin});
+ // Clear the prior login throttle before opening the second session for this test.
+ assert.equal(otherSession.status,429);
+ sql.prepare("DELETE FROM lab_auth_attempts WHERE scope='login:nickname'").run();
+ const secondSession = await pinRequest('login',{nickname:input.nickname,pin:input.pin});
+ assert.equal(secondSession.status,200);
+ const secondCookie = cookieOf(secondSession,'__Host-stack_session');
+ assert.equal((await pinRequest('change-pin',changePayload,{Cookie:changeCookie})).status,403);
+ assert.equal((await pinRequest('change-pin',changePayload,{Cookie:changeCookie,'X-CSRF-Token':changeSession.csrf})).status,200);
+ assert.equal((await (await auth('/api/auth/me',{headers:{Cookie:secondCookie}})).json()).user,null);
+ assert.equal((await pinRequest('login',{nickname:input.nickname,pin:input.pin})).status,401);
+ assert.equal((await pinRequest('login',{nickname:input.nickname,pin:changePayload.newPin})).status,200);
  console.log('Accounts: OAuth state, server-only token exchange, secure sessions, CSRF, real SQLite saves, conflict handling, account isolation, logout and expiry passed.');
 }finally{globalThis.fetch=oldFetch;sql.close();}

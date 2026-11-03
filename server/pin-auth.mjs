@@ -54,7 +54,7 @@ export async function handlePinAuth(request, env, action, auth) {
     if (version !== 'pbkdf2-sha256-v1' || !/^[a-f0-9]{64}$/.test(expected || '') || !timingSafeEqual(encoder.encode(key.toString('hex')), encoder.encode(expected))) {
       throw fail('닉네임 또는 PIN을 확인해 주세요.', 401);
     }
-    return startSession(request, env, existing);
+    return startSession(request, env, existing, [], 200, existing.pin_hash);
   }
 
   if (input.pin !== input.pinConfirmation) throw fail('PIN 재입력이 일치하지 않습니다.');
@@ -76,4 +76,42 @@ export async function handlePinAuth(request, env, action, auth) {
     }
     throw error;
   }
+}
+
+export async function changePin(request, env, user, auth) {
+  const { body, fail, hash, random, reply } = auth;
+  if (!pinReady(env)) throw fail('PIN 계정 설정을 확인해 주세요.', 503);
+  const now = Date.now();
+  await throttle(env.DB, 'change-pin:user', user.id, 8, now, hash, fail);
+  const input = await body(request);
+  if (typeof input?.pin !== 'string' || !/^\d{8}$/.test(input.pin) ||
+      typeof input.newPin !== 'string' || !/^\d{8}$/.test(input.newPin) ||
+      input.newPin !== input.pinConfirmation || input.newPin === input.pin) {
+    throw fail('현재 PIN과 서로 다른 새 PIN 8자리 및 재입력을 확인해 주세요.');
+  }
+  const current = await env.DB.prepare('SELECT pin_hash FROM lab_pin_credentials WHERE user_id=?')
+    .bind(user.id).first();
+  if (!current) throw fail('PIN 계정이 필요합니다.', 403);
+  const [version, salt, expected] = current.pin_hash.split('$');
+  const key = await derive(input.pin, salt, env.PIN_PEPPER);
+  if (version !== 'pbkdf2-sha256-v1' || !/^[a-f0-9]{64}$/.test(expected || '') ||
+      !timingSafeEqual(encoder.encode(key.toString('hex')), encoder.encode(expected))) {
+    throw fail('현재 PIN을 확인해 주세요.', 401);
+  }
+  const newSalt = random();
+  const newKey = await derive(input.newPin, newSalt, env.PIN_PEPPER);
+  const newHash = 'pbkdf2-sha256-v1$' + newSalt + '$' + newKey.toString('hex');
+  const [updated] = await env.DB.batch([
+    env.DB.prepare(`UPDATE lab_pin_credentials SET pin_hash=? WHERE user_id=? AND pin_hash=?
+      AND EXISTS (SELECT 1 FROM lab_sessions WHERE token_hash=? AND expires_at>?)`)
+      .bind(newHash, user.id, current.pin_hash, user.token_hash, Date.now()),
+    env.DB.prepare(`DELETE FROM lab_sessions WHERE user_id=? AND token_hash<>?
+      AND EXISTS (SELECT 1 FROM lab_pin_credentials WHERE user_id=? AND pin_hash=?)`)
+      .bind(user.id, user.token_hash, user.id, newHash),
+    env.DB.prepare(`UPDATE lab_recovery_devices SET revoked_at=? WHERE user_id=? AND revoked_at IS NULL
+      AND EXISTS (SELECT 1 FROM lab_pin_credentials WHERE user_id=? AND pin_hash=?)`)
+      .bind(now, user.id, user.id, newHash)
+  ]);
+  if (!(updated.meta?.changes ?? updated.changes)) throw fail('계정 정보가 변경되었습니다. 다시 로그인해 주세요.', 409);
+  return reply({ ok: true });
 }

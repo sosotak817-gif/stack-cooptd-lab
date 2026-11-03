@@ -1,4 +1,4 @@
-import { handlePinAuth, pinIdentityPrefix, pinReady } from './pin-auth.mjs';
+import { changePin, handlePinAuth, pinIdentityPrefix, pinReady } from './pin-auth.mjs';
 
 const jsonHeaders={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:jsonHeaders});
@@ -29,19 +29,23 @@ export function validBoard(s){
  const keys=new Set();for(const c of s.cells){if(!Number.isInteger(c.row)||c.row<0||c.row>10||c.row===5||!Number.isInteger(c.col)||c.col<0||c.col>6||typeof c.slug!=='string'||c.slug.length>80||keys.has(c.row+','+c.col))throw fail('배치 위치를 확인해 주세요.');keys.add(c.row+','+c.col);}
 }
 export { body as readBoardBody };
-async function issueSession(request, env, user, statements = []) {
+async function issueSession(request, env, user, statements = [], pinHash) {
  const now = Date.now(), token = random(), csrf = random(), oldToken = cookies(request)[SESSION];
  statements.push(env.DB.prepare('DELETE FROM lab_sessions WHERE expires_at<=?').bind(now));
  if(oldToken && /^[a-f0-9]{64}$/.test(oldToken)) {
   statements.push(env.DB.prepare('DELETE FROM lab_sessions WHERE token_hash=?').bind(await hash(oldToken)));
  }
- statements.push(env.DB.prepare('INSERT INTO lab_sessions(token_hash,user_id,csrf,expires_at) VALUES(?,?,?,?)')
-  .bind(await hash(token),user.id,csrf,now+30*86400000));
- await env.DB.batch(statements);
+ const sessionValues = [await hash(token),user.id,csrf,now+30*86400000];
+ const insert = pinHash
+  ? env.DB.prepare('INSERT INTO lab_sessions(token_hash,user_id,csrf,expires_at) SELECT ?,?,?,? WHERE EXISTS (SELECT 1 FROM lab_pin_credentials WHERE user_id=? AND pin_hash=?)').bind(...sessionValues,user.id,pinHash)
+  : env.DB.prepare('INSERT INTO lab_sessions(token_hash,user_id,csrf,expires_at) VALUES(?,?,?,?)').bind(...sessionValues);
+ const results = await env.DB.batch([...statements, insert]);
+ const result = results.at(-1);
+ if (!(result.meta?.changes ?? result.changes)) throw fail('계정 정보가 변경되었습니다. 다시 로그인해 주세요.',409);
  return { csrf, cookie: cookie(SESSION,token,30*86400) };
 }
-async function startSession(request, env, user, statements, status=200) {
- const issued = await issueSession(request, env, user, statements);
+async function startSession(request, env, user, statements, status=200, pinHash) {
+ const issued = await issueSession(request, env, user, statements, pinHash);
  const response = reply({user:{id:user.id,nickname:user.nickname},csrf:issued.csrf},status);
  response.headers.append('Set-Cookie',issued.cookie);
  return response;
@@ -73,6 +77,10 @@ export async function handleAuth({request,env}){
    const user=await env.DB.prepare('INSERT INTO lab_users(id,naver_id,nickname,created_at) VALUES(?,?,?,?) ON CONFLICT(naver_id) DO UPDATE SET nickname=excluded.nickname RETURNING id,nickname').bind(userId,profile.response.id,nickname,now).first();
    const issued = await issueSession(request, env, user);
    return redirect('/?login=success',[cookie(STATE,'',0),issued.cookie]);
+  }
+  if(path==='/api/auth/change-pin'&&request.method==='POST'){
+   const user=await authorized(request,env,true);
+   return await changePin(request,env,user,{body,fail,hash,random,reply});
   }
   if(path==='/api/auth/logout'&&request.method==='POST'){
    const user=await authorized(request,env,true);await env.DB.prepare('DELETE FROM lab_sessions WHERE token_hash=?').bind(user.token_hash).run();
