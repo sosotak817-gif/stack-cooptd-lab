@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import fs from 'node:fs';
 import { handleAuth,handleBoard } from './server/accounts.mjs';
-const sql=new DatabaseSync(':memory:');sql.exec(fs.readFileSync('migrations/0002_accounts.sql','utf8'));
+const sql=new DatabaseSync(':memory:');sql.exec('PRAGMA foreign_keys=ON');sql.exec(fs.readFileSync('migrations/0002_accounts.sql','utf8'));sql.exec(fs.readFileSync('migrations/0010_account_board_backups.sql','utf8'));
 class Statement{
  constructor(query,values=[]){this.query=query;this.values=values;}
  bind(...values){return new Statement(this.query,values);}
@@ -35,6 +35,13 @@ try{
  assert.equal((await (await board(put(0))).json()).revision,1);
  assert.equal((await board(put(0))).status,409);assert.equal((await (await board(put(1))).json()).revision,2);
  const loaded=await (await board({headers})).json();assert.deepEqual(loaded.board,sample);assert.equal(loaded.revision,2);
+ const revised={...sample,cells:[]};
+ assert.equal((await board(put(2,{board:revised}))).status,200);
+ const previous=sql.prepare('SELECT * FROM lab_board_backups WHERE user_id=?').get(one.user.id);
+ assert.equal(previous.revision,2);
+ assert.deepEqual(JSON.parse(previous.data),sample);
+ assert.equal((await board(put(2))).status,409);
+ assert.deepEqual(sql.prepare('SELECT * FROM lab_board_backups WHERE user_id=?').get(one.user.id),previous);
  profile='naver-two';const two=await login(),otherHeaders={Cookie:two.cookie,'X-CSRF-Token':two.csrf};assert.equal((await (await board({headers:otherHeaders})).json()).board,null);
  assert.equal((await board({headers:{...otherHeaders,'X-Account-Id':one.user.id}})).status,409);
  assert.equal((await board({...put(0),headers:{...otherHeaders,'X-Account-Id':one.user.id}})).status,409);
