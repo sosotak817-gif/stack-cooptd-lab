@@ -1,6 +1,10 @@
 import {requireAccountSession} from './accounts.mjs';
 
-const luckyPositions=[7,77,777,7777];
+const visitorBadges=[
+ [1,'hidden-first-visitor','1번째 방문자가 왔습니다! 홈페이지는 이제 각성하세요!'],
+ ...[7,77,777,7777].map(position=>[position,'hidden-lucky-'+position,'행운의 '+position+'번째 방문자'])
+];
+const visitorBadgeCase='CASE position '+visitorBadges.map(()=> 'WHEN ? THEN ?').join(' ')+' END';
 const headers={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const reply=(value,status=200)=>new Response(JSON.stringify(value),{status,headers});
 const hash=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),x=>x.toString(16).padStart(2,'0')).join('');
@@ -28,18 +32,19 @@ export async function handleVisitors({request,env}){
   let account;
   try { account=await requireAccountSession(request,env); }
   catch(error){if(error.status!==401)throw error;}
-  const definitions=account?luckyPositions.map(position=>db.prepare(
+  const definitions=account?visitorBadges.map(([,code,title])=>db.prepare(
    'INSERT OR IGNORE INTO lab_achievements(code,title) VALUES (?,?)'
-  ).bind('hidden-lucky-'+position,'행운의 '+position+'번째 방문자')):[];
+  ).bind(code,title)):[];
   await db.batch([
    ...definitions,
    db.prepare('INSERT OR IGNORE INTO daily_visitors(day,visitor_hash) VALUES(?,?)').bind(day,visitorHash),
    ...(account?[db.prepare(`INSERT OR IGNORE INTO lab_user_achievements(user_id,code,earned_at)
-    SELECT ?, 'hidden-lucky-'||position, ? FROM
+    SELECT ?, ${visitorBadgeCase}, ? FROM
       (SELECT COUNT(*) AS position FROM daily_visitors WHERE day=?)
-    WHERE changes()=1 AND position IN (7,77,777,7777)
+    WHERE changes()=1 AND position IN (?,?,?,?,?)
       AND EXISTS (SELECT 1 FROM lab_sessions WHERE token_hash=? AND user_id=? AND expires_at>?)`)
-    .bind(account.id,Date.now(),day,account.token_hash,account.id,Date.now())]:[]),
+    .bind(account.id,...visitorBadges.flatMap(([position,code])=>[position,code]),Date.now(),day,
+     ...visitorBadges.map(([position])=>position),account.token_hash,account.id,Date.now())]:[]),
    db.prepare('DELETE FROM daily_visitors WHERE day<?').bind(offsetDay(day,-45))
   ]);
   return reply({tracked:true});

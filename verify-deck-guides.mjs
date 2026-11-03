@@ -106,7 +106,10 @@ try{
  const visit=(headers,ip)=>handleVisitors({env:{DB},request:new Request('https://lab.example/api/visitors',{
   method:'POST',headers:{Origin:'https://lab.example','CF-Connecting-IP':ip,...headers}
  })});
- for(let n=1;n<=6;n++)assert.equal((await visit({},'192.0.2.'+n)).status,200);
+ assert.equal((await visit(a,'192.0.2.1')).status,200);
+ assert.equal((await visit(a,'192.0.2.1')).status,200);
+ assert.equal(sqlite.prepare("SELECT count(*) n FROM lab_user_achievements WHERE user_id='account-a' AND code='hidden-first-visitor'").get().n,1);
+ for(let n=2;n<=6;n++)assert.equal((await visit({},'192.0.2.'+n)).status,200);
  assert.equal((await visit(a,'192.0.2.6')).status,200);
  assert.equal(sqlite.prepare("SELECT count(*) n FROM lab_user_achievements WHERE code LIKE 'hidden-lucky-%'").get().n,0);
  assert.equal((await visit(a,'192.0.2.7')).status,200);

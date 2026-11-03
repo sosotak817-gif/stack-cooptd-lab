@@ -2,6 +2,7 @@
 
 // Gem type distinguishes the discovery, while the stone shows its difficulty grade.
 const hiddenBadgeGems = new Map([
+ ['hidden-first-visitor', ['awakening', 'sss', '1번째 방문자가 왔습니다! 홈페이지는 이제 각성하세요!']],
  ['hidden-stack', ['fortune', 'sss', '스택']],
  ['hidden-roadmap', ['hero', 's', '연구의 첫걸음']],
  ['hidden-archive', ['precision', 'ss', '기록의 틈새']],

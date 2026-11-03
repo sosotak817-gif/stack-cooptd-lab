@@ -1,5 +1,12 @@
 [
   {
+    "id": "2026-11-03-first-visitor-awakening",
+    "date": "2026-11-03",
+    "type": "feature",
+    "title": "첫 방문자 각성 SSS 히든 배지",
+    "details": ["한국 시간 기준 그날의 첫 고유 방문을 로그인 상태에서 기록하면 각성 SSS 보석 배지를 획득합니다."]
+  },
+  {
     "id": "2026-11-03-lucky-visitor-badges",
     "date": "2026-11-03",
     "type": "feature",
