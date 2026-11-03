@@ -124,6 +124,19 @@ try{
  assert.ok(standings.rows.every(row=>row.score===0),'server ignores fabricated client score for zero moves');
  assert.ok(sql.prepare('SELECT revision FROM daily_puzzle_account_scores').get().revision.endsWith(':server-score-v1'));
 
+ const {handleTierVotes}=await import('./server/tier-votes.mjs');
+ const {roster}=await import('./server/tier-roster.mjs');
+ const ranking=roster.slice(0,7), updatedRanking=[...ranking].reverse();
+ const vote=(method,sessionHeaders,choices)=>handleTierVotes({env,request:request('/api/tier-votes',{
+  method,headers:{...sessionHeaders,'X-Account-Id':two.user.id},body:choices?JSON.stringify({ranking:choices}):undefined
+ })});
+ assert.equal((await vote('PUT',{Cookie:two.cookie},ranking)).status,403);
+ assert.equal((await vote('PUT',otherHeaders,ranking)).status,200);
+ assert.equal((await vote('PUT',otherHeaders,updatedRanking)).status,200);
+ const ballot=await (await vote('GET',{Cookie:two.cookie,Origin:''})).json();
+ assert.equal(ballot.total,1);
+ assert.deepEqual(ballot.mine,updatedRanking);
+ assert.equal((await vote('GET',otherDeckHeaders)).status,409);
  sql.prepare('UPDATE lab_sessions SET expires_at=0').run();assert.equal((await board({headers:otherHeaders})).status,401);
  assert.equal(sql.prepare('SELECT COUNT(*) n FROM lab_boards').get().n,2,'logout and expiry preserve account saves');
  sql.exec(fs.readFileSync('migrations/0009_pin_account_credentials.sql','utf8'));
