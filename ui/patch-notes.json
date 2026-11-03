@@ -1,5 +1,12 @@
 [
   {
+    "id": "2026-11-03-first-verified-puzzle-badge",
+    "date": "2026-11-03",
+    "type": "feature",
+    "title": "첫 검증 퍼즐 기록 업적",
+    "details": ["계정으로 제출한 퍼즐 점수가 서버 계산으로 저장되면 첫 검증 퍼즐 기록 업적을 획득합니다. 마이페이지에서 확인할 수 있습니다."]
+  },
+  {
     "id": "2026-11-03-account-roadmap-progress",
     "date": "2026-11-03",
     "type": "feature",

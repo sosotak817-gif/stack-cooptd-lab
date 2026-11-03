@@ -7,7 +7,7 @@ export async function onRequest({ request, env }) {
     const user = await requireAccountSession(request, env);
     if (request.headers.get('X-Account-Id') !== user.id) return reply({ error: '로그인 계정이 변경되었습니다.' }, 409);
     const db = env.DB;
-    const [puzzles, guides, totals] = await db.batch([
+    const [puzzles, guides, totals, achievements] = await db.batch([
       db.prepare(`SELECT week, score, moves, achieved_at AS achievedAt, json_extract(replay, '$.day') AS day
         FROM daily_puzzle_account_scores WHERE user_id=? ORDER BY achieved_at DESC, week DESC, revision DESC LIMIT 20`).bind(user.id),
       db.prepare(`SELECT id, title, updated_at AS updatedAt FROM deck_guides
@@ -15,9 +15,11 @@ export async function onRequest({ request, env }) {
       db.prepare(`SELECT
         (SELECT COUNT(*) FROM lab_decks WHERE user_id=?) AS savedDecks,
         (SELECT COUNT(*) FROM daily_puzzle_account_scores WHERE user_id=?) AS puzzleRecords,
-        (SELECT COUNT(*) FROM deck_guides WHERE owner=?) AS publishedGuides`).bind(user.id, user.id, 'account:' + user.id)
+        (SELECT COUNT(*) FROM deck_guides WHERE owner=?) AS publishedGuides`).bind(user.id, user.id, 'account:' + user.id),
+      db.prepare(`SELECT a.title, u.earned_at AS earnedAt FROM lab_user_achievements u
+        JOIN lab_achievements a ON a.code=u.code WHERE u.user_id=? ORDER BY u.earned_at DESC,a.code`).bind(user.id)
     ]);
-    return reply({ puzzles: puzzles.results, guides: guides.results, stats: totals.results[0] });
+    return reply({ puzzles: puzzles.results, guides: guides.results, stats: totals.results[0], achievements: achievements.results });
   } catch (error) {
     return reply({ error: error.status ? error.message : '활동 기록을 불러오지 못했습니다.' }, error.status || 503);
   }

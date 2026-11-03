@@ -16,6 +16,8 @@
   }
 
   async function refreshActivity(user) {
+    const achievements = get('activity-achievements');
+    achievements.replaceChildren();
     const puzzles = get('activity-puzzles');
     const guides = get('activity-guides');
     const activityStatus = get('activity-status');
@@ -38,6 +40,8 @@
         item.textContent = text;
         list.append(item);
       };
+      for (const badge of activity.achievements) append(achievements, badge.title + ' · ' + date.format(badge.earnedAt));
+      if (!activity.achievements.length) append(achievements, '획득한 업적이 없습니다.');
       for (const row of activity.puzzles) {
         append(puzzles, date.format(row.achievedAt) + ' · ' + score.format(row.score / 100) + ' · 이동 ' + row.moves + '회');
       }
