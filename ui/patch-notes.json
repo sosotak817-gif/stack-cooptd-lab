@@ -1,5 +1,14 @@
 [
   {
+    "id": "2026-11-03-growth-gem-composition-dedup",
+    "date": "2026-11-03",
+    "type": "fix",
+    "title": "성장 추천 보석 조합 중복 제거",
+    "details": [
+      "1·3번 일반 슬롯이 모두 열렸으면 보석의 종류와 등급 조합으로 비교해 순서만 다른 후보를 한 번만 계산합니다."
+    ]
+  },
+  {
     "id": "2026-11-03-growth-gem-slot-order",
     "date": "2026-11-03",
     "type": "fix",

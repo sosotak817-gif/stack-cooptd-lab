@@ -19,8 +19,25 @@ function describeChange(before,after,kind,E,D){
  if(kind==='unit'){const index=before.cells.findIndex((c,i)=>c.slug!==after.cells[i]?.slug);if(index>=0){slug=after.cells[index].slug;changes.push({type:'unit',from:before.cells[index].slug,to:slug});}}
  return{slug,changes};
 }
+// Normal slots are interchangeable. The special slot stays distinct.
+function gemComposition(gems,lib){
+ const key=gem=>gem?.id?[gem.id,gem.grade]:null;
+ const normal=[key(gems?.[0]),key(gems?.[2])];
+ if(lib>=20)normal.sort();
+ return JSON.stringify([key(gems?.[1]),normal]);
+}
 function candidates(input,E,D,{replacement=null,stacks=true,milestones=true,recommendations=root.CoopDealerRecommendations}={}){
- const output=[],seen=new Set,original=JSON.stringify(input),add=(kind,label,detail,change)=>{const state=structuredClone(input);change(state);const key=JSON.stringify(state);if(key!==original&&!seen.has(key)){seen.add(key);output.push({kind,label,detail,...describeChange(input,state,kind,E,D),state});}};
+ const output=[],seen=new Set,seenGemCompositions=new Set,original=JSON.stringify(input),add=(kind,label,detail,change)=>{const state=structuredClone(input);change(state);const key=JSON.stringify(state);if(key!==original&&!seen.has(key)){const change=describeChange(input,state,kind,E,D);
+ if(kind==='gem'){
+  if(!change.slug)return;
+  const lib=E.effectiveLib(input.you,change.slug);
+  const before=gemComposition(input.you.perDemon[change.slug]?.gems,lib);
+  const after=gemComposition(state.you.perDemon[change.slug]?.gems,lib);
+  const compositionKey=JSON.stringify([change.slug,after]);
+  if(before===after||seenGemCompositions.has(compositionKey))return;
+  seenGemCompositions.add(compositionKey);
+ }
+ seen.add(key);output.push({kind,label,detail,...change,state});}};
  for(const slug of new Set(input.cells.filter(c=>c.row>5).map(c=>c.slug))){
   const own=input.you.perDemon[slug]||{},level=own.level??input.you.levelSupreme??1,lib=E.effectiveLib(input.you,slug),name=D.DEMON_BY_SLUG.get(slug).name,unlocked=[3,10,20].filter(n=>lib>=n).length;
   if(level<D.maxLevelFor(slug))add('level',name,`레벨 ${level} → ${level+1}`,s=>s.you.perDemon[slug]={...own,level:level+1});
