@@ -86,6 +86,7 @@
     mergePanel.hidden = true;
     settingsPanel.hidden = true;
     session = await api('/api/auth/me');
+    leaveStaleWorkspace(session.user?.id);
     remote = null;
     if (!session.user) return '계정에 로그인해 주세요.';
     remote = await api('/api/account/board', { headers: { 'X-Account-Id': session.user.id } });
@@ -114,6 +115,7 @@
       status.textContent = await task();
     } catch (error) {
       if ([401, 403, 409].includes(error.status)) {
+        if ([401, 403].includes(error.status)) leaveStaleWorkspace();
         controls.hidden = true;
         deckPanel.hidden = true;
         mergePanel.hidden = true;
@@ -127,6 +129,28 @@
       busy = false;
     }
   }
+
+  function leaveStaleWorkspace(id) {
+    const adapter = window.StackLabAccount;
+    if (adapter?.workspaceId() && adapter.workspaceId() !== id) adapter.leaveWorkspace();
+  }
+
+  async function checkWorkspace() {
+    const adapter = window.StackLabAccount;
+    if (!adapter?.workspaceId()) return;
+    try {
+      const state = await api('/api/auth/me');
+      leaveStaleWorkspace(state.user?.id);
+    } catch {
+      leaveStaleWorkspace();
+    }
+  }
+
+  window.addEventListener('focus', checkWorkspace);
+  window.addEventListener('pageshow', checkWorkspace);
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') checkWorkspace();
+  });
 
   open.addEventListener('click', () => {
     dialog.showModal();
@@ -167,7 +191,7 @@
       controls.hidden = true;
       return '비교한 세팅이 변경되었습니다. 창을 다시 열어 확인해 주세요.';
     }
-    adapter.load(latest.board);
+    adapter.loadAccount(session.user.id, latest.board);
     return session.user.nickname + ' 계정의 세팅을 적용했습니다.';
   }));
 
@@ -222,7 +246,7 @@
         return '비교한 설정이 변경되었습니다. 다시 확인해 주세요.';
       }
       const { you, partner, inventory } = latest.settings;
-      adapter.load({ ...current, you, partner, inventory });
+      adapter.loadAccount(session.user.id, { ...current, you, partner, inventory });
       return '배치는 유지하고 계정 설정을 적용했습니다.';
     }));
   }
@@ -278,7 +302,7 @@
           await refresh();
           return '비교한 배치가 변경되었습니다. 다시 선택해 주세요.';
         }
-        adapter.load(latest.board);
+        adapter.loadAccount(session.user.id, latest.board);
       }
       finishMerge(id);
       return choice === 'account' ? '계정 배치를 이 브라우저에 적용했습니다.' : '현재 브라우저 배치를 계속 사용합니다.';
@@ -311,7 +335,7 @@
           await refreshDecks();
           return '비교한 덱이 변경되었습니다. 다시 선택해 주세요.';
         }
-        adapter.load(deck.board);
+        adapter.loadAccount(session.user.id, deck.board);
         return deck.name + ' 덱을 적용했습니다.';
       }
       if (action !== 'new' && !confirm(selected.name + (action === 'delete' ? ' 덱을 삭제할까요?' : ' 덱을 현재 배치로 교체할까요?'))) {
