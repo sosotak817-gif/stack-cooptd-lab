@@ -21,13 +21,27 @@
       <button data-save>이 브라우저 세팅을 계정에 저장</button>
       <button data-load>계정 세팅을 이 브라우저에 적용</button>
       <button data-restore hidden>계정의 직전 버전 복원</button>
-    </div>`;
+    </div>
+    <details data-decks hidden>
+      <summary>계정에 저장한 덱</summary>
+      <label>덱 이름 <input data-deck-name maxlength="60"></label>
+      <button data-deck-new>현재 배치를 새 덱으로 저장</button>
+      <label>저장한 덱 <select data-deck-list></select></label>
+      <button data-deck-load>선택한 덱 불러오기</button>
+      <button data-deck-update>선택한 덱을 현재 배치로 교체</button>
+      <button data-deck-delete>선택한 덱 삭제</button>
+    </details>`;
   document.body.append(dialog);
   const status = dialog.querySelector('[role=status]');
   const controls = dialog.querySelector('[data-controls]');
   const save = dialog.querySelector('[data-save]');
   const load = dialog.querySelector('[data-load]');
   const restore = dialog.querySelector('[data-restore]');
+  const deckPanel = dialog.querySelector('[data-decks]');
+  const deckName = dialog.querySelector('[data-deck-name]');
+  const deckList = dialog.querySelector('[data-deck-list]');
+  const deckActions = ['load', 'update', 'delete'];
+  let decks = [];
   let backup = null;
   let session = null;
   let remote = null;
@@ -46,6 +60,7 @@
 
   async function refresh() {
     controls.hidden = true;
+    deckPanel.hidden = true;
     session = await api('/api/auth/me');
     remote = null;
     if (!session.user) return '계정에 로그인해 주세요.';
@@ -58,6 +73,7 @@
     restore.hidden = !backup;
     controls.hidden = false;
     load.hidden = !remote.board;
+    await refreshDecks();
     return session.user.nickname + (remote.board
       ? ' · 저장된 배치 ' + remote.board.cells.length + '개 · 버전 ' + remote.revision
       : ' · 저장된 계정 세팅이 없습니다.');
@@ -73,6 +89,7 @@
     } catch (error) {
       if ([401, 403, 409].includes(error.status)) {
         controls.hidden = true;
+        deckPanel.hidden = true;
         status.textContent = error.message + ' 창을 다시 열어 최신 상태를 확인해 주세요.';
       } else {
         status.textContent = error.message;
@@ -143,4 +160,54 @@
     await refresh();
     return '계정에 직전 세팅을 복원했습니다. 현재 버전 ' + restored.revision + ' · 브라우저에 적용하려면 불러오기를 선택하세요.';
   }));
+
+  async function refreshDecks(preferredId = deckList.value) {
+    const { decks: latest } = await api('/api/me/decks');
+    decks = latest;
+    deckList.replaceChildren(...decks.map(deck => new Option(deck.name, deck.id)));
+    if (decks.some(deck => deck.id === preferredId)) deckList.value = preferredId;
+    deckPanel.hidden = false;
+    for (const action of deckActions) dialog.querySelector('[data-deck-' + action + ']').disabled = !decks.length;
+  }
+
+  for (const action of ['new', ...deckActions]) {
+    dialog.querySelector('[data-deck-' + action + ']').addEventListener('click', () => run(async () => {
+      if (!session?.user || deckPanel.hidden) return '계정에 로그인해 주세요.';
+      const selected = decks.find(deck => deck.id === deckList.value);
+      if (action !== 'new' && !selected) return '저장한 덱을 선택해 주세요.';
+      const id = selected?.id;
+      const path = '/api/me/decks' + (action === 'new' ? '' : '/' + encodeURIComponent(id));
+      const adapter = window.StackLabAccount;
+      await adapter.ready;
+      if (action === 'load') {
+        const before = JSON.stringify(adapter.snapshot());
+        if (!confirm(selected.name + ' 덱을 이 브라우저에 적용할까요?')) return '덱 적용을 취소했습니다.';
+        const { deck } = await api(path);
+        if (deck.revision !== selected.revision || JSON.stringify(adapter.snapshot()) !== before) {
+          await refreshDecks();
+          return '비교한 덱이 변경되었습니다. 다시 선택해 주세요.';
+        }
+        adapter.load(deck.board);
+        return deck.name + ' 덱을 적용했습니다.';
+      }
+      if (action !== 'new' && !confirm(selected.name + (action === 'delete' ? ' 덱을 삭제할까요?' : ' 덱을 현재 배치로 교체할까요?'))) {
+        return '작업을 취소했습니다.';
+      }
+      const payload = { accountId: session.user.id };
+      if (action !== 'new') payload.revision = selected.revision;
+      if (action !== 'delete') {
+        payload.name = deckName.value.trim() || (action === 'update' ? selected.name : '');
+        if (!payload.name) return '덱 이름을 입력해 주세요.';
+        payload.board = adapter.snapshot();
+      }
+      const result = await api(path, {
+        method: { new: 'POST', update: 'PUT', delete: 'DELETE' }[action],
+        headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': session.csrf },
+        body: JSON.stringify(payload)
+      });
+      deckName.value = '';
+      await refreshDecks(result.deck?.id);
+      return action === 'delete' ? '덱을 삭제했습니다.' : '계정에 덱을 저장했습니다.';
+    }));
+  }
 })();
