@@ -173,7 +173,7 @@ try{
  const pinUser = await registered.json();
  assert.equal(pinUser.user.nickname,'Test_연구');
  assert.match(registered.headers.get('Set-Cookie'),/HttpOnly; Secure; SameSite=Lax/);
- assert.match(sql.prepare('SELECT pin_hash FROM lab_pin_credentials').get().pin_hash,/^pbkdf2-sha256-v1\$/);
+ assert.match(sql.prepare('SELECT pin_hash FROM lab_pin_credentials').get().pin_hash,/^pbkdf2-sha256-v2\$/);
  assert.deepEqual(await (await pinRequest('nickname',{nickname:'test_연구'})).json(),{available:false});
  assert.equal((await pinRequest('register',{...input,nickname:'TEST_연구'})).status,409);
  const loggedIn = await pinRequest('login',{nickname:'test_연구',pin:input.pin},{Cookie:cookieOf(registered,'__Host-stack_session')});
