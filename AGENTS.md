@@ -15,3 +15,7 @@ For every change that affects user-facing behavior, UI, recommendations, calcula
 - Supported types are `feature`, `fix`, `calculation`, and `performance`.
 - The build embeds the latest five entries on the homepage and every entry at `/updates/`. After updating logs run `npm run build` and `node verify-patch-notes.cjs`.
 - The homepage patch dashboard replaces only the saved-deck summary UI. Do not delete or reset browser/user storage as part of maintaining this dashboard.
+
+## Default visual design
+
+Use the dark Stack Lab dashboard at `ui/home.html` as the visual baseline. The production shell and theme are `ui/design-shell.js` and `ui/design-system.css`. Reuse the navy background, dark cards, mint accent, Pretendard typography, shared sidebar and responsive navigation. Register new main pages in the shared shell injection in `build.cjs`. Verify page-specific styles inside the dark shell at desktop and mobile widths.

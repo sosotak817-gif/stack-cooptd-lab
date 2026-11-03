@@ -1,5 +1,12 @@
 [
   {
+    "id": "2026-11-03-account-dark-dashboard-theme",
+    "date": "2026-11-03",
+    "type": "fix",
+    "title": "계정 화면에 연구소 기본 테마 적용",
+    "details": ["로그인·회원가입·PIN 재설정·마이페이지에 홈과 같은 다크 네이비·민트 테마와 공통 탐색 메뉴를 적용했습니다."]
+  },
+  {
     "id": "2026-11-03-account-home-entry",
     "date": "2026-11-03",
     "type": "feature",
