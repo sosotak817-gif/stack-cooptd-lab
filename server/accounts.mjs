@@ -87,6 +87,10 @@ export async function handleAuth({request,env}){
    const result={ready:ready(env),user:user?{id:user.id,nickname:user.nickname}:null,csrf:user?.csrf||null};
    if(path==='/api/auth/me'){
     result.pinReady=pinReady(env);
+    if(user&&result.pinReady){
+     const badge=await env.DB.prepare('SELECT a.title FROM lab_featured_badges f JOIN lab_achievements a ON a.code=f.code WHERE f.user_id=?').bind(user.id).first();
+     result.featuredBadge=badge?.title??null;
+    }
     result.pinAccount=!!(user&&result.pinReady&&await env.DB.prepare('SELECT 1 FROM lab_pin_credentials WHERE user_id=?').bind(user.id).first());
    }
    return reply(result);

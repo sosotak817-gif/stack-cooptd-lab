@@ -81,3 +81,15 @@ body:has(.pin-account){margin:0;min-height:100vh;background:linear-gradient(145d
 .pin-account :focus-visible{outline:3px solid #9781ec;outline-offset:2px}
 .pin-account #status{min-height:1.8em;color:#5b4687}
 @media(max-width:600px){.pin-account{padding-inline:14px}.pin-account .panel{padding:18px}}
+
+.home-account-actions{display:flex;justify-content:flex-end;align-items:center;flex-wrap:wrap;gap:10px}
+.home-featured-badge{display:block;font-size:.72rem;margin-top:3px;color:#7053ba}
+body.dashboard-page:has(.pin-account){background:var(--page-bg,#f7f5ff)}
+.pin-account .dashboard-heading{margin-top:22px}
+.pin-account .dashboard-heading h1{font-size:clamp(30px,6vw,48px)}
+.pin-account .account-guest{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.pin-account .account-guest[hidden]{display:none}
+.pin-account .account-guest .panel{margin:0}
+.pin-account .account-guest details{grid-column:1/-1}
+.pin-account summary{cursor:pointer;font-weight:750}
+@media(max-width:600px){.pin-account .account-guest{grid-template-columns:1fr}.home-account-actions{justify-content:flex-start}}

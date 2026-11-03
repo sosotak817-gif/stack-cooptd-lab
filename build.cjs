@@ -70,9 +70,14 @@ for(const route of ['dps-compare','dps-rank','board','boss-sim','charts','ticket
  s=s.replace('<head>',`<head><script>globalThis.COOP_KO=${JSON.stringify(translations).replace(/</g,'\\u003c')};</script><script src="/localize.js" defer></script>`);
  const temp=p+'.codex-tmp';fs.writeFileSync(temp,s);fs.renameSync(temp,p);
 }
-fs.copyFileSync('ui/home.html',path.join(dist,'index.html'));
+const accountVersion=require('crypto').createHash('sha256');
+for(const file of ['home-account.js','pin-account.js','pin-account.html','portal.css','board.css','responsive.css'])accountVersion.update(fs.readFileSync('ui/'+file));
+const accountAssetVersion=accountVersion.digest('hex').slice(0,12);
+const writeAccountPage=(source,target)=>fs.writeFileSync(path.join(dist,target),fs.readFileSync('ui/'+source,'utf8').replaceAll('__ACCOUNT_VERSION__',accountAssetVersion));
+writeAccountPage('home.html','index.html');
+fs.copyFileSync('ui/home-account.js',path.join(dist,'home-account.js'));
 fs.mkdirSync(path.join(dist,'account'),{recursive:true});
-fs.copyFileSync('ui/pin-account.html',path.join(dist,'account/index.html'));
+writeAccountPage('pin-account.html','account/index.html');
 fs.copyFileSync('ui/pin-account.js',path.join(dist,'pin-account.js'));
 fs.mkdirSync(path.join(dist,'research'),{recursive:true});fs.copyFileSync('ui/research.html',path.join(dist,'research/index.html'));
 

@@ -4,23 +4,28 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>내 계정 | 스택 연구소</title>
-<link rel="stylesheet" href="/portal.css">
-<script src="/pin-account.js" defer></script>
+<link rel="stylesheet" href="/portal.css?v=__ACCOUNT_VERSION__">
+<link rel="stylesheet" href="/board.css?v=__ACCOUNT_VERSION__">
+<link rel="stylesheet" href="/responsive.css?v=__ACCOUNT_VERSION__">
+<script src="/pin-account.js?v=__ACCOUNT_VERSION__" defer></script>
 </head>
-<body>
+<body class="dashboard-page">
 <main class="portal pin-account">
 <a class="pin-home" href="/">← 스택 연구소 홈</a>
-<h1>내 계정</h1>
+<header class="dashboard-heading"><div><span class="eyebrow">STACK LAB ACCOUNT</span><h1 id="account-heading">내 계정<span>.</span></h1></div><a class="release-link" id="guest-entry" href="/">비로그인으로 이용 →</a></header>
 <p>PIN은 숫자 4~8자리로 설정할 수 있습니다.</p>
 <p id="status" role="status" aria-live="polite">계정 상태를 확인하고 있습니다.</p>
-<section id="guest" class="panel" hidden>
+<section id="guest" class="account-guest" hidden>
+  <section class="panel dashboard-panel">
   <h2>로그인</h2>
   <form data-path="/api/auth/login">
     <label>닉네임 <input name="nickname" autocomplete="username" required maxlength="32"></label>
     <label>PIN <input name="pin" type="password" autocomplete="current-password" inputmode="numeric" pattern="[0-9]{4,8}" maxlength="8" required></label>
     <button class="portal-primary">로그인</button>
   </form>
-  <h2>계정 만들기</h2>
+  </section>
+  <section class="panel dashboard-panel">
+  <h2>회원가입</h2>
   <form data-path="/api/auth/register">
     <label>닉네임 <input name="nickname" autocomplete="username" required maxlength="32"></label>
     <button type="button" id="check-name">닉네임 중복 확인</button>
@@ -28,8 +33,9 @@
     <label>PIN 재입력 <input name="pinConfirmation" type="password" autocomplete="new-password" inputmode="numeric" pattern="[0-9]{4,8}" maxlength="8" required></label>
     <button class="portal-primary">가입</button>
   </form>
-  <details>
-    <summary>PIN을 잊으셨나요?</summary>
+  </section>
+  <details class="panel dashboard-panel">
+    <summary>비밀번호 찾기 · PIN 재설정</summary>
     <p>미리 등록한 브라우저에서만 재설정할 수 있습니다. 재설정하면 모든 로그인 세션과 복구 브라우저 등록이 해제됩니다.</p>
     <form data-path="/api/auth/reset-pin">
       <label>닉네임 <input name="nickname" autocomplete="username" required maxlength="32"></label>
@@ -39,7 +45,7 @@
     </form>
   </details>
 </section>
-<section id="member" class="panel" hidden>
+<section id="member" class="panel dashboard-panel" hidden>
   <h2 id="nickname"></h2>
   <p id="featured-badge"></p>
   <form data-path="/api/auth/logout"><button>로그아웃</button></form>

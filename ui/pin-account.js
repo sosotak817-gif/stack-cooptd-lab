@@ -1,6 +1,18 @@
 (() => {
   const get = id => document.getElementById(id);
   const status = get('status');
+  const entryKey = 'stack-lab-entry-choice-v1';
+  const fromHome = new URLSearchParams(location.search).get('welcome') === '1';
+  function rememberEntry() {
+    try { localStorage.setItem(entryKey, '1'); } catch {}
+  }
+  get('guest-entry').addEventListener('click', event => {
+    rememberEntry();
+    if (fromHome) {
+      event.preventDefault();
+      location.replace('/?enter=1');
+    }
+  });
   let csrf = null;
   let busy = false;
 
@@ -89,6 +101,8 @@
   async function refresh() {
     const state = await request('/api/auth/me');
     csrf = state.csrf;
+    get('account-heading').firstChild.textContent = state.user ? '마이페이지' : '로그인';
+    if (state.user) rememberEntry();
     get('guest').hidden = !state.pinReady || !!state.user;
     get('member').hidden = !state.user;
     get('pin-tools').hidden = !state.pinReady || !state.pinAccount;
@@ -137,6 +151,13 @@
       delete data.device;
       run(async () => {
         await request(path, form.dataset.method || 'POST', data);
+        if (path === '/api/auth/login' || path === '/api/auth/register') {
+          rememberEntry();
+          if (fromHome) {
+            location.replace('/?enter=1');
+            return '연구소 홈으로 이동합니다.';
+          }
+        }
         form.reset();
         await refresh();
         return '처리가 완료되었습니다.';
