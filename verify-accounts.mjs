@@ -60,6 +60,7 @@ try{
  assert.equal((await auth('/api/auth/logout',{method:'POST',headers:{Cookie:one.cookie}})).status,403);
  assert.equal((await auth('/api/auth/logout',{method:'POST',headers})).status,200);assert.equal((await (await auth('/api/auth/session',{headers})).json()).user,null);
  sql.exec(fs.readFileSync('migrations/0011_account_decks.sql','utf8'));
+ sql.exec(fs.readFileSync('migrations/0013_account_deck_backups.sql','utf8'));
  const decks=(method,id,payload,sessionHeaders=otherHeaders)=>handleDecks({env,request:request('/api/me/decks'+(id?'/'+id:''),{
   method,headers:sessionHeaders,body:payload?JSON.stringify(payload):undefined
  })});
@@ -78,7 +79,14 @@ try{
  assert.equal((await decks('DELETE',deckId,{accountId:freshOne.user.id,revision:1},otherDeckHeaders)).status,409);
  assert.equal((await decks('PUT',deckId,{...deckInput,name:'수정한 덱',revision:1})).status,200);
  assert.equal((await decks('DELETE',deckId,{accountId:two.user.id,revision:1})).status,409);
+ const deckBackup=sql.prepare('SELECT * FROM lab_deck_backups WHERE deck_id=?').get(deckId);
+ assert.equal(deckBackup.revision,1);
+ assert.equal(deckBackup.name,deckInput.name);
+ assert.deepEqual(JSON.parse(deckBackup.data),sample);
+ assert.equal((await decks('PUT',deckId,{...deckInput,name:'stale write',revision:1})).status,409);
+ assert.deepEqual(sql.prepare('SELECT * FROM lab_deck_backups WHERE deck_id=?').get(deckId),deckBackup);
  assert.equal((await decks('DELETE',deckId,{accountId:two.user.id,revision:2})).status,200);
+ assert.equal(sql.prepare('SELECT * FROM lab_deck_backups WHERE deck_id=?').get(deckId),undefined);
  assert.equal((await (await decks('GET')).json()).decks.length,1);
  sql.exec(fs.readFileSync('migrations/0012_account_settings.sql','utf8'));
  const settings={version:1,you:sample.you,partner:sample.partner,inventory:{you:[],partner:[]},cells:sample.cells};
