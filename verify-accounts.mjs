@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import fs from 'node:fs';
-import { handleAuth,handleBoard } from './server/accounts.mjs';
+import { handleAuth,handleBoard,handleDecks } from './server/accounts.mjs';
 const sql=new DatabaseSync(':memory:');sql.exec('PRAGMA foreign_keys=ON');sql.exec(fs.readFileSync('migrations/0002_accounts.sql','utf8'));sql.exec(fs.readFileSync('migrations/0010_account_board_backups.sql','utf8'));
 class Statement{
  constructor(query,values=[]){this.query=query;this.values=values;}
@@ -59,6 +59,27 @@ try{
  assert.equal((await board({...put(0),headers:otherHeaders})).status,200);assert.equal(sql.prepare('SELECT COUNT(*) n FROM lab_boards').get().n,2);
  assert.equal((await auth('/api/auth/logout',{method:'POST',headers:{Cookie:one.cookie}})).status,403);
  assert.equal((await auth('/api/auth/logout',{method:'POST',headers})).status,200);assert.equal((await (await auth('/api/auth/session',{headers})).json()).user,null);
+ sql.exec(fs.readFileSync('migrations/0011_account_decks.sql','utf8'));
+ const decks=(method,id,payload,sessionHeaders=otherHeaders)=>handleDecks({env,request:request('/api/me/decks'+(id?'/'+id:''),{
+  method,headers:sessionHeaders,body:payload?JSON.stringify(payload):undefined
+ })});
+ const deckInput={accountId:two.user.id,name:'첫 번째 덱',board:sample};
+ assert.equal((await decks('POST',null,{...deckInput,accountId:one.user.id})).status,409);
+ const created=await decks('POST',null,deckInput);
+ assert.equal(created.status,201);
+ const {deck:{id:deckId}}=await created.json();
+ assert.equal((await decks('POST',null,{...deckInput,name:'두 번째 덱'})).status,201);
+ assert.equal((await (await decks('GET')).json()).decks.length,2);
+ assert.deepEqual((await (await decks('GET',deckId)).json()).deck.board,sample);
+ profile='naver-one';
+ const freshOne=await login();
+ const otherDeckHeaders={Cookie:freshOne.cookie,'X-CSRF-Token':freshOne.csrf};
+ assert.equal((await decks('GET',deckId,null,otherDeckHeaders)).status,404);
+ assert.equal((await decks('DELETE',deckId,{accountId:freshOne.user.id,revision:1},otherDeckHeaders)).status,409);
+ assert.equal((await decks('PUT',deckId,{...deckInput,name:'수정한 덱',revision:1})).status,200);
+ assert.equal((await decks('DELETE',deckId,{accountId:two.user.id,revision:1})).status,409);
+ assert.equal((await decks('DELETE',deckId,{accountId:two.user.id,revision:2})).status,200);
+ assert.equal((await (await decks('GET')).json()).decks.length,1);
  sql.prepare('UPDATE lab_sessions SET expires_at=0').run();assert.equal((await board({headers:otherHeaders})).status,401);
  assert.equal(sql.prepare('SELECT COUNT(*) n FROM lab_boards').get().n,2,'logout and expiry preserve account saves');
  sql.exec(fs.readFileSync('migrations/0009_pin_account_credentials.sql','utf8'));

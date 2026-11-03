@@ -133,3 +133,56 @@ export async function handleBoard({request,env}){
   if(!row)throw fail('다른 기기에서 세팅이 변경되었습니다. 다시 비교해 주세요.',409);return reply({revision:row.revision,updatedAt:row.updated_at});
  }catch(error){return reply({error:error.status?error.message:'계정 저장 연결을 확인해 주세요.'},error.status||503);}
 }
+
+export async function handleDecks({request,env}) {
+ try {
+  const path=new URL(request.url).pathname;
+  const id=path.match(/^\/api\/me\/decks\/([a-f0-9-]{36})$/)?.[1];
+  const method=request.method;
+  if ((!id && (path!=='/api/me/decks' || !['GET','POST'].includes(method))) ||
+      (id && !['GET','PUT','DELETE'].includes(method))) {
+   return reply({error:'지원하지 않는 요청입니다.'},405);
+  }
+  const user=await authorized(request,env,method!=='GET');
+  const db=env.DB;
+  if(method==='GET'){
+   if(!id){
+    const rows=await db.prepare(`SELECT id,name,revision,created_at,updated_at FROM lab_decks
+     WHERE user_id=? ORDER BY updated_at DESC,id`).bind(user.id).all();
+    return reply({decks:rows.results});
+   }
+   const row=await db.prepare(`SELECT id,name,data,revision,created_at,updated_at FROM lab_decks
+    WHERE user_id=? AND id=?`).bind(user.id,id).first();
+   if(!row)throw fail('저장한 덱을 찾을 수 없습니다.',404);
+   const {data,...deck}=row;
+   return reply({deck:{...deck,board:JSON.parse(data)}});
+  }
+  const input=await body(request);
+  if(input?.accountId!==user.id)throw fail('로그인 계정이 변경되었습니다.',409);
+  if(id&&(!Number.isSafeInteger(input.revision)||input.revision<1))throw fail('덱 버전을 확인해 주세요.');
+  if(method==='DELETE'){
+   const row=await db.prepare('DELETE FROM lab_decks WHERE user_id=? AND id=? AND revision=? RETURNING id')
+    .bind(user.id,id,input.revision).first();
+   if(!row)throw fail('덱 목록이 변경되었습니다. 다시 불러와 주세요.',409);
+   return reply({ok:true});
+  }
+  const name=typeof input.name==='string'?input.name.trim():'';
+  if(!name||name.length>60||/[\u0000-\u001f\u007f]/.test(name))throw fail('덱 이름을 1~60자로 입력해 주세요.');
+  validBoard(input.board);
+  const data=JSON.stringify(input.board),now=Date.now();
+  if(method==='POST'){
+   const row=await db.prepare(`INSERT INTO lab_decks(id,user_id,name,data,created_at,updated_at)
+    SELECT ?,?,?,?,?,? WHERE (SELECT COUNT(*) FROM lab_decks WHERE user_id=?)<30
+    RETURNING id,name,revision,created_at,updated_at`).bind(crypto.randomUUID(),user.id,name,data,now,now,user.id).first();
+   if(!row)throw fail('덱은 계정당 최대 30개까지 저장할 수 있습니다.',409);
+   return reply({deck:row},201);
+  }
+  const row=await db.prepare(`UPDATE lab_decks SET name=?,data=?,revision=revision+1,updated_at=?
+   WHERE user_id=? AND id=? AND revision=? RETURNING id,name,revision,created_at,updated_at`)
+   .bind(name,data,now,user.id,id,input.revision).first();
+  if(!row)throw fail('덱 목록이 변경되었습니다. 다시 불러와 주세요.',409);
+  return reply({deck:row});
+ }catch(error){
+  return reply({error:error.status?error.message:'계정 덱 저장 연결을 확인해 주세요.'},error.status||503);
+ }
+}
