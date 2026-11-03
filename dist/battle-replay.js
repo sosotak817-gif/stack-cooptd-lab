@@ -28,7 +28,10 @@
       if (!response.ok || attempt !== discovery) return;
       const { earned } = await response.json();
       discovery = null;
-      if (earned) $('battle-status').textContent = '히든 업적 획득 · 전투 관전';
+      if (earned) {
+        $('battle-status').textContent = '히든 업적 획득 · 전투 관전';
+        window.top.dispatchEvent(new window.top.Event('stack-lab:achievement-earned'));
+      }
     }).catch(() => {});
   }
 

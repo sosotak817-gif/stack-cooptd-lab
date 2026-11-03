@@ -128,3 +128,34 @@ html.lab-dark body details:is(.deck-dps-range,.damage-results)>summary b{display
 @media(min-width:761px){.lab-sidebar nav{min-height:0;overflow-y:auto;flex-shrink:1}.lab-sidebar .sidebar-caption{flex-shrink:0;margin-bottom:0}}
 .lab-nav-group{min-width:0}.lab-nav-group>summary{display:flex;align-items:center;gap:13px;min-height:45px;padding:10px 13px;border:1px solid transparent;border-radius:7px;color:#afbed7;font-size:13px;font-weight:550;cursor:pointer;list-style:none}.lab-nav-group>summary::-webkit-details-marker{display:none}.lab-nav-icon{font-size:23px;width:24px;text-align:center;line-height:1}.lab-nav-arrow{margin-left:auto;transition:transform .15s}.lab-nav-group[open]>summary .lab-nav-arrow{transform:rotate(180deg)}.lab-nav-group>summary:hover{background:#17293b;color:#effffb}.lab-nav-group.has-active>summary{color:#6df5dc}.lab-nav-group>summary:focus-visible{outline:2px solid var(--mint);outline-offset:2px}.lab-nav-children{margin:4px 0 4px 24px;padding-left:8px;border-left:1px solid #30465d;display:grid;gap:3px}.lab-sidebar .lab-nav-children a{font-size:12px;min-height:38px;padding:8px}.lab-sidebar .lab-nav-children a>span{font-size:16px;width:18px}
 @media(max-width:760px){.lab-sidebar.menu-open nav{grid-template-columns:minmax(0,1fr)}.lab-nav-group>summary{min-height:44px;padding:9px 12px}.lab-nav-children{margin-left:25px}.lab-sidebar .lab-nav-children a{font-size:13px;min-height:42px}.lab-nav-group.has-active>summary{background:#46efd010}}
+html.lab-dark body .lab-achievement-popup {
+ position: fixed;
+ inset: 0;
+ margin: auto;
+ width: min(26rem, calc(100% - 2rem));
+ padding: 2rem 1.25rem 1.25rem;
+ overflow: hidden;
+ text-align: center;
+ color: #edf4ff;
+ background: #101d2e;
+ border: 1px solid var(--celebration);
+ border-radius: 1rem;
+ --celebration: #63edd3;
+}
+.lab-achievement-popup[data-grade="ss"] { --celebration: #bca0ff; }
+.lab-achievement-popup[data-grade="sss"] { --celebration: #ffd477; }
+.lab-achievement-popup::backdrop { background: #020711a6; }
+.lab-achievement-popup > .lab-badge-icon { width: 4rem; height: 4rem; font-size: 2.5rem; }
+.lab-achievement-popup p { color: var(--celebration); margin: .6rem 0 .25rem; }
+.lab-achievement-popup h2 { margin: 0 0 1rem; overflow-wrap: anywhere; }
+.lab-achievement-sparks { position: absolute; inset: 4rem 50% auto; pointer-events: none; color: var(--celebration); }
+.lab-achievement-sparks span {
+ position: absolute;
+ opacity: 0;
+ animation: lab-achievement-burst .85s ease-out both;
+}
+@keyframes lab-achievement-burst {
+ 15% { opacity: 1; }
+ 100% { transform: rotate(var(--angle)) translateX(6rem); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .lab-achievement-sparks { display: none; } }

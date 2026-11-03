@@ -275,10 +275,13 @@ try{
   const responses=await Promise.all([bootstrap(binding),bootstrap(binding)]);
   for(const response of responses)assert.equal((await response.json()).pinReady,true);
   assert.equal(setupBatches,1);
-  assert.equal(bootstrapSql.prepare('SELECT max(version) AS version FROM lab_account_schema').get().version,21);
+  assert.equal(bootstrapSql.prepare('SELECT max(version) AS version FROM lab_account_schema').get().version,23);
   assert.equal(bootstrapSql.prepare('SELECT id FROM lab_vaults').get().id,'existing-vault');
   bootstrapSql.exec("INSERT INTO lab_users VALUES ('existing','provider','Existing',0)");
   bootstrapSql.exec("INSERT INTO lab_decks(id,user_id,name,data,created_at,updated_at) VALUES ('deck','existing','Existing deck','{}',0,0)");
+  const claim=bootstrapSql.prepare('DELETE FROM lab_achievement_notices WHERE user_id=? RETURNING code');
+  assert.equal(claim.get('existing').code,'first-deck');
+  assert.equal(claim.get('existing'),undefined);
   assert.equal((await (await bootstrap(bootstrapBinding())).json()).pinReady,true);
   assert.equal(setupBatches,1,'a new binding skips schema writes after the persisted marker');
   assert.equal(bootstrapSql.prepare('SELECT name FROM lab_decks').get().name,'Existing deck');

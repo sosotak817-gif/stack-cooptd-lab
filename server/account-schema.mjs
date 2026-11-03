@@ -52,3 +52,7 @@ export const hiddenStackSchema = [
   "CREATE TRIGGER IF NOT EXISTS lab_award_hidden_stack\nAFTER INSERT ON lab_pin_credentials\nWHEN NEW.nickname_normalized='스택'\nBEGIN\n INSERT OR IGNORE INTO lab_user_achievements\n SELECT id,'hidden-stack',created_at FROM lab_users WHERE id=NEW.user_id AND nickname='스택';\nEND;",
   "INSERT OR IGNORE INTO lab_user_achievements\nSELECT u.id,'hidden-stack',u.created_at FROM lab_users u\nJOIN lab_pin_credentials c ON c.user_id=u.id\nWHERE u.nickname='스택' AND c.nickname_normalized='스택';"
 ];
+export const achievementNoticeSchema = [
+ "CREATE TABLE IF NOT EXISTS lab_achievement_notices (user_id TEXT NOT NULL, code TEXT NOT NULL, PRIMARY KEY(user_id,code), FOREIGN KEY(user_id,code) REFERENCES lab_user_achievements(user_id,code) ON DELETE CASCADE)",
+ "CREATE TRIGGER IF NOT EXISTS lab_queue_achievement_notice AFTER INSERT ON lab_user_achievements BEGIN INSERT OR IGNORE INTO lab_achievement_notices VALUES (NEW.user_id,NEW.code); END"
+];

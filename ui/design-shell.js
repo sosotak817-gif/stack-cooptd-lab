@@ -10,10 +10,12 @@ const hiddenBadgeGems = new Map([
  ['hidden-puzzle-spark', ['combo', 'ss', '퍼즐 속 불씨']]
 ]);
 
+const hiddenBadge = code => hiddenBadgeGems.get(code) ||
+ (/^hidden-lucky-(7|77|777|7777)$/.test(code) ? ['fortune','ss','행운의 방문자'] : null);
+
 window.StackLabBadge = {
  icon(code, title) {
-  const discovery = hiddenBadgeGems.get(code) ||
-   (/^hidden-lucky-(7|77|777|7777)$/.test(code) ? ['fortune','ss','행운의 방문자'] : null);
+  const discovery = hiddenBadge(code);
   if (discovery) {
    const [type, grade, name] = discovery;
    const gem = document.createElement('span');
@@ -47,6 +49,78 @@ window.StackLabBadge = {
   return badge;
  }
 };
+
+// Claim the account's notification queue once, even when several tabs are open.
+(() => {
+ if (window !== window.top) return;
+ let busy = false;
+ let session;
+ let dialog;
+ const queue = [];
+
+ function showNext() {
+  if (!queue.length || dialog?.open) return;
+  if (!dialog) {
+   dialog = document.createElement('dialog');
+   dialog.className = 'lab-achievement-popup';
+   dialog.setAttribute('aria-labelledby', 'lab-achievement-title');
+   dialog.addEventListener('close', showNext);
+   document.body.append(dialog);
+  }
+  const { code, title } = queue.shift();
+  const grade = hiddenBadge(code)?.[1];
+  dialog.dataset.grade = grade || 'normal';
+  const heading = document.createElement('h2');
+  heading.id = 'lab-achievement-title';
+  heading.textContent = title;
+  const label = document.createElement('p');
+  label.textContent = grade ? '업적 획득 · ' + grade.toUpperCase() : '업적 획득';
+  const form = document.createElement('form');
+  form.method = 'dialog';
+  const close = document.createElement('button');
+  close.textContent = '확인';
+  form.append(close);
+  const sparkles = document.createElement('div');
+  sparkles.className = 'lab-achievement-sparks';
+  sparkles.setAttribute('aria-hidden', 'true');
+  const count = { s: 6, ss: 12, sss: 20 }[grade] || 0;
+  for (let index = 0; index < count; index++) {
+   const spark = document.createElement('span');
+   spark.textContent = index % 2 ? '✦' : '✧';
+   spark.style.setProperty('--angle', index * 360 / count + 'deg');
+   sparkles.append(spark);
+  }
+  dialog.replaceChildren(sparkles, window.StackLabBadge.icon(code, title), label, heading, form);
+  dialog.showModal();
+ }
+
+ async function refresh() {
+  if (busy || document.hidden) return;
+  busy = true;
+  try {
+   session ??= await fetch('/api/auth/me', { cache: 'no-store' }).then(response => response.ok ? response.json() : null);
+   if (!session?.user || !session.csrf) { session = null; return; }
+   const response = await fetch('/api/me/achievement-notices', {
+    method: 'POST',
+    headers: { 'X-Account-Id': session.user.id, 'X-CSRF-Token': session.csrf }
+   });
+   if ([401, 403, 409].includes(response.status)) session = null;
+   if (!response.ok) return;
+   const { badges } = await response.json();
+   queue.push(...badges);
+   showNext();
+  } catch {
+   // Retry on the next check when the connection returns.
+  } finally {
+   busy = false;
+  }
+ }
+
+ window.addEventListener('stack-lab:achievement-earned', refresh);
+ document.addEventListener('visibilitychange', refresh);
+ setInterval(refresh, 15000);
+ refresh();
+})();
 
 // Each document or nested scrolling region owns its own back-to-top control.
 (()=>{'use strict';

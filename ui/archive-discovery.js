@@ -15,7 +15,10 @@
    }});
    const result=await response.json();
    if(!response.ok)throw Error(result.error);
-   if(result.earned)status.textContent='히든 업적 획득 · '+(result.title||'기록의 틈새');
+   if(result.earned){
+    status.textContent='히든 업적 획득 · '+(result.title||'기록의 틈새');
+    window.top.dispatchEvent(new window.top.Event('stack-lab:achievement-earned'));
+   }
    else if(marker)status.textContent='이미 기록한 발견입니다.';
   }catch(error){if(marker)status.textContent=error.message;}
   finally{if(marker)marker.disabled=false;}
