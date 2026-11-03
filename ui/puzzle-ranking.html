@@ -9,16 +9,19 @@
 <link rel="stylesheet" href="/design-system.css">
 <style>
 .puzzle-rankings .dashboard-panel { margin-bottom: 1rem; }
+.puzzle-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+.puzzle-comparison > div { min-width: 0; }
+@media (max-width: 950px) { .puzzle-comparison { grid-template-columns: minmax(0, 1fr); } }
 .puzzle-rankings .table-scroll { overflow-x: auto; }
 .puzzle-rankings table { width: 100%; text-align: left; border-collapse: collapse; }
 .puzzle-rankings :is(td,th) { padding: .65rem .4rem; border-bottom: 1px solid #293a52; overflow-wrap: anywhere; }
 .puzzle-rankings .controls { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
-#replay-board { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; max-width: 42rem; margin: 1rem 0; }
-#replay-board div { min-width: 0; min-height: 3rem; padding: 4px; border-radius: 6px; text-align: center; overflow-wrap: anywhere; }
-#replay-board .tile { border: 1px solid #293a52; background: #142238; }
-#replay-board .changed { border-color: var(--mint); }
-#replay-board img { display: block; width: min(100%, 2rem); margin: auto; }
-#replay-board small { display: block; font-size: .68rem; }
+.replay-board { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; max-width: 42rem; margin: 1rem 0; }
+.replay-board div { min-width: 0; min-height: 3rem; padding: 4px; border-radius: 6px; text-align: center; overflow-wrap: anywhere; }
+.replay-board .tile { border: 1px solid #293a52; background: #142238; }
+.replay-board .changed { border-color: var(--mint); }
+.replay-board img { display: block; width: min(100%, 2rem); margin: auto; }
+.replay-board small { display: block; font-size: .68rem; }
 #replay { scroll-margin-top: 75px; }
 </style>
 <script src="/design-shell.js" defer></script>
@@ -45,7 +48,15 @@
 <h2 id="replay-title" tabindex="-1"></h2>
 <p id="replay-summary"></p>
 <div class="controls"><button id="back-step" type="button">이전 수</button><strong id="step-number" role="status"></strong><button id="forward-step" type="button">다음 수</button></div>
-<div id="replay-board" aria-label="공개 배치"></div>
+<div class="replay-board" id="replay-board" aria-label="공개 배치"></div>
+</section>
+<section class="dashboard-panel" id="comparison" aria-labelledby="comparison-title" hidden>
+<h2 id="comparison-title" tabindex="-1">내 배치와 비교</h2>
+<p id="comparison-summary" role="status"></p>
+<div class="puzzle-comparison" id="comparison-boards">
+<div><h3>내 배치</h3><div class="replay-board" id="my-board" aria-label="내 배치"></div></div>
+<div><h3 id="other-title">상대 배치</h3><div class="replay-board" id="other-board" aria-label="상대 배치"></div></div>
+</div>
 </section>
 </main>
 </body>

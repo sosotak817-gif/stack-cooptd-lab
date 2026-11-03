@@ -1,5 +1,14 @@
 [
   {
+    "id": "2026-11-03-puzzle-layout-comparison",
+    "date": "2026-11-03",
+    "type": "feature",
+    "title": "퍼즐 랭킹에서 내 배치와 비교",
+    "details": [
+      "랭킹의 배치 보기 옆에서 같은 날 제출한 내 배치와 상대 배치를 나란히 비교하고 다른 칸을 확인할 수 있습니다."
+    ]
+  },
+  {
     "id": "2026-11-03-puzzle-rankings-replays",
     "date": "2026-11-03",
     "type": "feature",

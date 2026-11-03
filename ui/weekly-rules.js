@@ -42,5 +42,9 @@
     });
   }
 
-  root.CoopWeekly = { weekAt, dayAt, startDate, puzzle, move, moveLimit: 3 };
+  function personalKey(day) {
+    return 'stack-puzzle-personal-v1:' + day;
+  }
+
+  root.CoopWeekly = { weekAt, dayAt, startDate, puzzle, move, personalKey, moveLimit: 3 };
 })(globalThis);

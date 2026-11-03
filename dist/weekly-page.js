@@ -116,14 +116,20 @@
     $('submission-status').textContent = '기록 저장 중…';
     submitting = true;
     $('submit').disabled = true;
+    const attempt = { day, mode: challenge.mode, cells: history.at(-1), marks: challenge.marks,
+      score: Math.round((result / baseline - 1) * 1e8) / 1e6 };
     try {
       const response = await fetch(api, { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ day, revision: COOP_SHARED_REVISION, nickname,
-          score: Math.round((result / baseline - 1) * 1e8) / 1e6, moves: steps.length, steps }) });
+          score: attempt.score, moves: steps.length, steps }) });
       const data = await response.json();
       if (!response.ok) throw Error(data.error);
       $('submission-status').textContent = data.improved ? '주간 기록을 등록했어요.' : '이전 최고 기록을 유지했어요.';
-      $('view-rankings').hidden = false;
+      try {
+        const key = rules.personalKey(day);
+        const previous = JSON.parse(localStorage.getItem(key) || 'null');
+        if (!previous || attempt.score >= previous.score) localStorage.setItem(key, JSON.stringify(attempt));
+      } catch {}
     } catch (error) {
       $('submission-status').textContent = error.message || '기록을 저장하지 못했어요.';
     } finally {

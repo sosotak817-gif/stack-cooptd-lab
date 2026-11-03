@@ -16,14 +16,18 @@
     $('step-number').textContent = step === 0 ? '시작 배치' : step + ' / ' + replay.steps.length + '수';
     $('back-step').disabled = step === 0;
     $('forward-step').disabled = step === replay.steps.length;
-    $('replay-board').replaceChildren();
+    renderBoard($('replay-board'), cells, replay.marks, changed);
+  }
+
+  function renderBoard(board, cells, marks, changed) {
+    board.replaceChildren();
     for (let index = 42; index < 77; index++) {
       const tile = document.createElement('div');
-      $('replay-board').append(tile);
+      board.append(tile);
       if (!valid.has(index)) continue;
       tile.className = changed.includes(index) ? 'tile changed' : 'tile';
       const cell = cells.find(c => c.row * 7 + c.col === index);
-      const mark = replay.marks.find(m => m.row * 7 + m.col === index);
+      const mark = marks.find(m => m.row * 7 + m.col === index);
       if (cell) {
         const image = document.createElement('img');
         image.src = '/assets/units/' + cell.slug + '.webp';
@@ -43,6 +47,7 @@
   }
 
   function showReplay(row) {
+    $('comparison').hidden = true;
     replay = row.replay;
     step = replay.steps.length;
     $('replay-title').textContent = row.nickname + ' 님의 배치';
@@ -56,11 +61,35 @@
     $('replay').scrollIntoView({ block: 'start' });
   }
 
+  function compare(row) {
+    $('replay').hidden = true;
+    $('comparison').hidden = false;
+    let own;
+    try { own = JSON.parse(localStorage.getItem(rules.personalKey(row.replay.day)) || 'null'); } catch {}
+    const available = own?.mode === row.replay.mode && Array.isArray(own?.cells) && Array.isArray(own?.marks);
+    $('comparison-boards').hidden = !available;
+    if (available) {
+      const other = row.replay.steps.reduce((cells, [from, to]) => rules.move(cells, from, to), row.replay.cells);
+      const positions = cells => new Map(cells.map(cell => [cell.row * 7 + cell.col, cell.slug + ':' + !!cell.lib]));
+      const mine = positions(own.cells), theirs = positions(other);
+      const changed = [...valid].filter(index => mine.get(index) !== theirs.get(index));
+      $('other-title').textContent = row.nickname + ' 님의 배치';
+      $('comparison-summary').textContent = '내 기록 ' + percent.format(own.score / 100) +
+        ' · 상대 기록 ' + percent.format(row.score / 100) + ' · 다른 칸 ' + changed.length + '개';
+      renderBoard($('my-board'), own.cells, own.marks, changed);
+      renderBoard($('other-board'), other, row.replay.marks, changed);
+    } else {
+      $('comparison-summary').textContent = '이 브라우저에 같은 날의 제출 기록이 없어요.';
+    }
+    $('comparison-title').focus();
+    $('comparison').scrollIntoView({ block: 'start' });
+  }
+
   async function rankings(week) {
     const id = ++requestId;
     $('previous').disabled = $('next').disabled = true;
     $('rows').replaceChildren();
-    $('replay').hidden = true;
+    $('replay').hidden = $('comparison').hidden = true;
     $('ranking-status').textContent = '랭킹을 불러오는 중…';
     try {
       const response = await fetch('/api/weekly-puzzle' + (week === undefined ? '' : '?week=' + week));
@@ -81,7 +110,11 @@
           button.textContent = '배치 보기';
           button.setAttribute('aria-label', row.nickname + ' 님 배치 보기');
           button.onclick = () => showReplay(row);
-          action.append(button);
+          const compareButton = document.createElement('button');
+          compareButton.type = 'button';
+          compareButton.textContent = '내 배치와 비교';
+          compareButton.onclick = () => compare(row);
+          action.append(button, ' ', compareButton);
         } else {
           action.textContent = '배치 기록 없음';
         }
