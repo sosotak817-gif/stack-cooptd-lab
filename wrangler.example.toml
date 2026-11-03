@@ -2,6 +2,10 @@
 name = "stack-cooptd-lab"
 pages_build_output_dir = "dist"
 compatibility_date = "2026-10-20"
+compatibility_flags = ["nodejs_compat"]
+
+# PIN API: apply D1 migrations and set PIN_PEPPER to 32 random bytes encoded as lowercase hex.
+# Store PIN_PEPPER as an encrypted Pages secret.
 
 [[d1_databases]]
 binding = "DB"

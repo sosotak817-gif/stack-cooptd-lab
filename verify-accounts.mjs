@@ -41,5 +41,32 @@ try{
  assert.equal((await auth('/api/auth/logout',{method:'POST',headers})).status,200);assert.equal((await (await auth('/api/auth/session',{headers})).json()).user,null);
  sql.prepare('UPDATE lab_sessions SET expires_at=0').run();assert.equal((await board({headers:otherHeaders})).status,401);
  assert.equal(sql.prepare('SELECT COUNT(*) n FROM lab_boards').get().n,2,'logout and expiry preserve account saves');
+ sql.exec(fs.readFileSync('migrations/0009_pin_account_credentials.sql','utf8'));
+ const pinEnv = {DB, PIN_PEPPER:'a'.repeat(64)};
+ const pinRequest = (action, payload, headers={}) => handleAuth({
+  env:pinEnv,request:request('/api/auth/'+action,{
+   method:'POST',headers:{'CF-Connecting-IP':'192.0.2.1',...headers},body:JSON.stringify(payload)
+  })
+ });
+ const input = {nickname:' Ｔest_연구 ',pin:'01234567',pinConfirmation:'01234567'};
+ assert.equal((await pinRequest('register',input,{Origin:'https://evil.example'})).status,403);
+ assert.deepEqual(await (await pinRequest('nickname',input)).json(),{available:true});
+ assert.equal((await pinRequest('register',{...input,pinConfirmation:'11111111'})).status,400);
+ const registered = await pinRequest('register',input);
+ assert.equal(registered.status,201);
+ const pinUser = await registered.json();
+ assert.equal(pinUser.user.nickname,'Test_연구');
+ assert.match(registered.headers.get('Set-Cookie'),/HttpOnly; Secure; SameSite=Lax/);
+ assert.match(sql.prepare('SELECT pin_hash FROM lab_pin_credentials').get().pin_hash,/^pbkdf2-sha256-v1\$/);
+ assert.deepEqual(await (await pinRequest('nickname',{nickname:'test_연구'})).json(),{available:false});
+ assert.equal((await pinRequest('register',{...input,nickname:'TEST_연구'})).status,409);
+ const loggedIn = await pinRequest('login',{nickname:'test_연구',pin:input.pin},{Cookie:cookieOf(registered,'__Host-stack_session')});
+ assert.equal(loggedIn.status,200);
+ assert.equal((await loggedIn.json()).user.id,pinUser.user.id);
+ assert.equal((await (await auth('/api/auth/me',{headers:{Cookie:cookieOf(registered,'__Host-stack_session')}})).json()).user,null);
+ assert.equal((await (await auth('/api/auth/me',{headers:{Cookie:cookieOf(loggedIn,'__Host-stack_session')}})).json()).user.id,pinUser.user.id);
+ sql.prepare("UPDATE lab_auth_attempts SET attempts=7 WHERE scope='login:nickname'").run();
+ assert.equal((await pinRequest('login',{nickname:'test_연구',pin:'12345678'})).status,401);
+ assert.equal((await pinRequest('login',{nickname:'TEST_연구',pin:input.pin},{'CF-Connecting-IP':'192.0.2.2'})).status,429);
  console.log('Accounts: OAuth state, server-only token exchange, secure sessions, CSRF, real SQLite saves, conflict handling, account isolation, logout and expiry passed.');
 }finally{globalThis.fetch=oldFetch;sql.close();}

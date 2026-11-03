@@ -1,3 +1,5 @@
+import { handlePinAuth, pinIdentityPrefix, pinReady } from './pin-auth.mjs';
+
 const jsonHeaders={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:jsonHeaders});
 const fail=(message,status=400)=>Object.assign(new Error(message),{status});
@@ -27,11 +29,32 @@ export function validBoard(s){
  const keys=new Set();for(const c of s.cells){if(!Number.isInteger(c.row)||c.row<0||c.row>10||c.row===5||!Number.isInteger(c.col)||c.col<0||c.col>6||typeof c.slug!=='string'||c.slug.length>80||keys.has(c.row+','+c.col))throw fail('배치 위치를 확인해 주세요.');keys.add(c.row+','+c.col);}
 }
 export { body as readBoardBody };
+async function issueSession(request, env, user, statements = []) {
+ const now = Date.now(), token = random(), csrf = random(), oldToken = cookies(request)[SESSION];
+ statements.push(env.DB.prepare('DELETE FROM lab_sessions WHERE expires_at<=?').bind(now));
+ if(oldToken && /^[a-f0-9]{64}$/.test(oldToken)) {
+  statements.push(env.DB.prepare('DELETE FROM lab_sessions WHERE token_hash=?').bind(await hash(oldToken)));
+ }
+ statements.push(env.DB.prepare('INSERT INTO lab_sessions(token_hash,user_id,csrf,expires_at) VALUES(?,?,?,?)')
+  .bind(await hash(token),user.id,csrf,now+30*86400000));
+ await env.DB.batch(statements);
+ return { csrf, cookie: cookie(SESSION,token,30*86400) };
+}
+async function startSession(request, env, user, statements, status=200) {
+ const issued = await issueSession(request, env, user, statements);
+ const response = reply({user:{id:user.id,nickname:user.nickname},csrf:issued.csrf},status);
+ response.headers.append('Set-Cookie',issued.cookie);
+ return response;
+}
 export async function handleAuth({request,env}){
  const path=new URL(request.url).pathname;
  try{
-  if(path==='/api/auth/session'&&request.method==='GET'){
-   const user=await session(request,env);return reply({ready:ready(env),user:user?{id:user.id,nickname:user.nickname}:null,csrf:user?.csrf||null});
+  const action = path.match(/^\/api\/auth\/(nickname|register|login)$/)?.[1];
+  if(action && request.method==='POST'){
+   return await handlePinAuth(request,env,action,{body,fail,hash,random,reply,sameOrigin,startSession});
+  }
+  if((path==='/api/auth/session'||path==='/api/auth/me')&&request.method==='GET'){
+   const user=await session(request,env);return reply({ready:ready(env),...(path.endsWith('/me')?{pinReady:pinReady(env)}:{}),user:user?{id:user.id,nickname:user.nickname}:null,csrf:user?.csrf||null});
   }
   if(path==='/api/auth/naver'&&request.method==='GET'){
    if(!ready(env))return redirect('/?login_error=unavailable');
@@ -45,14 +68,11 @@ export async function handleAuth({request,env}){
    const tokenResponse=await fetch('https://nid.naver.com/oauth2.0/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({grant_type:'authorization_code',client_id:env.NAVER_CLIENT_ID,client_secret:env.NAVER_CLIENT_SECRET,code,state,redirect_uri:env.NAVER_REDIRECT_URI}),signal:AbortSignal.timeout(15000)});
    const token=await tokenResponse.json();if(!tokenResponse.ok||!token.access_token)throw fail('네이버 인증을 완료하지 못했습니다.',502);
    const profileResponse=await fetch('https://openapi.naver.com/v1/nid/me',{headers:{Authorization:'Bearer '+token.access_token},signal:AbortSignal.timeout(15000)}),profile=await profileResponse.json();
-   if(!profileResponse.ok||profile.resultcode!=='00'||typeof profile.response?.id!=='string'||profile.response.id.length>200)throw fail('네이버 계정을 확인하지 못했습니다.',502);
+   if(!profileResponse.ok||profile.resultcode!=='00'||typeof profile.response?.id!=='string'||profile.response.id.length>200||profile.response.id.startsWith(pinIdentityPrefix))throw fail('네이버 계정을 확인하지 못했습니다.',502);
    const now=Date.now(),userId=crypto.randomUUID(),nickname=String(profile.response.nickname||'네이버 계정').slice(0,40);
    const user=await env.DB.prepare('INSERT INTO lab_users(id,naver_id,nickname,created_at) VALUES(?,?,?,?) ON CONFLICT(naver_id) DO UPDATE SET nickname=excluded.nickname RETURNING id,nickname').bind(userId,profile.response.id,nickname,now).first();
-   const sessionToken=random(),csrf=random(),oldToken=cookies(request)[SESSION];
-   const statements=[env.DB.prepare('DELETE FROM lab_sessions WHERE expires_at<=?').bind(now)];
-   if(oldToken&&/^[a-f0-9]{64}$/.test(oldToken))statements.push(env.DB.prepare('DELETE FROM lab_sessions WHERE token_hash=?').bind(await hash(oldToken)));
-   statements.push(env.DB.prepare('INSERT INTO lab_sessions(token_hash,user_id,csrf,expires_at) VALUES(?,?,?,?)').bind(await hash(sessionToken),user.id,csrf,now+30*86400000));await env.DB.batch(statements);
-   return redirect('/?login=success',[cookie(STATE,'',0),cookie(SESSION,sessionToken,30*86400)]);
+   const issued = await issueSession(request, env, user);
+   return redirect('/?login=success',[cookie(STATE,'',0),issued.cookie]);
   }
   if(path==='/api/auth/logout'&&request.method==='POST'){
    const user=await authorized(request,env,true);await env.DB.prepare('DELETE FROM lab_sessions WHERE token_hash=?').bind(user.token_hash).run();
