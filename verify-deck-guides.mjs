@@ -23,6 +23,17 @@ try{
  const posted=await call('POST',{nickname:'spoofed',guide},{headers:a});
  assert.equal(posted.status,201);
  assert.equal(posted.data.post.nickname,'account-a');
+ sqlite.exec(fs.readFileSync('migrations/0014_account_puzzle_scores.sql','utf8'));
+ sqlite.prepare('INSERT INTO daily_puzzle_account_scores VALUES(?,?,?,?,?,?,?)')
+  .run(1,'test','account-a',25,2,clock,JSON.stringify({day:7}));
+ const {onRequest:activity}=await import('./functions/api/me/activity.js');
+ const getActivity=headers=>activity({env:{DB},request:new Request('https://lab.example/api/me/activity',{headers})});
+ assert.equal((await getActivity({})).status,401);
+ assert.equal((await getActivity({...b,'X-Account-Id':'account-a'})).status,409);
+ assert.deepEqual(await (await getActivity(b)).json(),{puzzles:[],guides:[]});
+ const myActivity=await (await getActivity(a)).json();
+ assert.deepEqual(myActivity.puzzles,[{week:1,score:25,moves:2,achievedAt:clock,day:7}]);
+ assert.deepEqual(myActivity.guides,[{id:posted.data.post.id,title:guide.title,updatedAt:clock}]);
  const edit={id:posted.data.post.id,expectedUpdatedAt:posted.data.post.updatedAt,guide};
  assert.equal((await call('PUT',edit,{headers:b})).status,403);
  assert.equal((await call('DELETE',edit,{headers:b})).status,403);

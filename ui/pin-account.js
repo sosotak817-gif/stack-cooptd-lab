@@ -4,8 +4,7 @@
   let csrf = null;
   let busy = false;
 
-  async function request(path, method = 'GET', data) {
-    const headers = {};
+  async function request(path, method = 'GET', data, headers = {}) {
     if (data) headers['Content-Type'] = 'application/json';
     if (csrf && method !== 'GET') headers['X-CSRF-Token'] = csrf;
     const response = await fetch(path, {
@@ -16,6 +15,34 @@
     return result;
   }
 
+  async function refreshActivity(user) {
+    const puzzles = get('activity-puzzles');
+    const guides = get('activity-guides');
+    const activityStatus = get('activity-status');
+    puzzles.replaceChildren();
+    guides.replaceChildren();
+    activityStatus.textContent = '';
+    if (!user) return;
+    try {
+      const activity = await request('/api/me/activity', 'GET', undefined, { 'X-Account-Id': user.id });
+      const date = new Intl.DateTimeFormat('ko-KR', { timeZone: 'Asia/Seoul' });
+      const score = new Intl.NumberFormat('ko-KR', { style: 'percent', maximumFractionDigits: 2 });
+      const append = (list, text) => {
+        const item = document.createElement('li');
+        item.textContent = text;
+        list.append(item);
+      };
+      for (const row of activity.puzzles) {
+        append(puzzles, date.format(row.achievedAt) + ' · ' + score.format(row.score / 100) + ' · 이동 ' + row.moves + '회');
+      }
+      for (const row of activity.guides) append(guides, row.title + ' · ' + date.format(row.updatedAt));
+      if (!activity.puzzles.length) append(puzzles, '저장된 계정 퍼즐 기록이 없습니다.');
+      if (!activity.guides.length) append(guides, '작성한 계정 공략이 없습니다.');
+    } catch (error) {
+      activityStatus.textContent = error.message;
+    }
+  }
+
   async function refresh() {
     const state = await request('/api/auth/me');
     csrf = state.csrf;
@@ -23,6 +50,7 @@
     get('member').hidden = !state.user;
     get('pin-tools').hidden = !state.pinReady || !state.pinAccount;
     get('nickname').textContent = state.user?.nickname || '';
+    await refreshActivity(state.user);
     const list = get('devices');
     const remove = get('remove-device');
     list.replaceChildren();

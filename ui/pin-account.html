@@ -41,6 +41,14 @@
 <section id="member" hidden>
   <h2 id="nickname"></h2>
   <form data-path="/api/auth/logout"><button>로그아웃</button></form>
+  <section aria-labelledby="activity-title">
+    <h3 id="activity-title">내 활동 기록</h3>
+    <p id="activity-status" role="status"></p>
+    <h4>최근 퍼즐 기록</h4>
+    <ul id="activity-puzzles"></ul>
+    <h4>내 덱 공략</h4>
+    <ul id="activity-guides"></ul>
+  </section>
   <div id="pin-tools" hidden>
     <h3>PIN 변경</h3>
     <p>변경하면 다른 세션과 복구 브라우저 등록이 해제됩니다.</p>
