@@ -186,3 +186,35 @@ export async function handleDecks({request,env}) {
   return reply({error:error.status?error.message:'계정 덱 저장 연결을 확인해 주세요.'},error.status||503);
  }
 }
+
+export async function handleSettings({request,env}) {
+ try {
+  const write=request.method==='PUT';
+  if(!write&&request.method!=='GET')return reply({error:'지원하지 않는 요청입니다.'},405);
+  const user=await authorized(request,env,write);
+  if(request.headers.get('X-Account-Id')!==user.id)throw fail('로그인 계정이 변경되었습니다.',409);
+  const db=env.DB;
+  if(!write){
+   const row=await db.prepare('SELECT data,revision,updated_at FROM lab_settings WHERE user_id=?').bind(user.id).first();
+   return reply(row?{settings:JSON.parse(row.data),revision:row.revision,updatedAt:row.updated_at}:{settings:null,revision:0});
+  }
+  const input=await body(request);
+  const settings=input?.settings;
+  const object=value=>value&&typeof value==='object'&&!Array.isArray(value);
+  if(!Number.isSafeInteger(input?.revision)||input.revision<0||settings?.version!==1||
+    !object(settings.you)||!object(settings.partner)||!object(settings.you.perDemon)||!object(settings.partner.perDemon)||
+    !Array.isArray(settings.inventory?.you)||!Array.isArray(settings.inventory?.partner)){
+   throw fail('설정 형식과 저장 버전을 확인해 주세요.');
+  }
+  const data=JSON.stringify({version:1,you:settings.you,partner:settings.partner,inventory:settings.inventory});
+  const row=await db.prepare(`INSERT INTO lab_settings(user_id,data,revision,updated_at)
+    SELECT ?,?,1,? WHERE ?=0 OR EXISTS(SELECT 1 FROM lab_settings WHERE user_id=?)
+    ON CONFLICT(user_id) DO UPDATE SET data=excluded.data,revision=lab_settings.revision+1,updated_at=excluded.updated_at
+    WHERE lab_settings.revision=? RETURNING revision,updated_at`)
+   .bind(user.id,data,Date.now(),input.revision,user.id,input.revision).first();
+  if(!row)throw fail('다른 기기에서 설정이 변경되었습니다. 다시 확인해 주세요.',409);
+  return reply({revision:row.revision,updatedAt:row.updated_at});
+ }catch(error){
+  return reply({error:error.status?error.message:'계정 설정 연결을 확인해 주세요.'},error.status||503);
+ }
+}

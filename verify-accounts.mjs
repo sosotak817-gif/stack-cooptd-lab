@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { DatabaseSync } from 'node:sqlite';
 import fs from 'node:fs';
-import { handleAuth,handleBoard,handleDecks } from './server/accounts.mjs';
+import { handleAuth,handleBoard,handleDecks,handleSettings } from './server/accounts.mjs';
 const sql=new DatabaseSync(':memory:');sql.exec('PRAGMA foreign_keys=ON');sql.exec(fs.readFileSync('migrations/0002_accounts.sql','utf8'));sql.exec(fs.readFileSync('migrations/0010_account_board_backups.sql','utf8'));
 class Statement{
  constructor(query,values=[]){this.query=query;this.values=values;}
@@ -80,6 +80,18 @@ try{
  assert.equal((await decks('DELETE',deckId,{accountId:two.user.id,revision:1})).status,409);
  assert.equal((await decks('DELETE',deckId,{accountId:two.user.id,revision:2})).status,200);
  assert.equal((await (await decks('GET')).json()).decks.length,1);
+ sql.exec(fs.readFileSync('migrations/0012_account_settings.sql','utf8'));
+ const settings={version:1,you:sample.you,partner:sample.partner,inventory:{you:[],partner:[]},cells:sample.cells};
+ const settingsCall=(method,activeHeaders,accountId,payload)=>handleSettings({env,request:request('/api/me/settings',{
+  method,headers:{...activeHeaders,'X-Account-Id':accountId},body:payload?JSON.stringify(payload):undefined
+ })});
+ assert.equal((await settingsCall('PUT',otherHeaders,one.user.id,{revision:0,settings})).status,409);
+ assert.equal((await settingsCall('PUT',otherHeaders,two.user.id,{revision:0,settings})).status,200);
+ assert.equal((await settingsCall('PUT',otherHeaders,two.user.id,{revision:0,settings})).status,409);
+ const settingsRead=await (await settingsCall('GET',otherHeaders,two.user.id)).json();
+ assert.equal(settingsRead.revision,1);
+ assert.deepEqual(settingsRead.settings,{version:1,you:sample.you,partner:sample.partner,inventory:{you:[],partner:[]}});
+ assert.equal((await (await settingsCall('GET',otherDeckHeaders,freshOne.user.id)).json()).settings,null);
  sql.prepare('UPDATE lab_sessions SET expires_at=0').run();assert.equal((await board({headers:otherHeaders})).status,401);
  assert.equal(sql.prepare('SELECT COUNT(*) n FROM lab_boards').get().n,2,'logout and expiry preserve account saves');
  sql.exec(fs.readFileSync('migrations/0009_pin_account_credentials.sql','utf8'));
