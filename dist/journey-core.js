@@ -12,7 +12,7 @@ function describeChange(before,after,kind,E,D){
  const changes=[];let slug=null;
  for(const id of new Set(before.cells.filter(c=>c.row>5).map(c=>c.slug))){const a=before.you.perDemon[id]||{},b=after.you.perDemon[id]||{};
   for(const field of ['level','lib'])if(a[field]!==b[field]){slug=id;const from=field==='lib'?E.effectiveLib(before.you,id):a.level??before.you.levelSupreme??1,to=field==='lib'?E.effectiveLib(after.you,id):b.level;changes.push({type:field,from,to,amount:to-from});}
-  for(let slot=0;slot<3;slot++){const from=a.gems?.[slot]?.id?a.gems[slot]:null,to=b.gems?.[slot]?.id?b.gems[slot]:null;if(JSON.stringify(from)!==JSON.stringify(to)){slug=id;changes.push({type:'gem',slot,from,to});}}
+  for(let slot=0;slot<3;slot++){const from=a.gems?.[slot]?.id?a.gems[slot]:null,to=b.gems?.[slot]?.id?b.gems[slot]:null;if(from?.id!==to?.id||from?.grade!==to?.grade){slug=id;changes.push({type:'gem',slot,from,to});}}
  }
  const stackFields={claraStacks:'clara',ivyStacks:'ivy',omenSouls:'omen',spaceStacks:'space-solider',mouseStacks:'surprise-mouse',catStacks:'master-cat'};
  if(kind==='stack')for(const [field,id]of Object.entries(stackFields))if(before.you[field]!==after.you[field]){slug=id;const from=Number(before.you[field])||0,to=after.you[field];changes.push({type:'stack',field,from,to,amount:to-from});}
@@ -30,7 +30,14 @@ function candidates(input,E,D,{replacement=null,stacks=true,milestones=true,reco
   if(milestones){const goal=[3,10,20].find(n=>n>lib&&n<=libCap);if(goal>lib+1)add('lib',name,`다음 보석 슬롯 · 해방 ${lib} → ${goal}`,s=>{s.you.perDemon[slug]={...own,lib:goal};if(!s.cells.some(c=>c.row>5&&c.slug===slug&&c.lib!==false&&!c.nolib)){const cell=s.cells.find(c=>c.row>5&&c.slug===slug);cell.lib=true;cell.nolib=false;}});}
   for(let i=0;i<unlocked;i++){const gem=own.gems?.[i],grade=gem?D.GRADES.indexOf(gem.grade):-1;if(gem?.id&&grade>=0&&grade<D.GRADES.length-1)add('gem',name,`보석 ${i+1}번 ${gem.grade} → ${D.GRADES[grade+1]}`,s=>{s.you.perDemon[slug]={...own,gems:structuredClone(own.gems)};s.you.perDemon[slug].gems[i].grade=D.GRADES[grade+1];});}
   const gemSets=[['기본 추천',E.recommendedGems(slug)||[]],['난이도 추천',recommendations?.modes?.[input.mode]?.rows?.find(r=>r.slug===slug)?.gems||[]]];
-  for(const [source,set]of gemSets){const recommended=set.slice(0,unlocked).map((g,i)=>({...g,grade:own.gems?.[i]?.id?own.gems[i].grade:'S'}));if(!recommended.length)continue;const combined=structuredClone(own.gems||[]);recommended.forEach((g,i)=>combined[i]=g);
+  for(const [source,set]of gemSets){const ordered=set.slice(0,unlocked);
+   // Slots 1 and 3 both take normal gems. Keep an existing match in place.
+   if(ordered[0]?.id&&ordered[2]?.id){
+    const direct=Number(own.gems?.[0]?.id===ordered[0].id)+Number(own.gems?.[2]?.id===ordered[2].id);
+    const swapped=Number(own.gems?.[0]?.id===ordered[2].id)+Number(own.gems?.[2]?.id===ordered[0].id);
+    if(swapped>direct)[ordered[0],ordered[2]]=[ordered[2],ordered[0]];
+   }
+   const recommended=ordered.map((g,i)=>({...g,grade:own.gems?.[i]?.id?own.gems[i].grade:'S'}));if(!recommended.length)continue;const combined=structuredClone(own.gems||[]);recommended.forEach((g,i)=>combined[i]=g);
    add('gem',name,source+' 보석 조합 · 기존 슬롯 등급 유지 / 빈 슬롯 S 가정',s=>s.you.perDemon[slug]={...own,gems:combined});
    for(const [slot,gem]of recommended.entries()){if((own.gems||[]).some((g,i)=>i!==slot&&g?.id===gem.id))continue;const gems=structuredClone(own.gems||[]);while(gems.length<=slot)gems.push({id:'',grade:'S'});gems[slot]=gem;add('gem',name,source+` · ${slot+1}번 슬롯만 교체`,s=>s.you.perDemon[slug]={...own,gems});}
   }
