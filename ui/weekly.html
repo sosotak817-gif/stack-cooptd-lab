@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>주간 배치 퍼즐 · 스택 연구소</title>
+<title>오늘의 배치 퍼즐 · 스택 연구소</title>
 <link rel="stylesheet" href="/board.css">
 <style>
 main { max-width: 64rem; margin: 2rem auto; padding: 0 1rem; }
@@ -25,7 +25,7 @@ table { width: 100%; text-align: left; }
 <body>
 <main>
 <a href="/">← 스택 연구소 홈</a>
-<h1>주간 배치 퍼즐</h1>
+<h1>오늘의 배치 퍼즐</h1>
 <p id="challenge"></p>
 <p>같은 덱으로 최대 세 수 안에 최종 보스 상대 DPS를 높여 보세요. 유닛을 고른 뒤 빈 칸이나 다른 유닛을 누르면 한 수를 사용합니다. 장판은 제자리에 남습니다.</p>
 <section class="panel" aria-label="배치 퍼즐">
@@ -40,12 +40,12 @@ table { width: 100%; text-align: left; }
 <button id="submit" disabled>현재 배치 등록</button>
 </form>
 <p id="submission-status" role="status"></p>
-<p>브라우저별 주간 최고 기록을 저장합니다. DPS가 같으면 수가 적은 기록, 그다음 먼저 달성한 기록이 앞섭니다. 점수는 브라우저에서 계산하는 미검증 기록입니다.</p>
+<p>같은 닉네임의 주간 최고 기록을 저장합니다. 서로 다른 날의 문제는 시작 배치 대비 DPS 향상률로 비교합니다. 향상률이 같으면 수가 적은 기록, 그다음 먼저 달성한 기록이 앞섭니다. 점수는 브라우저에서 계산하는 미검증 기록입니다.</p>
 <div class="controls">
 <button id="previous" type="button">이전 주</button><strong id="ranking-week"></strong><button id="next" type="button">다음 주</button>
 </div>
 <p id="ranking-status" role="status"></p>
-<table><thead><tr><th scope="col">순위</th><th scope="col">닉네임</th><th scope="col">DPS</th><th scope="col">사용한 수</th></tr></thead><tbody id="rows"></tbody></table>
+<table><thead><tr><th scope="col">순위</th><th scope="col">닉네임</th><th scope="col">DPS 향상률</th><th scope="col">사용한 수</th></tr></thead><tbody id="rows"></tbody></table>
 </section>
 </main>
 </body>

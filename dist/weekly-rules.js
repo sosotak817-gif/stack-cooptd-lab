@@ -6,19 +6,23 @@
     return Math.floor((time - monday) / (7 * day));
   }
 
+  function dayAt(time = Date.now()) {
+    return Math.floor((time - monday) / day);
+  }
+
   function startDate(week) {
     return new Date(monday + week * 7 * day + 9 * 3600000).toISOString().slice(0, 10);
   }
 
-  function puzzle(week, presets) {
-    let seed = week >>> 0;
+  function puzzle(puzzleDay, presets) {
+    let seed = puzzleDay >>> 0;
     function draw(length) {
       seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0;
       return Math.floor(seed / 4294967296 * length);
     }
     const modes = ['hard', 'hell', 'abyss', 'deepsea'];
     const decks = ['clara', 'goblin', 'aclaraKaiser'];
-    const deck = decks[week % decks.length];
+    const deck = decks[puzzleDay % decks.length];
     const { cells, marks, name } = structuredClone(presets[deck]);
     for (let i = 0; i < 3; i++) {
       const from = draw(cells.length);
@@ -30,5 +34,5 @@
     return { cells, marks, name, mode: modes[draw(modes.length)] };
   }
 
-  root.CoopWeekly = { weekAt, startDate, puzzle, moveLimit: 3 };
+  root.CoopWeekly = { weekAt, dayAt, startDate, puzzle, moveLimit: 3 };
 })(globalThis);
