@@ -242,5 +242,44 @@ try{
  assert.equal((await pinRequest('reset-pin',resetPayload,{Cookie:resetCookie})).status,401);
  assert.equal((await (await auth('/api/auth/me',{headers:{Cookie:recoverySessionCookie}})).json()).user,null);
  assert.equal((await pinRequest('login',{nickname:input.nickname,pin:resetPayload.newPin})).status,200);
+ const bootstrapSql=new DatabaseSync(':memory:');
+ try {
+  bootstrapSql.exec("PRAGMA foreign_keys=ON; CREATE TABLE lab_vaults (id TEXT PRIMARY KEY); INSERT INTO lab_vaults VALUES ('existing-vault');");
+  let setupBatches=0;
+  const bootstrapBinding=()=>({
+   prepare(query){
+    const statement=values=>({
+     bind:(...args)=>statement(args),
+     first:async()=>bootstrapSql.prepare(query).get(...values),
+     run:()=>bootstrapSql.prepare(query).run(...values)
+    });
+    return statement([]);
+   },
+   async batch(statements){
+    setupBatches++;
+    bootstrapSql.exec('BEGIN');
+    try {for(const statement of statements)statement.run();bootstrapSql.exec('COMMIT');}
+    catch(error){bootstrapSql.exec('ROLLBACK');throw error;}
+   }
+  });
+  const bootstrap=db=>handleAuth({env:{DB:db,PIN_PEPPER:'a'.repeat(64)},request:request('/api/auth/me')});
+  const binding=bootstrapBinding();
+  const responses=await Promise.all([bootstrap(binding),bootstrap(binding)]);
+  for(const response of responses)assert.equal((await response.json()).pinReady,true);
+  assert.equal(setupBatches,1);
+  assert.equal(bootstrapSql.prepare('SELECT version FROM lab_account_schema').get().version,18);
+  assert.equal(bootstrapSql.prepare('SELECT id FROM lab_vaults').get().id,'existing-vault');
+  bootstrapSql.exec("INSERT INTO lab_users VALUES ('existing','provider','Existing',0)");
+  bootstrapSql.exec("INSERT INTO lab_decks(id,user_id,name,data,created_at,updated_at) VALUES ('deck','existing','Existing deck','{}',0,0)");
+  assert.equal((await (await bootstrap(bootstrapBinding())).json()).pinReady,true);
+  assert.equal(setupBatches,1,'a new binding skips schema writes after the persisted marker');
+  assert.equal(bootstrapSql.prepare('SELECT name FROM lab_decks').get().name,'Existing deck');
+  bootstrapSql.exec('DELETE FROM lab_account_schema');
+  assert.equal((await (await bootstrap(bootstrapBinding())).json()).pinReady,true);
+  assert.equal(setupBatches,2);
+  assert.equal(bootstrapSql.prepare('SELECT name FROM lab_decks').get().name,'Existing deck');
+  assert.equal(bootstrapSql.prepare('SELECT id FROM lab_vaults').get().id,'existing-vault');
+  assert.deepEqual(bootstrapSql.prepare('PRAGMA foreign_key_check').all(),[]);
+ } finally {bootstrapSql.close();}
  console.log('Accounts: OAuth state, server-only token exchange, secure sessions, CSRF, real SQLite saves, conflict handling, account isolation, logout and expiry passed.');
 }finally{globalThis.fetch=oldFetch;sql.close();}

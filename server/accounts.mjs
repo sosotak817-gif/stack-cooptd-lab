@@ -1,3 +1,4 @@
+import { accountSchema } from './account-schema.mjs';
 import { changePin, handlePinAuth, pinIdentityPrefix, pinReady, manageRecovery, resetPin } from './pin-auth.mjs';
 
 const jsonHeaders={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
@@ -11,8 +12,28 @@ function cookies(request){return Object.fromEntries((request.headers.get('Cookie
 const ready=env=>!!(env.DB&&env.NAVER_CLIENT_ID&&env.NAVER_CLIENT_SECRET&&env.NAVER_REDIRECT_URI);
 function callbackURL(env,request){const url=new URL(env.NAVER_REDIRECT_URI);if(url.protocol!=='https:'||url.origin!==new URL(request.url).origin||url.pathname!=='/api/auth/callback'||url.search||url.hash)throw fail('네이버 로그인 주소 설정을 확인해 주세요.',503);return url.href;}
 function redirect(location,values=[]){const headers=new Headers({'Location':location,'Cache-Control':'no-store','Referrer-Policy':'no-referrer'});for(const value of values)headers.append('Set-Cookie',value);return new Response(null,{status:302,headers});}
+const initializedAccounts = new WeakMap();
+
+async function initializeAccounts(db) {
+ if (!initializedAccounts.has(db)) {
+  const setup = (async () => {
+   const installed = await db.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name='lab_account_schema'").first();
+   if (installed && await db.prepare('SELECT 1 FROM lab_account_schema WHERE version=18').first()) return;
+   await db.batch([
+    ...accountSchema.map(sql => db.prepare(sql)),
+    db.prepare('CREATE TABLE IF NOT EXISTS lab_account_schema (version INTEGER PRIMARY KEY)'),
+    db.prepare('INSERT OR IGNORE INTO lab_account_schema(version) VALUES (18)')
+   ]);
+  })();
+  initializedAccounts.set(db, setup);
+  setup.catch(() => initializedAccounts.delete(db));
+ }
+ await initializedAccounts.get(db);
+}
+
 async function session(request,env){
  const token=cookies(request)[SESSION];if(!env.DB||!token||!/^[a-f0-9]{64}$/.test(token))return null;
+ if(pinReady(env))await initializeAccounts(env.DB);
  return env.DB.prepare('SELECT s.token_hash,s.csrf,s.expires_at,u.id,u.nickname FROM lab_sessions s JOIN lab_users u ON u.id=s.user_id WHERE s.token_hash=? AND s.expires_at>?').bind(await hash(token),Date.now()).first();
 }
 function sameOrigin(request){if(request.headers.get('Origin')!==new URL(request.url).origin)throw fail('요청 출처를 확인할 수 없습니다.',403);}
@@ -53,6 +74,10 @@ async function startSession(request, env, user, statements, status=200, pinHash)
 export async function handleAuth({request,env}){
  const path=new URL(request.url).pathname;
  try{
+  if(pinReady(env) && ((path==='/api/auth/me' && request.method==='GET') ||
+     (request.method==='POST' && /^\/api\/auth\/(nickname|register|login|reset-pin)$/.test(path)))) {
+   await initializeAccounts(env.DB);
+  }
   const action = path.match(/^\/api\/auth\/(nickname|register|login)$/)?.[1];
   if(action && request.method==='POST'){
    return await handlePinAuth(request,env,action,{body,fail,hash,random,reply,sameOrigin,startSession});
