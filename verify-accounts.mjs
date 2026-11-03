@@ -36,6 +36,8 @@ try{
  assert.equal((await board(put(0))).status,409);assert.equal((await (await board(put(1))).json()).revision,2);
  const loaded=await (await board({headers})).json();assert.deepEqual(loaded.board,sample);assert.equal(loaded.revision,2);
  profile='naver-two';const two=await login(),otherHeaders={Cookie:two.cookie,'X-CSRF-Token':two.csrf};assert.equal((await (await board({headers:otherHeaders})).json()).board,null);
+ assert.equal((await board({headers:{...otherHeaders,'X-Account-Id':one.user.id}})).status,409);
+ assert.equal((await board({...put(0),headers:{...otherHeaders,'X-Account-Id':one.user.id}})).status,409);
  assert.equal((await board({...put(2),headers:otherHeaders})).status,409,'another account cannot overwrite a revision belonging to the first');
  assert.equal((await board({...put(0),headers:otherHeaders})).status,200);assert.equal(sql.prepare('SELECT COUNT(*) n FROM lab_boards').get().n,2);
  assert.equal((await auth('/api/auth/logout',{method:'POST',headers:{Cookie:one.cookie}})).status,403);
