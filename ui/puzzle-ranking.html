@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>주간 퍼즐 랭킹 · 스택 연구소</title>
+<link rel="icon" href="/logo.svg">
+<link rel="stylesheet" href="/board.css">
+<link rel="stylesheet" href="/design-system.css">
+<style>
+.puzzle-rankings .dashboard-panel { margin-bottom: 1rem; }
+.puzzle-rankings .table-scroll { overflow-x: auto; }
+.puzzle-rankings table { width: 100%; text-align: left; border-collapse: collapse; }
+.puzzle-rankings :is(td,th) { padding: .65rem .4rem; border-bottom: 1px solid #293a52; overflow-wrap: anywhere; }
+.puzzle-rankings .controls { display: flex; align-items: center; flex-wrap: wrap; gap: .5rem; }
+#replay-board { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; max-width: 42rem; margin: 1rem 0; }
+#replay-board div { min-width: 0; min-height: 3rem; padding: 4px; border-radius: 6px; text-align: center; overflow-wrap: anywhere; }
+#replay-board .tile { border: 1px solid #293a52; background: #142238; }
+#replay-board .changed { border-color: var(--mint); }
+#replay-board img { display: block; width: min(100%, 2rem); margin: auto; }
+#replay-board small { display: block; font-size: .68rem; }
+#replay { scroll-margin-top: 75px; }
+</style>
+<script src="/design-shell.js" defer></script>
+<script src="/engine.js" defer></script>
+<script src="/weekly-rules.js" defer></script>
+<script src="/puzzle-ranking.js" defer></script>
+</head>
+<body>
+<main class="dashboard puzzle-rankings">
+<header class="dashboard-heading">
+<div><span class="section-kicker">STACK LAB · WEEKLY LEADERBOARD</span>
+<h1>주간 <span>퍼즐 랭킹</span></h1>
+<p>시작 배치 대비 DPS 향상률로 겨룹니다. 기록의 배치 보기를 눌러 한 수씩 확인하세요.</p></div>
+<a class="mint-button" href="/weekly-puzzle/">오늘의 퍼즐 풀기 ↗</a>
+</header>
+<section class="dashboard-panel" aria-label="주간 TOP 50">
+<div class="controls">
+<button id="previous" type="button" disabled>이전 주</button><strong id="ranking-week"></strong><button id="next" type="button" disabled>다음 주</button>
+</div>
+<p id="ranking-status" role="status">랭킹을 불러오는 중…</p>
+<div class="table-scroll"><table><thead><tr><th scope="col">순위</th><th scope="col">닉네임</th><th scope="col">DPS 향상률</th><th scope="col">수</th><th scope="col">공개 배치</th></tr></thead><tbody id="rows"></tbody></table></div>
+</section>
+<section class="dashboard-panel" id="replay" aria-labelledby="replay-title" hidden>
+<h2 id="replay-title" tabindex="-1"></h2>
+<p id="replay-summary"></p>
+<div class="controls"><button id="back-step" type="button">이전 수</button><strong id="step-number" role="status"></strong><button id="forward-step" type="button">다음 수</button></div>
+<div id="replay-board" aria-label="공개 배치"></div>
+</section>
+</main>
+</body>
+</html>

@@ -10,17 +10,15 @@
   const translation = await fetch('/ko.json' + version).then(r => r.json()).catch(() => ({}));
   const names = new Map(CoopData.DEMONS.map(d => [d.slug, translation[d.name] || d.name]));
   const initial = await fetch(api).then(r => r.json()).catch(() => ({}));
-  const week = initial.currentWeek ?? rules.weekAt();
   const day = initial.currentDay ?? rules.dayAt();
   const challenge = rules.puzzle(day, CoopPresets.presets);
   const history = [challenge.cells];
+  const steps = [];
   let selected = null;
   let result = null;
   let baseline = null;
   let cancelCalculation = () => {};
   let submitting = false;
-  let shownWeek = week;
-  let rankingRequest = 0;
   const target = CoopTargets.finalBossOf(challenge.mode).id;
   const growth = structuredClone(account);
   for (const slug of new Set(challenge.cells.map(cell => cell.slug))) {
@@ -70,12 +68,8 @@
           $('grid').children[index - 42].focus();
           return;
         }
-        const source = selected;
-        history.push(cells.map(c => {
-          const position = c.row * 7 + c.col;
-          const next = position === source ? index : position === index ? source : position;
-          return { ...c, row: Math.floor(next / 7), col: next % 7 };
-        }));
+        steps.push([selected, index]);
+        history.push(rules.move(cells, selected, index));
         selected = null;
         evaluate();
       };
@@ -111,30 +105,6 @@
       marks: challenge.marks, you: growth, partner: account, partnerEnabled: false });
   }
 
-  async function rankings() {
-    const request = ++rankingRequest;
-    $('ranking-week').textContent = rules.startDate(shownWeek) + ' 주간';
-    $('next').disabled = shownWeek >= week;
-    $('previous').disabled = shownWeek <= 0;
-    $('rows').replaceChildren();
-    $('ranking-status').textContent = '랭킹을 불러오는 중…';
-    try {
-      const response = await fetch(api + '?week=' + shownWeek);
-      const data = await response.json();
-      if (!response.ok) throw Error(data.error);
-      if (request !== rankingRequest) return;
-      for (const [i, row] of data.rows.entries()) {
-        const tr = $('rows').insertRow();
-        for (const value of [i + 1, row.nickname, format(row.score) + '%', row.moves]) {
-          tr.insertCell().textContent = value;
-        }
-      }
-      $('ranking-status').textContent = data.rows.length ? '' : '아직 등록된 기록이 없어요.';
-    } catch (error) {
-      if (request === rankingRequest) $('ranking-status').textContent = error.message || '랭킹 연결을 확인해 주세요.';
-    }
-  }
-
   $('register').onsubmit = async event => {
     event.preventDefault();
     if (submitting || result === null || !(baseline > 0)) return;
@@ -149,12 +119,11 @@
     try {
       const response = await fetch(api, { method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ day, revision: COOP_SHARED_REVISION, nickname,
-          score: Math.round((result / baseline - 1) * 1e8) / 1e6, moves: history.length - 1 }) });
+          score: Math.round((result / baseline - 1) * 1e8) / 1e6, moves: steps.length, steps }) });
       const data = await response.json();
       if (!response.ok) throw Error(data.error);
       $('submission-status').textContent = data.improved ? '주간 기록을 등록했어요.' : '이전 최고 기록을 유지했어요.';
-      shownWeek = week;
-      await rankings();
+      $('view-rankings').hidden = false;
     } catch (error) {
       $('submission-status').textContent = error.message || '기록을 저장하지 못했어요.';
     } finally {
@@ -162,12 +131,9 @@
       $('submit').disabled = result === null || !(baseline > 0);
     }
   };
-  $('undo').onclick = () => { history.pop(); selected = null; evaluate(); };
-  $('reset').onclick = () => { history.length = 1; selected = null; evaluate(); };
-  $('previous').onclick = () => { shownWeek--; rankings(); };
-  $('next').onclick = () => { shownWeek++; rankings(); };
+  $('undo').onclick = () => { history.pop(); steps.pop(); selected = null; evaluate(); };
+  $('reset').onclick = () => { history.length = 1; steps.length = 0; selected = null; evaluate(); };
   evaluate();
-  rankings();
 })().catch(error => {
   document.getElementById('result').textContent = '퍼즐을 열지 못했어요. ' + error.message;
 });

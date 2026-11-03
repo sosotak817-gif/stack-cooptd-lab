@@ -34,5 +34,13 @@
     return { cells, marks, name, mode: modes[draw(modes.length)] };
   }
 
-  root.CoopWeekly = { weekAt, dayAt, startDate, puzzle, moveLimit: 3 };
+  function move(cells, from, to) {
+    return cells.map(cell => {
+      const position = cell.row * 7 + cell.col;
+      const next = position === from ? to : position === to ? from : position;
+      return { ...cell, row: Math.floor(next / 7), col: next % 7 };
+    });
+  }
+
+  root.CoopWeekly = { weekAt, dayAt, startDate, puzzle, move, moveLimit: 3 };
 })(globalThis);

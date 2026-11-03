@@ -1,7 +1,12 @@
 import '../../ui/weekly-rules.js';
+import '../../ui/board-presets.js';
+import { catalog } from '../../server/guide-catalog.mjs';
 import { revision } from '../../server/shared-calculation-version.mjs';
 
-const { weekAt, dayAt, moveLimit } = globalThis.CoopWeekly;
+const { weekAt, dayAt, puzzle, move, moveLimit } = globalThis.CoopWeekly;
+
+const validTiles = new Set(catalog.tiles.filter(tile => Number(tile.split(':')[0]) > 5)
+  .map(tile => { const [row, col] = tile.split(':').map(Number); return row * 7 + col; }));
 
 const schema = `
 CREATE TABLE IF NOT EXISTS daily_puzzle_scores (
@@ -12,6 +17,7 @@ CREATE TABLE IF NOT EXISTS daily_puzzle_scores (
   score REAL NOT NULL,
   moves INTEGER NOT NULL,
   achieved_at INTEGER NOT NULL,
+  replay TEXT,
   PRIMARY KEY (week, revision, nickname_key)
 );
 CREATE INDEX IF NOT EXISTS daily_puzzle_leaderboard
@@ -48,15 +54,32 @@ async function handle(request, db, retry = true) {
           !Number.isInteger(moves) || moves < 0 || moves > moveLimit) {
         return reply({ error: '닉네임과 계산 기록을 확인해 주세요.' }, 400);
       }
+      const steps = body.steps;
+      if (!Array.isArray(steps) || steps.length !== moves) return reply({ error: '배치 기록을 확인해 주세요.' }, 400);
+      const challenge = puzzle(currentDay, globalThis.CoopPresets.presets);
+      let cells = challenge.cells;
+      for (const step of steps) {
+        if (!Array.isArray(step) || step.length !== 2) return reply({ error: '배치 기록을 확인해 주세요.' }, 400);
+        const [from, to] = step;
+        if (!validTiles.has(from) || !validTiles.has(to) || from === to ||
+            !cells.some(cell => cell.row * 7 + cell.col === from)) {
+          return reply({ error: '이동할 수 없는 칸이 포함되어 있어요.' }, 400);
+        }
+        cells = move(cells, from, to);
+      }
+      const replay = JSON.stringify({ day: currentDay, ...challenge, steps });
       const nicknameKey = nickname.toLowerCase().normalize('NFC');
       if (dayAt() !== currentDay) return reply({ error: '새 오늘의 퍼즐을 열어 주세요.' }, 409);
       const saved = await db.prepare(`
-        INSERT INTO daily_puzzle_scores (week, revision, nickname_key, nickname, score, moves, achieved_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO daily_puzzle_scores (week, revision, nickname_key, nickname, score, moves, achieved_at, replay)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT (week, revision, nickname_key) DO UPDATE SET
-          nickname = excluded.nickname, score = excluded.score, moves = excluded.moves, achieved_at = excluded.achieved_at
-        WHERE excluded.score > score OR (excluded.score = score AND excluded.moves < moves)
-      `).bind(currentWeek, revision, nicknameKey, nickname, score, moves, Date.now()).run();
+          nickname = excluded.nickname, score = excluded.score, moves = excluded.moves,
+          achieved_at = CASE WHEN excluded.score = score AND excluded.moves = moves THEN achieved_at ELSE excluded.achieved_at END,
+          replay = excluded.replay
+        WHERE excluded.score > score OR (excluded.score = score AND
+          (excluded.moves < moves OR (excluded.moves = moves AND daily_puzzle_scores.replay IS NULL)))
+      `).bind(currentWeek, revision, nicknameKey, nickname, score, moves, Date.now(), replay).run();
       return reply({ improved: !!saved.meta.changes });
     }
     if (request.method !== 'GET') return reply({ error: '지원하지 않는 요청입니다.' }, 405);
@@ -67,14 +90,19 @@ async function handle(request, db, retry = true) {
       'SELECT revision FROM daily_puzzle_scores WHERE week = ? ORDER BY achieved_at DESC LIMIT 1'
     ).bind(week).first())?.revision;
     const rows = selectedRevision ? (await db.prepare(`
-      SELECT nickname, score, moves FROM daily_puzzle_scores WHERE week = ? AND revision = ?
+      SELECT nickname, score, moves, replay FROM daily_puzzle_scores WHERE week = ? AND revision = ?
       ORDER BY score DESC, moves ASC, achieved_at ASC, nickname_key ASC LIMIT 50
     `).bind(week, selectedRevision).all()).results : [];
-    return reply({ currentWeek, currentDay, week, rows });
+    return reply({ currentWeek, currentDay, week, rows: rows.map(row => ({ ...row, replay: row.replay ? JSON.parse(row.replay) : null })) });
   } catch (error) {
-    if (retry && /no such table: daily_puzzle_scores/.test(String(error))) {
+    if (retry && /no such table: daily_puzzle_scores|no such column: replay|has no column named replay/.test(String(error))) {
       try {
         await db.batch(schema.trim().split(';').filter(sql => sql.trim()).map(sql => db.prepare(sql)));
+        const { results } = await db.prepare('PRAGMA table_info(daily_puzzle_scores)').all();
+        if (!results.some(column => column.name === 'replay')) {
+          try { await db.prepare('ALTER TABLE daily_puzzle_scores ADD COLUMN replay TEXT').run(); }
+          catch (error) { if (!/duplicate column name: replay/.test(String(error))) throw error; }
+        }
         return handle(request, db, false);
       } catch (setupError) {
         console.error('weekly puzzle schema', setupError);

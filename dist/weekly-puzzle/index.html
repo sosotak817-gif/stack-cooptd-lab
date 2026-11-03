@@ -4,17 +4,15 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>오늘의 배치 퍼즐 · 스택 연구소</title>
-<link rel="icon" href="/logo.svg?v=30359bbfa216577b">
-<link rel="stylesheet" href="/board.css?v=30359bbfa216577b">
-<link rel="stylesheet" href="/design-system.css?v=30359bbfa216577b">
-<script src="/design-shell.js?v=30359bbfa216577b" defer></script>
+<link rel="icon" href="/logo.svg?v=14c2698170166068">
+<link rel="stylesheet" href="/board.css?v=14c2698170166068">
+<link rel="stylesheet" href="/design-system.css?v=14c2698170166068">
+<script src="/design-shell.js?v=14c2698170166068" defer></script>
 <style>
  .puzzle-layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 1rem; align-items: start; }
 .puzzle-page .dashboard-heading { display: block; }
 .puzzle-page .dashboard-panel { min-width: 0; }
 .puzzle-page .dashboard-panel header { margin-bottom: 1rem; }
-.puzzle-page .table-scroll { overflow-x: auto; }
-#leaderboard { scroll-margin-top: 75px; }
 @media (max-width: 1100px) { .puzzle-layout { grid-template-columns: minmax(0, 1fr); } }
 #grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 3px; max-width: 38rem; }
 #grid button, #grid span { min-width: 0; min-height: 3rem; padding: 3px; overflow-wrap: anywhere; }
@@ -22,13 +20,12 @@
 #grid button[aria-pressed=true] { outline: 2px solid #63edd3; }
 #grid small { display: block; font-size: .68rem; }
 .controls { display: flex; flex-wrap: wrap; gap: .5rem; align-items: center; }
-table { width: 100%; text-align: left; }
 </style>
-<script src="/engine.js?v=30359bbfa216577b" defer></script>
-<script src="/board-presets.js?v=30359bbfa216577b" defer></script>
-<script src="/shared-calculation-version.js?v=30359bbfa216577b" defer></script>
-<script src="/weekly-rules.js?v=30359bbfa216577b" defer></script>
-<script src="/weekly-page.js?v=30359bbfa216577b" defer></script>
+<script src="/engine.js?v=14c2698170166068" defer></script>
+<script src="/board-presets.js?v=14c2698170166068" defer></script>
+<script src="/shared-calculation-version.js?v=14c2698170166068" defer></script>
+<script src="/weekly-rules.js?v=14c2698170166068" defer></script>
+<script src="/weekly-page.js?v=14c2698170166068" defer></script>
 </head>
 <body>
 <main class="dashboard puzzle-page">
@@ -45,19 +42,15 @@ table { width: 100%; text-align: left; }
 <p id="result" role="status"></p>
 <div id="grid" aria-label="내 진영 배치"></div>
 </section>
-<section class="dashboard-panel" id="leaderboard" aria-labelledby="puzzle-ranking-title">
-<header><h2 id="puzzle-ranking-title">주간 퍼즐 랭킹 · TOP 50</h2></header>
+<section class="dashboard-panel" id="registration" aria-labelledby="puzzle-ranking-title">
+<header><h2 id="puzzle-ranking-title">주간 기록 등록</h2></header>
 <form id="register" class="controls">
 <label>공개 닉네임 <input id="nickname" maxlength="40" autocomplete="nickname" required></label>
 <button id="submit" disabled>현재 배치 등록</button>
 </form>
 <p id="submission-status" role="status"></p>
-<p>같은 닉네임의 주간 최고 기록을 저장합니다. 서로 다른 날의 문제는 시작 배치 대비 DPS 향상률로 비교합니다. 향상률이 같으면 수가 적은 기록, 그다음 먼저 달성한 기록이 앞섭니다. 점수는 브라우저에서 계산하는 미검증 기록입니다.</p>
-<div class="controls">
-<button id="previous" type="button">이전 주</button><strong id="ranking-week"></strong><button id="next" type="button">다음 주</button>
-</div>
-<p id="ranking-status" role="status"></p>
-<div class="table-scroll"><table><thead><tr><th scope="col">순위</th><th scope="col">닉네임</th><th scope="col">DPS 향상률</th><th scope="col">사용한 수</th></tr></thead><tbody id="rows"></tbody></table></div>
+<p>닉네임과 주간 최고 기록의 배치 및 이동 순서가 공개됩니다. 서로 다른 날의 문제는 시작 배치 대비 DPS 향상률로 비교합니다. 향상률이 같으면 수가 적은 기록, 그다음 먼저 달성한 기록이 앞섭니다. 점수는 브라우저에서 계산하는 미검증 기록입니다.</p>
+<a id="view-rankings" class="mint-button" href="/rankings/?v=14c2698170166068">주간 랭킹과 다른 배치 보기 ↗</a>
 </section>
 </div>
 </main>
