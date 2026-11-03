@@ -1,3 +1,6 @@
+import {requireAccountSession} from './accounts.mjs';
+
+const luckyPositions=[7,77,777,7777];
 const headers={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const reply=(value,status=200)=>new Response(JSON.stringify(value),{status,headers});
 const hash=async value=>Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256',new TextEncoder().encode(value))),x=>x.toString(16).padStart(2,'0')).join('');
@@ -22,8 +25,21 @@ export async function handleVisitors({request,env}){
   const ip=request.headers.get('CF-Connecting-IP');if(!ip)return reply({tracked:false});
   // Keep only a per-day digest. The source IP is never written to storage.
   const visitorHash=await hash(day+'\n'+ip+'\n'+(env.VISITOR_HASH_SECRET||''));
+  let account;
+  try { account=await requireAccountSession(request,env); }
+  catch(error){if(error.status!==401)throw error;}
+  const definitions=account?luckyPositions.map(position=>db.prepare(
+   'INSERT OR IGNORE INTO lab_achievements(code,title) VALUES (?,?)'
+  ).bind('hidden-lucky-'+position,'행운의 '+position+'번째 방문자')):[];
   await db.batch([
+   ...definitions,
    db.prepare('INSERT OR IGNORE INTO daily_visitors(day,visitor_hash) VALUES(?,?)').bind(day,visitorHash),
+   ...(account?[db.prepare(`INSERT OR IGNORE INTO lab_user_achievements(user_id,code,earned_at)
+    SELECT ?, 'hidden-lucky-'||position, ? FROM
+      (SELECT COUNT(*) AS position FROM daily_visitors WHERE day=?)
+    WHERE changes()=1 AND position IN (7,77,777,7777)
+      AND EXISTS (SELECT 1 FROM lab_sessions WHERE token_hash=? AND user_id=? AND expires_at>?)`)
+    .bind(account.id,Date.now(),day,account.token_hash,account.id,Date.now())]:[]),
    db.prepare('DELETE FROM daily_visitors WHERE day<?').bind(offsetDay(day,-45))
   ]);
   return reply({tracked:true});

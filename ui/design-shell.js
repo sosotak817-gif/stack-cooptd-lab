@@ -10,7 +10,8 @@ const hiddenBadgeGems = new Map([
 
 window.StackLabBadge = {
  icon(code, title) {
-  const discovery = hiddenBadgeGems.get(code);
+  const discovery = hiddenBadgeGems.get(code) ||
+   (/^hidden-lucky-(7|77|777|7777)$/.test(code) ? ['fortune','ss','행운의 방문자'] : null);
   if (discovery) {
    const [type, grade, name] = discovery;
    const gem = document.createElement('span');

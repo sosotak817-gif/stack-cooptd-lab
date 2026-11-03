@@ -102,6 +102,16 @@ try{
  assert.ok(publicList.every(badge=>!badgeCodes.has(badge.code)&&!badge.complete));
 
  assert.ok((await (await getActivity(a)).json()).achievements.some(badge=>badge.code==='hidden-archive'));
+ const {handleVisitors}=await import('./server/visitors.mjs');
+ const visit=(headers,ip)=>handleVisitors({env:{DB},request:new Request('https://lab.example/api/visitors',{
+  method:'POST',headers:{Origin:'https://lab.example','CF-Connecting-IP':ip,...headers}
+ })});
+ for(let n=1;n<=6;n++)assert.equal((await visit({},'192.0.2.'+n)).status,200);
+ assert.equal((await visit(a,'192.0.2.6')).status,200);
+ assert.equal(sqlite.prepare("SELECT count(*) n FROM lab_user_achievements WHERE code LIKE 'hidden-lucky-%'").get().n,0);
+ assert.equal((await visit(a,'192.0.2.7')).status,200);
+ assert.equal((await visit(a,'192.0.2.7')).status,200);
+ assert.deepEqual(sqlite.prepare("SELECT user_id,code FROM lab_user_achievements WHERE code LIKE 'hidden-lucky-%'").all().map(row=>({...row})),[{user_id:'account-a',code:'hidden-lucky-7'}]);
  const edit={id:posted.data.post.id,expectedUpdatedAt:posted.data.post.updatedAt,guide};
  assert.equal((await call('PUT',edit,{headers:b})).status,403);
  assert.equal((await call('DELETE',edit,{headers:b})).status,403);
