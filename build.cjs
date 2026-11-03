@@ -78,6 +78,7 @@ writeAccountPage('home.html','index.html');
 fs.mkdirSync(path.join(dist,'achievements'),{recursive:true});
 writeAccountPage('achievements.html','achievements/index.html');
 fs.copyFileSync('ui/achievements.js',path.join(dist,'achievements.js'));
+fs.copyFileSync('ui/archive-discovery.js',path.join(dist,'archive-discovery.js'));
 fs.copyFileSync('ui/home-account.js',path.join(dist,'home-account.js'));
 for(const code of ['first-verified-puzzle','first-deck','first-guide','first-weekly-challenge'])fs.copyFileSync('ui/badge-'+code+'.svg',path.join(dist,'badge-'+code+'.svg'));
 fs.mkdirSync(path.join(dist,'account'),{recursive:true});

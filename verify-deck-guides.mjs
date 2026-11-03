@@ -82,6 +82,15 @@ try{
  assert.equal((await (await getActivity(a)).json()).achievements[0].featured,1);
  assert.equal((await setBadge(a,null)).status,200);
  assert.equal((await (await getActivity(a)).json()).achievements[0].featured,0);
+ const {onRequest:discover}=await import('./functions/api/me/archive-discovery.js');
+ const discovery=headers=>discover({env:{DB},request:new Request('https://lab.example/api/me/archive-discovery',{
+  method:'POST',headers:{Origin:'https://lab.example',...headers}
+ })});
+ assert.equal((await discovery({})).status,401);
+ assert.equal((await discovery({...a,'X-CSRF-Token':'bad'})).status,403);
+ assert.deepEqual(await (await discovery(a)).json(),{earned:true});
+ assert.deepEqual(await (await discovery(a)).json(),{earned:false});
+ assert.ok((await (await getActivity(a)).json()).achievements.some(badge=>badge.code==='hidden-archive'));
  const edit={id:posted.data.post.id,expectedUpdatedAt:posted.data.post.updatedAt,guide};
  assert.equal((await call('PUT',edit,{headers:b})).status,403);
  assert.equal((await call('DELETE',edit,{headers:b})).status,403);
