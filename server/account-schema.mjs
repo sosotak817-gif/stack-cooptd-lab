@@ -32,3 +32,11 @@ export const accountSchema = [
   "INSERT OR IGNORE INTO lab_user_achievements\nSELECT user_id,'first-verified-puzzle',MIN(achieved_at)\nFROM daily_puzzle_account_scores\nWHERE revision LIKE '%:server-score-v1'\nGROUP BY user_id;",
   "CREATE TABLE IF NOT EXISTS lab_featured_badges (\n user_id TEXT PRIMARY KEY NOT NULL,\n code TEXT NOT NULL,\n FOREIGN KEY (user_id,code) REFERENCES lab_user_achievements(user_id,code) ON DELETE CASCADE\n);"
 ];
+
+export const researchAchievementSchema = [
+  "INSERT OR IGNORE INTO lab_achievements VALUES ('first-deck','첫 덱 저장'),('first-guide','첫 덱 공략 발행');",
+  "CREATE TRIGGER IF NOT EXISTS lab_award_first_deck\nAFTER INSERT ON lab_decks\nBEGIN\n INSERT OR IGNORE INTO lab_user_achievements VALUES (NEW.user_id,'first-deck',NEW.created_at);\nEND;",
+  "CREATE TRIGGER IF NOT EXISTS lab_award_first_guide\nAFTER INSERT ON deck_guides\nWHEN NEW.owner LIKE 'account:%'\nBEGIN\n INSERT OR IGNORE INTO lab_user_achievements\n SELECT id,'first-guide',NEW.created_at FROM lab_users WHERE id=substr(NEW.owner,9);\nEND;",
+  "INSERT OR IGNORE INTO lab_user_achievements\nSELECT user_id,'first-deck',MIN(created_at) FROM lab_decks GROUP BY user_id;",
+  "INSERT OR IGNORE INTO lab_user_achievements\nSELECT u.id,'first-guide',MIN(g.created_at) FROM lab_users u JOIN deck_guides g ON g.owner='account:'||u.id GROUP BY u.id;"
+];

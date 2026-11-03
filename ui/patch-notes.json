@@ -1,5 +1,12 @@
 [
   {
+    "id": "2026-11-03-research-achievements",
+    "date": "2026-11-03",
+    "type": "feature",
+    "title": "첫 덱 저장과 첫 공략 발행 업적",
+    "details": ["계정에 처음 덱을 저장하거나 덱 공략을 처음 발행하면 각 업적 배지를 획득합니다. 기존 계정 기록에도 소급 적용합니다."]
+  },
+  {
     "id": "2026-11-03-featured-badge-icons",
     "date": "2026-11-03",
     "type": "feature",

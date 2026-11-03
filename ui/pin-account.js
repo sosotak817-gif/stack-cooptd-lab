@@ -56,6 +56,7 @@
       };
       for (const badge of activity.achievements) {
         append(achievements, badge.title + ' · ' + date.format(badge.earnedAt));
+        if (window.StackLabBadge) achievements.lastElementChild.prepend(window.StackLabBadge.icon(badge.code, badge.title), ' ');
         if (badge.featured) featured.textContent = '대표 배지 · ' + badge.title;
         const button = document.createElement('button');
         button.textContent = badge.featured ? '대표 배지 해제' : '대표 배지로 선택';

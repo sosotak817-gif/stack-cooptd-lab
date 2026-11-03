@@ -3,10 +3,13 @@
 window.StackLabBadge = {
  icon(code, title) {
   const badge = document.createElement('img');
-  if (code !== 'first-verified-puzzle') return document.createTextNode('');
+  const names = new Map([
+   ['first-verified-puzzle','첫 검증 퍼즐 기록'], ['first-deck','첫 덱 저장'], ['first-guide','첫 덱 공략 발행']
+  ]);
+  if (!names.has(code)) return document.createTextNode('');
   badge.className = 'lab-badge-icon';
-  badge.src = '/badge-first-verified-puzzle.svg';
-  badge.alt = title || '첫 검증 퍼즐 기록';
+  badge.src = '/badge-' + code + '.svg';
+  badge.alt = title || names.get(code);
   badge.title = badge.alt;
   badge.width = badge.height = 20;
   return badge;
