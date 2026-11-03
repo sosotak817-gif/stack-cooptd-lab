@@ -111,6 +111,11 @@ try{
    method:'POST',headers:{'CF-Connecting-IP':'192.0.2.1',...headers},body:JSON.stringify(payload)
   })
  });
+ const unconfigured = await handleAuth({env:{DB},request:request('/api/auth/login',{
+  method:'POST',headers:{'CF-Connecting-IP':'192.0.2.1'},body:'{}'
+ })});
+ assert.equal(unconfigured.status,503);
+ assert.equal((await pinRequest('login',{}, {'CF-Connecting-IP':''})).status,403);
  const input = {nickname:' Ｔest_연구 ',pin:'01234567',pinConfirmation:'01234567'};
  assert.equal((await pinRequest('register',input,{Origin:'https://evil.example'})).status,403);
  assert.deepEqual(await (await pinRequest('nickname',input)).json(),{available:true});
@@ -131,6 +136,11 @@ try{
  sql.prepare("UPDATE lab_auth_attempts SET attempts=7 WHERE scope='login:nickname'").run();
  assert.equal((await pinRequest('login',{nickname:'test_연구',pin:'12345678'})).status,401);
  assert.equal((await pinRequest('login',{nickname:'TEST_연구',pin:input.pin},{'CF-Connecting-IP':'192.0.2.2'})).status,429);
+ sql.prepare("UPDATE lab_auth_attempts SET attempts=30 WHERE scope='login:source' AND attempts>1").run();
+ const beforeSourceProbe = sql.prepare("SELECT count(*) n FROM lab_auth_attempts WHERE scope='login:nickname'").get().n;
+ assert.equal((await pinRequest('login',{nickname:'Another',pin:input.pin})).status,429);
+ assert.equal(sql.prepare("SELECT count(*) n FROM lab_auth_attempts WHERE scope='login:nickname'").get().n,beforeSourceProbe);
+ sql.prepare("DELETE FROM lab_auth_attempts WHERE scope='login:source'").run();
  const changeCookie = cookieOf(loggedIn,'__Host-stack_session');
  const changeSession = await (await auth('/api/auth/me',{headers:{Cookie:changeCookie}})).json();
  const changePayload = {pin:input.pin,newPin:'87654321',pinConfirmation:'87654321'};
@@ -155,10 +165,16 @@ try{
   body:payload ? JSON.stringify(payload) : undefined
  })});
  const deviceInput = {name:'테스트 브라우저',pin:changePayload.newPin};
+ assert.equal((await devices('/api/devices','POST',deviceInput,{'X-CSRF-Token':'invalid'})).status,403);
+ assert.equal((await devices('/api/devices','POST',deviceInput,{Origin:'https://evil.example'})).status,403);
+ assert.equal((await devices('/api/devices','GET',null,{Cookie:'invalid'})).status,401);
  const firstDevice = await devices('/api/devices','POST',deviceInput);
  assert.equal(firstDevice.status,201);
  const firstDeviceId = (await firstDevice.json()).id;
  const firstToken = cookieOf(firstDevice,'__Host-stack_recovery');
+ const tokenHash=sql.prepare('SELECT token_hash FROM lab_recovery_devices WHERE id=?').get(firstDeviceId).token_hash;
+ assert.match(tokenHash,/^[a-f0-9]{64}$/);
+ assert.notEqual(firstToken.split('=')[1],tokenHash);
  assert.ok(firstToken);
  assert.match(firstDevice.headers.get('Set-Cookie'),/HttpOnly; Secure; SameSite=Lax/);
  assert.equal((await devices('/api/devices','POST',deviceInput)).status,201);
