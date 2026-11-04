@@ -29,7 +29,7 @@ sql.prepare('INSERT INTO tier_votes VALUES (?,?,?)').run('legacy',JSON.stringify
 function prepare(query,values=[]){
  return {bind:(...args)=>prepare(query,args),first:async()=>sql.prepare(query).get(...values)||null,
   all:async()=>({results:sql.prepare(query).all(...values)}),
-  run:async()=>({meta:sql.prepare(query).run(...values)})};
+  run:async()=>/^\s*SELECT\b/i.test(query)?{results:sql.prepare(query).all(...values)}:{meta:sql.prepare(query).run(...values)}};
 }
 const DB={prepare,batch:async statements=>{
  sql.exec('BEGIN');
@@ -57,6 +57,23 @@ for(const id of ['regular','impostor']){
 assert.equal((await handleAdmin({env,request:request('/api/admin')})).status,401);
 assert.equal((await handleAdmin({env,request:request('/api/admin','admin')})).status,200);
 assert.equal((await handleAdmin({env,request:request('/api/admin','admin','POST',{action:'reset-votes',kind:'gems'},false)})).status,403);
+const listVotes=async(kind='gems',offset=0)=>handleAdmin({env,request:request('/api/admin?view=votes&kind='+kind+'&offset='+offset,'admin')});
+const listed=await (await listVotes()).json();
+assert.equal(listed.total,1);assert.equal(listed.votes[0].nickname,'사용자');
+assert.deepEqual(listed.votes[0].ranking,gems.slice(0,7));
+assert.equal((await (await listVotes('demons')).json()).votes[0].nickname,'비회원 (기존 투표)');
+const deletion={action:'delete-vote',kind:'gems',voter:listed.votes[0].voter,updatedAt:listed.votes[0].updatedAt};
+assert.equal((await handleAdmin({env,request:request('/api/admin','regular','POST',deletion)})).status,403);
+assert.equal((await handleAdmin({env,request:request('/api/admin','admin','POST',deletion,false)})).status,403);
+sql.prepare('UPDATE gem_tier_votes SET updated_at=updated_at+1 WHERE voter=?').run(deletion.voter);
+assert.equal((await handleAdmin({env,request:request('/api/admin','admin','POST',deletion)})).status,409);
+deletion.updatedAt++;
+assert.equal((await handleAdmin({env,request:request('/api/admin','admin','POST',deletion)})).status,200);
+assert.equal((await (await listVotes()).json()).total,0);
+assert.equal((await (await listVotes('demons')).json()).total,1);
+for(let i=0;i<51;i++)sql.prepare('INSERT INTO gem_tier_votes VALUES (?,?,?)').run('legacy-'+i,JSON.stringify(gems.slice(0,7)),i);
+const secondPage=await (await listVotes('gems',50)).json();assert.equal(secondPage.total,51);assert.equal(secondPage.votes.length,1);
+
 assert.equal((await handleAdmin({env,request:request('/api/admin','admin','POST',{action:'reset-votes',kind:'gems'})})).status,200);
 assert.equal((await (await vote()).json()).total,0);
 assert.equal((await requireAdmin(request('/admin/','admin'),env)).id,'admin');
