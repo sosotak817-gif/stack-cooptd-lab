@@ -115,7 +115,7 @@ const rankingCatalog={revision:rankingRevision,calculationRevision,targets:load(
 fs.mkdirSync('server',{recursive:true});
 fs.writeFileSync('server/ranking-catalog.mjs','export const catalog='+JSON.stringify(rankingCatalog)+';\n');
 fs.writeFileSync(path.join(dist,'ranking-catalog.json'),JSON.stringify(rankingCatalog));
-fs.writeFileSync(path.join(dist,'_routes.json'),JSON.stringify({version:1,include:['/api/*'],exclude:[]}));
+fs.writeFileSync(path.join(dist,'_routes.json'),JSON.stringify({version:1,include:['/api/*','/admin','/admin/*'],exclude:[]}));
 
 fs.cpSync('ui/assets',path.join(dist,'assets'),{recursive:true});
 

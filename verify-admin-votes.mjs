@@ -7,6 +7,9 @@ import {roster as gems} from './server/gem-tier-roster.mjs';
 import {roster as demons} from './server/tier-roster.mjs';
 import fs from 'node:fs';
 
+const routes=JSON.parse(fs.readFileSync('dist/_routes.json','utf8'));
+assert.ok(routes.include.includes('/admin/*'),'admin pages must pass through authentication');
+assert.ok(routes.include.includes('/admin'),'admin entry without a slash must also be protected');
 const sql=new DatabaseSync(':memory:');
 sql.exec(`CREATE TABLE lab_users(id TEXT PRIMARY KEY,nickname TEXT);
  CREATE TABLE lab_sessions(token_hash TEXT,csrf TEXT,expires_at INTEGER,user_id TEXT);
