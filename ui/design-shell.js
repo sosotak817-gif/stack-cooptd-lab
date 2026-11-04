@@ -154,3 +154,19 @@ function init(){register(page());for(const element of document.querySelectorAll(
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 window.addEventListener('pageshow',schedule);
 })();
+
+// Only the authenticated administrator receives this navigation entry.
+(async()=>{
+ if(window!==window.top)return;
+ try{
+  const response=await fetch('/api/auth/me',{cache:'no-store'});
+  if(!response.ok)return;
+  const {user}=await response.json();
+  if(!user?.admin)return;
+  const nav=document.getElementById('lab-main-navigation');
+  if(!nav)return;
+  const link=document.createElement('a');link.href='/admin/';link.textContent='⚙ 관리자';
+  if(location.pathname==='/admin/')link.setAttribute('aria-current','page');
+  nav.append(link);
+ }catch{}
+})();

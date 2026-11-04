@@ -1,5 +1,6 @@
 import { accountSchema, researchAchievementSchema, weeklyAchievementSchema, hiddenStackSchema, achievementNoticeSchema } from './account-schema.mjs';
 import { changePin, handlePinAuth, pinIdentityPrefix, pinReady, manageRecovery, resetPin } from './pin-auth.mjs';
+import {isAdmin} from './admin-role.mjs';
 
 const jsonHeaders={'Content-Type':'application/json; charset=utf-8','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'};
 const reply=(body,status=200)=>new Response(JSON.stringify(body),{status,headers:jsonHeaders});
@@ -72,7 +73,7 @@ async function issueSession(request, env, user, statements = [], pinHash) {
 }
 async function startSession(request, env, user, statements, status=200, pinHash) {
  const issued = await issueSession(request, env, user, statements, pinHash);
- const response = reply({user:{id:user.id,nickname:user.nickname},csrf:issued.csrf},status);
+ const response = reply({user:{id:user.id,nickname:user.nickname,admin:await isAdmin(env.DB,user)},csrf:issued.csrf},status);
  response.headers.append('Set-Cookie',issued.cookie);
  return response;
 }
@@ -89,7 +90,7 @@ export async function handleAuth({request,env}){
   }
   if((path==='/api/auth/session'||path==='/api/auth/me')&&request.method==='GET'){
    const user=await session(request,env);
-   const result={ready:ready(env),user:user?{id:user.id,nickname:user.nickname}:null,csrf:user?.csrf||null};
+   const result={ready:ready(env),user:user?{id:user.id,nickname:user.nickname,admin:await isAdmin(env.DB,user)}:null,csrf:user?.csrf||null};
    if(path==='/api/auth/me'){
     result.pinReady=pinReady(env);
     if(user&&result.pinReady){
