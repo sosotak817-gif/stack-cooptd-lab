@@ -7,3 +7,6 @@ const hostile=render([{id:'test',date:'2026-10-22',type:'fix',title:'<img src=x 
 assert.throws(()=>validate([notes[0],notes[0]]));assert.throws(()=>validate([{...notes[0],date:'2026-02-30'}]));assert.equal(validate([notes[0],notes[1]])[0].id,notes[0].id,'same-day release order remains explicit');
 assert.ok(!fs.readFileSync('ui/portal.js','utf8').includes('localStorage'),'homepage dashboard does not touch saved decks');assert.ok(fs.readFileSync('AGENTS.md','utf8').includes('For every change that affects user-facing'));assert.ok(fs.readFileSync('dist/sw.js','utf8').includes("'/updates/'"));assert.ok(/src="\/portal\.js\?v=/.test(archive));assert.ok(!home.includes('PATCH_NOTES_PREVIEW'));assert.ok(!archive.includes('PATCH_NOTES_ALL'));
 console.log('Patch dashboard: latest three, stable date ordering, complete archive, native accessible details, escaped content, intact tool links, no storage access, versioned assets/offline route and persistent contributor workflow passed.');
+
+for(const note of notes.filter(note=>note.image)){assert.ok(fs.existsSync('dist'+note.image.src));assert.ok(archive.includes('src="'+note.image.src+'"'));assert.ok(archive.includes('alt="'+note.image.alt+'"'));}
+assert.throws(()=>validate([{...notes[0],image:{src:'javascript:alert(1)',alt:'unsafe'}}]));

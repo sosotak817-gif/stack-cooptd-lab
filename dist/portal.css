@@ -97,3 +97,5 @@ body .patch-dashboard .patch-type.performance{background:#443521;color:#ffe0a8}
 .stage-growth{margin:0 0 1rem;padding:1rem;border:1px solid #344b65;border-radius:12px;background:#142437}
 .stage-growth h3,.stage-growth p{margin:.25rem 0}
 .stage-growth li+li{margin-top:.65rem}
+
+.patch-image{margin:16px 0 0}.patch-image a{display:block}.patch-image img{display:block;width:100%;height:auto;border:1px solid var(--line,#2c4258);border-radius:10px}.patch-image figcaption{margin-top:7px;font-size:11px;line-height:1.6;overflow-wrap:anywhere}

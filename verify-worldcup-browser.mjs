@@ -75,6 +75,8 @@ try{
    assert.equal(await page.locator('.worldcup-choice img[src="/assets/gems/stone-sss.webp"]').count(),2);
    for(const card of await page.locator('.worldcup-choice').all()){
     const slug=await card.locator('.worldcup-gem-icon img').last().getAttribute('src');
+    const sizes=await card.locator('.worldcup-gem-icon img').evaluateAll(images=>images.map(image=>image.getBoundingClientRect().width));
+    assert.ok(Math.abs(sizes[1]/sizes[0]-.78)<.002,'gem glyph remains 78% of its stone at each viewport');
     const effect=await page.evaluate(slug=>CoopGemInfo.effect(CoopData.GEMS.find(g=>slug.endsWith('/'+g.id+'.webp'))),slug);
     assert.equal(await card.locator('.worldcup-gem-effect').textContent(),effect);
     assert.ok(!effect.includes('{'));
