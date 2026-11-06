@@ -30,3 +30,31 @@ dialog.vote-picker{width:min(960px,calc(100% - 32px));max-height:85dvh;overflow:
 
 /* Shared community tier highlights: gold 0 Tear and rose S. */
 body .dealer-tier-row.tier-zero{--tier-card-accent:#ffe398;--tier-aura-rgb:255,220,115}body .dealer-tier-row.tier-s{--tier-card-accent:#ed9bb6;--tier-aura-rgb:237,155,182}body .dealer-tier-row:is(.tier-zero,.tier-s) .dealer-tier-card{position:relative;isolation:isolate;border-color:var(--tier-card-accent);background:linear-gradient(155deg,rgba(var(--tier-aura-rgb),.16),#111d2c 78%);box-shadow:0 0 13px rgba(var(--tier-aura-rgb),.23),inset 0 0 0 1px rgba(var(--tier-aura-rgb),.08)}body .dealer-tier-row:is(.tier-zero,.tier-s) .dealer-tier-card::before{content:'';position:absolute;top:0;left:50%;transform:translateX(-50%);width:88%;max-width:88px;height:68px;border-radius:50%;background:radial-gradient(ellipse,rgba(var(--tier-aura-rgb),.4) 0%,rgba(var(--tier-aura-rgb),.15) 43%,transparent 74%);pointer-events:none;z-index:0}body .dealer-tier-row:is(.tier-zero,.tier-s) .dealer-tier-card>img{position:relative;z-index:1;filter:drop-shadow(0 0 6px rgba(var(--tier-aura-rgb),.65))}body .dealer-tier-row:is(.tier-zero,.tier-s) .dealer-tier-card>b,body .dealer-tier-row:is(.tier-zero,.tier-s) .dealer-tier-card>small{position:relative;z-index:1}body .dealer-tier-row:is(.tier-zero,.tier-s) .dealer-tier-card::after{z-index:2}
+
+.worldcup-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin:1rem 0}
+.worldcup-choice{display:flex;flex-direction:column;align-items:center;gap:.6rem;min-width:0;min-height:200px;padding:1.5rem;border:1px solid #42617a;border-radius:14px;background:#183047;color:#edf4ff;cursor:pointer}
+.worldcup-choice:hover,.worldcup-choice:focus-visible{border-color:#78ecd3;background:#224758}
+.worldcup-choice img{width:112px;height:112px;object-fit:contain;pointer-events:none}
+.worldcup-choice strong{overflow-wrap:anywhere}
+.worldcup-choice span{font-size:.85rem;color:#9cebd9}
+.worldcup-results{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:.65rem;padding:0;list-style:none}
+.worldcup-results li{display:grid;grid-template-columns:42px minmax(0,1fr);align-items:center;gap:.3rem;padding:.8rem;background:#182e42;border-radius:10px}
+.worldcup-results img{width:40px;height:40px;object-fit:contain;grid-row:span 3}
+.worldcup-results b{color:#88f5da}.worldcup-results small{color:#aec6db}
+#worldcup-progress{width:100%;margin-top:1rem}
+#worldcup-arena h3:focus{outline:2px solid #78ecd3;outline-offset:4px}
+.worldcup-notice{color:#ffd59a}
+@media(max-width:600px){.worldcup-choices{gap:.5rem}.worldcup-choice{padding:1rem .5rem;min-height:160px}.worldcup-choice img{width:80px;height:80px}.worldcup-choice strong{font-size:.9rem}.worldcup-results{grid-template-columns:repeat(2,minmax(0,1fr));font-size:.8rem}}
+
+.worldcup-final-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:.65rem;padding:0;list-style:none}
+.worldcup-final-list li{display:grid;grid-template-columns:35px 44px minmax(0,1fr) 36px;gap:.4rem;align-items:center;padding:.75rem;border:1px solid #3b576d;border-radius:10px;background:#182e42;cursor:grab}
+.worldcup-final-list li>img{width:42px;height:42px;object-fit:contain;grid-row:span 2}
+.worldcup-final-list li>b{grid-row:span 2;color:#8cf3d9}
+.worldcup-final-list li>strong{overflow-wrap:anywhere;font-size:.9rem}
+.worldcup-final-list li>small{grid-column:3;color:#b8cfe1}
+.worldcup-drag-handle{grid-column:4;grid-row:1/span 2;min-height:44px;touch-action:none;cursor:grab}
+.worldcup-order-controls{grid-column:1/-1;display:flex;gap:.4rem;justify-content:flex-end}
+.worldcup-order-controls button{min-height:36px;font-size:.8rem}
+.worldcup-final-list li.dragging{opacity:.5}
+.worldcup-final-list li.drag-over{outline:2px solid #82ecd4}
+@media(max-width:600px){.worldcup-final-list{grid-template-columns:minmax(0,1fr)}}

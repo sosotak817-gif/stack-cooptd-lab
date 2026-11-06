@@ -8,7 +8,7 @@ class Statement{
  bind(...values){return new Statement(this.query,values);}
  async first(){return sql.prepare(this.query).get(...this.values)||null;}
  async all(){return {results:sql.prepare(this.query).all(...this.values)};}
- async run(){const result=sql.prepare(this.query).run(...this.values);return {...result,meta:{changes:result.changes}};}
+ async run(){if(/^\s*SELECT\b/i.test(this.query))return {results:sql.prepare(this.query).all(...this.values),meta:{changes:0}};const result=sql.prepare(this.query).run(...this.values);return {...result,meta:{changes:result.changes}};}
 }
 const DB={prepare:query=>new Statement(query),async batch(statements){sql.exec('BEGIN');try{const results=[];for(const s of statements)results.push(await s.run());sql.exec('COMMIT');return results;}catch(error){sql.exec('ROLLBACK');throw error;}}};
 const env={DB,NAVER_CLIENT_ID:'test-client',NAVER_CLIENT_SECRET:'test-secret',NAVER_REDIRECT_URI:'https://lab.example/api/auth/callback'},origin='https://lab.example';
@@ -131,16 +131,18 @@ try{
 
  const {handleTierVotes}=await import('./server/tier-votes.mjs');
  const {roster}=await import('./server/tier-roster.mjs');
+ const Worldcup=(await import('./ui/worldcup-core.js')).default;
+ const completed=preferred=>{const ballot=Worldcup.create(roster,()=>.75);let next;while(!(next=Worldcup.replay(ballot,roster)).complete){const {left,right}=next.next,a=preferred.indexOf(left),b=preferred.indexOf(right);ballot.picks.push(a>=0&&(b<0||a<b)?left:b>=0?right:left);}return ballot;};
  const ranking=roster.slice(0,7), updatedRanking=[...ranking].reverse();
  const vote=(method,sessionHeaders,choices)=>handleTierVotes({env,request:request('/api/tier-votes',{
-  method,headers:{...sessionHeaders,'X-Account-Id':two.user.id},body:choices?JSON.stringify({ranking:choices}):undefined
+  method,headers:{...sessionHeaders,'X-Account-Id':two.user.id},body:choices?JSON.stringify({ballot:completed(choices)}):undefined
  })});
  assert.equal((await vote('PUT',{Cookie:two.cookie},ranking)).status,403);
  assert.equal((await vote('PUT',otherHeaders,ranking)).status,200);
  assert.equal((await vote('PUT',otherHeaders,updatedRanking)).status,200);
  const ballot=await (await vote('GET',{Cookie:two.cookie,Origin:''})).json();
  assert.equal(ballot.total,1);
- assert.deepEqual(ballot.mine,updatedRanking);
+ assert.equal(Worldcup.replay(ballot.mine,roster).champion,updatedRanking[0]);
  assert.equal((await vote('GET',otherDeckHeaders)).status,409);
  const weeklyPath='/api/weekly-puzzle?challenge=weekly';
  const weeklyCall=(method,headers={},payload)=>puzzleSubmit({env,request:request(weeklyPath,{

@@ -1,19 +1,75 @@
-const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict');require('./dist/engine.js');
-class Element{constructor(tag){this.tag=tag;this.children=[];this.hidden=false;this.attrs={};this.style={setProperty(){}};}showModal(){this.open=true;}close(){this.open=false;}append(...n){this.children.push(...n);}replaceChildren(...n){this.children=n;}setAttribute(k,v){this.attrs[k]=v;}}
-(async()=>{const {tally}=await import('./server/tier-votes.mjs'),roster=CoopData.demonsIn('supreme').map(d=>d.slug),nodes=new Map(),pageIds=new Set([...fs.readFileSync('ui/dealer-tiers.html','utf8').matchAll(/id="([^"]+)"/g)].map(m=>'#'+m[1])),get=s=>{if(!pageIds.has(s))return null;if(!nodes.has(s))nodes.set(s,new Element('div'));return nodes.get(s);};let submitted=null,fail=false,signedIn=false;
-let shared=null;const context={CoopData,console,structuredClone,URL,File,Image:class{constructor(){this.width=64;this.height=64;}set src(value){this.onload();}},navigator:{canShare:()=>true,share:async value=>{shared=value;}},URLSearchParams,location:{search:''},document:{querySelector:get,createElement:t=>{const n=new Element(t);if(t==='canvas'){n.getContext=()=>new Proxy({},{get:()=>()=>{}});n.toBlob=fn=>fn(new Blob(['png'],{type:'image/png'}));}return n;}},fetch:async(url,opts)=>url==='/api/auth/me'?{ok:true,json:async()=>({user:signedIn?{id:'test'}:null,csrf:'test-csrf'})}:({ok:!fail,json:async()=>{if(url==='/ko.json')return {};if(fail)return {error:'저장 실패'};if(opts?.method==='PUT')submitted=JSON.parse(opts.body).ranking;return {total:submitted?1:0,rows:tally(submitted?[submitted]:[]),mine:submitted};}})};
-vm.runInNewContext(fs.readFileSync('ui/dealer-tiers-page.js','utf8'),context);await new Promise(r=>setImmediate(r));assert.equal(get('#vote-editor').hidden,false);assert.equal(get('#vote-choices').children.length,7);assert.equal(get('#vote-submit').disabled,true);assert.equal(get('#vote-status').textContent,'로그인하면 투표할 수 있습니다. 집계 결과는 누구나 확인할 수 있습니다.');assert.ok(get('#vote-total').textContent.startsWith('총 0표'));
-signedIn=true;await get('#vote-refresh').onclick();
-const candidate=s=>get('#vote-candidates').children.find(b=>b.children[0].src.endsWith('/'+CoopData.DEMON_BY_SLUG.get(s).img+'.webp'));
-assert.ok(!get('#vote-picker').open);for(let i=0;i<7;i++){get('#vote-choices').children[i].onclick();assert.equal(get('#vote-picker').open,true);assert.equal(get('#vote-picker-title').textContent,`${i+1}위 초마신 선택`);candidate(roster[i]).onclick();assert.equal(get('#vote-picker').open,false);}
-assert.equal(get('#vote-submit').disabled,false);assert.equal(get('#vote-picker').open,false);get('#vote-choices').children[0].onclick();assert.equal(candidate(roster[0]).disabled,false);assert.equal(candidate(roster[1]).disabled,true);
-get('#vote-picker-close').onclick();assert.equal(get('#vote-picker').open,false);
-const drag=(from,to)=>{const cards=get('#vote-choices').children,event={preventDefault(){},dataTransfer:{setData(){}}};cards[from].ondragstart(event);cards[to].ondragover(event);assert.ok(cards[to].className.includes('drag-over'));cards[to].ondrop(event);};
-const shown=()=>get('#vote-choices').children.map(b=>b.children[1].src);
-const original=shown();assert.ok(get('#vote-choices').children.every(b=>b.draggable));drag(0,6);assert.deepEqual(shown(),[...original.slice(1),original[0]]);assert.equal(get('#vote-submit').disabled,false);drag(6,0);assert.deepEqual(shown(),original);
-const cancelled=get('#vote-choices').children[0];cancelled.ondragstart({dataTransfer:{setData(){}}});cancelled.ondragend();assert.ok(!cancelled.className.includes('dragging'));get('#vote-choices').children[2].ondrop({preventDefault(){throw Error('External drag accepted');}});assert.deepEqual(shown(),original);
-fail=true;get('#tier-ballot').onsubmit({preventDefault(){}});await new Promise(r=>setImmediate(r));assert.equal(get('#vote-editor').hidden,false);assert.equal(get('#vote-status').textContent,'저장 실패');fail=false;get('#tier-ballot').onsubmit({preventDefault(){}});await new Promise(r=>setImmediate(r));assert.deepEqual(submitted,roster.slice(0,7));assert.equal(get('#vote-editor').hidden,false);assert.equal(get('#dealer-tier-board').children.length,6);assert.equal(get('#vote-choices').children[0].children[1].tag,'img');assert.equal(get('#vote-editor').hidden,false);
-await get('#vote-image').onclick();assert.equal(get('#vote-export').open,true);assert.ok(get('#vote-preview').src.startsWith('blob:'));assert.equal(get('#vote-share').hidden,false);assert.equal(get('#vote-backgrounds').children.length,8);get('#vote-backgrounds').children[1].onclick();await new Promise(r=>setImmediate(r));assert.equal(get('#vote-backgrounds').children[1].attrs['aria-pressed'],'true');assert.equal(get('#vote-export').open,true);assert.equal(get('#vote-share').disabled,false);await get('#vote-share').onclick();assert.equal(shared.files[0].type,'image/png');get('#vote-export-close').onclick();assert.equal(get('#vote-export').open,false);
-const page=fs.readFileSync('ui/dealer-tiers.html','utf8'),create=fs.readFileSync('ui/personal-tiers.html','utf8');assert.match(page,/id="vote-editor">/);assert.ok(!page.includes('id="vote-open"'));assert.ok(!page.includes('id="vote-close"'));assert.match(page,/href="\/dealer-tiers\/create\/"/);assert.ok(!page.includes('id="personal-tier-editor"'));assert.ok(!page.includes('id="vote-results"'));assert.ok(page.includes('투표 집계 티어리스트'));assert.ok(create.includes('id="personal-tier-editor"'));assert.ok(!create.includes('/dealer-tiers-page.js'));
-console.log('Vote entry: modal image choices, close after selection, duplicates, failed save, submit, restored vote, always-visible ballot and separate create page passed.');
-})().catch(e=>{console.error(e);process.exitCode=1;});
+const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),W=require('./ui/worldcup-core');
+require('./dist/engine.js');
+class Element{
+ constructor(tag){this.tag=tag;this.children=[];this.hidden=false;this.dataset={};this.attrs={};this.style={setProperty(){}};this.classList={add(){},remove(){},toggle(){}};}
+ append(...nodes){this.children.push(...nodes);}
+ replaceChildren(...nodes){this.children=nodes;}
+ setAttribute(key,value){this.attrs[key]=value;}
+ querySelector(tag){return this.children.find(node=>node.tag===tag)||this.children.map(node=>node.querySelector?.(tag)).find(Boolean)||null;}
+ showModal(){this.open=true;}close(){this.open=false;}focus(){}
+}
+(async()=>{
+ const {tally}=await import('./server/tier-votes.mjs');
+ for(const gemMode of [false,true])for(const accountMode of [false,true]){
+  const roster=gemMode?CoopData.GEMS.map(g=>g.id):CoopData.demonsIn('supreme').map(d=>d.slug),storage=new Map();
+  let signedIn=false,submitted=null,fail=false,shared=false;
+  async function mount(){
+   const nodes=new Map(),get=selector=>{
+    if(selector==='#worldcup-arena h3')return get('#worldcup-arena').querySelector('h3');
+    if(!nodes.has(selector))nodes.set(selector,new Element('div'));
+    return nodes.get(selector);
+   };
+   const context={CoopData,CoopWorldcup:W,console,structuredClone,URLSearchParams,File,Blob,Intl,confirm:()=>true,
+    window:{addEventListener(){}},localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},
+    document:{body:{dataset:{tierKind:gemMode?'gems':'demons'}},fonts:{ready:Promise.resolve()},querySelector:get,
+     createElement:tag=>{const node=new Element(tag);if(tag==='canvas'){node.getContext=()=>new Proxy({},{get:()=>()=>{}});node.toBlob=fn=>fn(new Blob(['png'],{type:'image/png'}));}return node;}},
+    Image:class{constructor(){this.width=this.height=64;}set src(value){this.onload();}},
+    URL:{createObjectURL:()=> 'blob:worldcup',revokeObjectURL(){}},
+    navigator:{canShare:()=>true,share:async()=>{shared=true;}},
+    fetch:async(url,options)=>{
+     if(url==='/ko.json')return {ok:true,json:async()=>({})};
+     if(url==='/api/auth/me')return {ok:true,json:async()=>({user:signedIn?{id:'tester'}:null,csrf:'csrf'})};
+     if(options?.method==='PUT'){
+      if(fail)return {ok:false,json:async()=>({error:'저장 실패'})};
+      submitted=JSON.parse(options.body).ballot;
+      assert.ok(W.replay(submitted,roster).complete);
+     }
+     return {ok:true,json:async()=>({mine:submitted,total:submitted?1:0,rows:tally(submitted?[submitted]:[],roster)})};
+    }};
+   vm.runInNewContext(fs.readFileSync('ui/dealer-tiers-page.js','utf8'),context);
+   await new Promise(setImmediate);
+   return get;
+  }
+  let get=await mount();
+  assert.equal(get('#worldcup-start').disabled,false);
+  signedIn=accountMode;await get('#vote-refresh').onclick();
+  get('#worldcup-start').onclick();
+  const key='stack-lab-worldcup-v1:'+(accountMode?'tester':'guest')+':'+(gemMode?'gems':'demons');
+  const choose=()=>get('#worldcup-arena').children.find(node=>node.className==='worldcup-choices').children[0].onclick();
+  choose();choose();
+  assert.equal(JSON.parse(storage.get(key)).picks.length,2);
+  get=await mount();
+  assert.match(get('#vote-status').textContent,/이어서/);
+  get('#worldcup-undo').onclick();assert.equal(JSON.parse(storage.get(key)).picks.length,1);
+  let guard=0;
+  while(get('#vote-submit').hidden){choose();assert.ok(++guard<1000);}
+  assert.ok(JSON.parse(storage.get(key)).picks.length>roster.length-1,'additional placement games are required');
+  const before=W.replay(JSON.parse(storage.get(key)),roster).finalRanking;
+  const list=get('#worldcup-arena').children.find(node=>node.className==='worldcup-final-list');
+  list.children.at(-1).ondrop({preventDefault(){},dataTransfer:{getData:()=>before[0]}});
+  const edited=JSON.parse(storage.get(key));
+  assert.equal(edited.finalRanking.at(-1),before[0]);
+  get=await mount();
+  assert.equal(W.replay(JSON.parse(storage.get(key)),roster).finalRanking.at(-1),before[0]);
+  fail=true;get('#tier-ballot').onsubmit({preventDefault(){}});await new Promise(setImmediate);
+  assert.match(get('#vote-status').textContent,/저장 실패/);assert.ok(storage.has(key));assert.equal(get('#vote-submit').disabled,false);
+  fail=false;get('#tier-ballot').onsubmit({preventDefault(){}});await new Promise(setImmediate);
+  assert.match(get('#vote-status').textContent,/반영/);assert.equal(storage.has(key),false);
+  assert.equal(submitted.finalRanking.at(-1),before[0]);
+  await get('#vote-image').onclick();
+  assert.equal(get('#vote-export').open,true);
+  assert.equal(get('#vote-preview').src,'blob:worldcup');
+  await get('#vote-share').onclick();assert.equal(shared,true);
+ }
+ console.log('Worldcup UI: guest/account access, both rosters, autosave/resume, undo, placement games, final drag ordering, failed-save retry and PNG sharing passed.');
+})().catch(error=>{console.error(error);process.exitCode=1;});

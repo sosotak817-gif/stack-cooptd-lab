@@ -1,14 +1,21 @@
 <!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>관리자 · 스택 연구소</title><link rel="stylesheet" href="/board.css"><link rel="stylesheet" href="/portal.css"><link rel="stylesheet" href="/responsive.css"><script src="/engine.js" defer></script><script src="/admin.js" defer></script></head>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>관리자 · 스택 연구소</title><link rel="stylesheet" href="/board.css"><link rel="stylesheet" href="/portal.css"><link rel="stylesheet" href="/responsive.css"><script src="/engine.js" defer></script><script src="/worldcup-core.js" defer></script><script src="/admin.js" defer></script></head>
 <body><main class="portal" id="admin-content" hidden>
 <section class="panel"><h1>관리자</h1><p>스택 계정 · 전체 데이터 관리</p><p id="admin-status" role="status"></p>
 <h2>투표 관리</h2><button type="button" data-reset="gems">보석 투표 초기화</button> <button type="button" data-reset="demons">초마신 투표 초기화</button>
+</section>
+<section class="panel"><h2>기능별 이용 조건</h2>
+<p>로그인 사용자와 비로그인 사용자의 이용 허용 여부를 각각 선택하세요. 관리자는 모든 기능을 이용할 수 있습니다.</p>
+<p>계정 덱·설정·업적 등 개인 데이터 기능은 본인 계정 인증이 필요합니다. 로그인 화면과 관리자 권한은 고정입니다.</p>
+<p id="admin-feature-status" role="status"></p>
+<div style="overflow:auto"><table class="stage-table"><thead><tr><th>기능</th><th>로그인 허용</th><th>비로그인 허용</th></tr></thead><tbody id="admin-feature-list"></tbody></table></div>
+<button type="button" id="admin-feature-save" disabled>이용 조건 저장</button> <button type="button" id="admin-feature-reload">다시 불러오기</button>
 </section>
 <section class="panel"><h2>개별 투표 관리</h2>
 <label>티어리스트 <select id="admin-vote-kind"><option value="demons">초마신</option><option value="gems">보석</option></select></label>
 <button type="button" id="admin-vote-refresh">새로고침</button>
 <p id="admin-vote-status" role="status"></p>
-<div style="overflow:auto"><table class="stage-table"><thead><tr><th>투표자</th><th>1~7위 순위</th><th>마지막 투표</th><th>관리</th></tr></thead><tbody id="admin-vote-list"></tbody></table></div>
+<div style="overflow:auto"><table class="stage-table"><thead><tr><th>투표자</th><th>월드컵 결과 · 대진</th><th>마지막 투표</th><th>관리</th></tr></thead><tbody id="admin-vote-list"></tbody></table></div>
 <div><button type="button" id="admin-vote-prev">이전</button> <button type="button" id="admin-vote-next">다음</button></div>
 </section>
 <section class="panel"><h2>데이터 관리</h2><p>테이블을 선택해 내용을 조회하거나 SQL로 조회·수정·삭제할 수 있습니다.</p>

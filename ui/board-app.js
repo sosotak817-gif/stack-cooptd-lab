@@ -235,7 +235,8 @@ $('#calculation-mode').value=calculationMode;$('#calculate-now-main').hidden=cal
 $('#calculation-mode').onchange=()=>{calculationMode=$('#calculation-mode').value;$('#calculate-now-main').hidden=calculationMode!=='manual';try{localStorage.setItem('stack-lab-calculation-mode',calculationMode);}catch{}queue();};
 $('#calculate-now').onclick=()=>{clearTimeout(timer);dispatchCalculation?.();};
 const battleButton = $('#battle-watch');
-battleButton.onclick = () => {
+battleButton.onclick = async () => {
+ if (window.StackLabAccess && !await window.StackLabAccess.allow('battle-watch')) return;
  const active = CoopGemTools.active(state);
  if (!active.cells.length) return;
  window.CoopBattleReplay.open({ ...structuredClone(state), maxBuild }, '/battle-worker.js' + (assetVersion ? '?v=' + assetVersion : ''), slug => {

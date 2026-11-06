@@ -6,6 +6,9 @@ import {handleAdmin,requireAdmin} from './server/admin.mjs';
 import {roster as gems} from './server/gem-tier-roster.mjs';
 import {roster as demons} from './server/tier-roster.mjs';
 import fs from 'node:fs';
+import Worldcup from './ui/worldcup-core.js';
+import {accessSettings,saveAccess} from './server/feature-access.mjs';
+function completed(items){const ballot=Worldcup.create(items,()=>.75);let result;while(!(result=Worldcup.replay(ballot,items)).complete)ballot.picks.push(result.next.left);return ballot;}
 
 const routes=JSON.parse(fs.readFileSync('dist/_routes.json','utf8'));
 assert.ok(routes.include.includes('/admin/*'),'admin pages must pass through authentication');
@@ -42,11 +45,18 @@ function request(path,id,method='GET',body,csrf=true){
   ...(id?{Cookie:'__Host-stack_session='+tokens.get(id),'X-Account-Id':id,...(csrf?{'X-CSRF-Token':'csrf'}:{})}:{})},
   ...(body?{body:JSON.stringify(body)}:{})});
 }
-const vote=(id,kind='gems',method='GET')=>handleTierVotes({env,request:request('/api/tier-votes?kind='+kind,id,method,method==='PUT'?{ranking:(kind==='gems'?gems:demons).slice(0,7)}:undefined)});
+const vote=(id,kind='gems',method='GET')=>handleTierVotes({env,request:request('/api/tier-votes?kind='+kind,id,method,method==='PUT'?{ballot:completed(kind==='gems'?gems:demons)}:undefined)});
 assert.equal((await (await vote()).json()).total,0);
+const access=await accessSettings(DB);
+await saveAccess(DB,{...access,features:access.features.map(feature=>({...feature,guest:['gem-vote','demon-vote'].includes(feature.id)?false:feature.guest}))});
+
 assert.equal((await vote(undefined,'gems','PUT')).status,401);
 assert.equal((await vote(undefined,'demons','PUT')).status,401);
 assert.equal((await vote('regular','gems','PUT')).status,200);
+const short=completed(gems);short.picks.pop();
+assert.equal((await handleTierVotes({env,request:request('/api/tier-votes?kind=gems','regular','PUT',{ballot:short})})).status,400);
+assert.equal((await handleTierVotes({env,request:request('/api/tier-votes?kind=gems','regular','PUT',{ranking:gems.slice(0,7)})})).status,400);
+
 sql.exec(fs.readFileSync('migrations/0024_gem_vote_login_reset.sql','utf8'));
 assert.equal((await (await vote('regular')).json()).total,1,'one-time reset preserves subsequent votes');
 assert.equal((await (await vote(undefined,'demons')).json()).total,1,'gem reset preserves demon votes');
@@ -60,7 +70,9 @@ assert.equal((await handleAdmin({env,request:request('/api/admin','admin','POST'
 const listVotes=async(kind='gems',offset=0)=>handleAdmin({env,request:request('/api/admin?view=votes&kind='+kind+'&offset='+offset,'admin')});
 const listed=await (await listVotes()).json();
 assert.equal(listed.total,1);assert.equal(listed.votes[0].nickname,'사용자');
-assert.deepEqual(listed.votes[0].ranking,gems.slice(0,7));
+assert.equal(listed.votes[0].format,'worldcup');
+assert.equal(listed.votes[0].worldcup.placements.length,gems.length);
+assert.ok(listed.votes[0].worldcup.matches.some(match=>match.phase==='placement'));
 assert.equal((await (await listVotes('demons')).json()).votes[0].nickname,'비회원 (기존 투표)');
 const deletion={action:'delete-vote',kind:'gems',voter:listed.votes[0].voter,updatedAt:listed.votes[0].updatedAt};
 assert.equal((await handleAdmin({env,request:request('/api/admin','regular','POST',deletion)})).status,403);
@@ -85,4 +97,4 @@ assert.equal((await adminPage({env,request:request('/admin/','regular'),next})).
 const page=await adminPage({env,request:request('/admin/','admin'),next});
 assert.equal(await page.text(),'admin-page');
 assert.match(page.headers.get('Cache-Control'),/no-store/);
-console.log('Login-only votes, one-time gem reset, administrator identity, access controls and CSRF passed.');
+console.log('Configured login-only votes, one-time gem reset, administrator identity, access controls and CSRF passed.');

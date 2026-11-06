@@ -1,5 +1,10 @@
 import {requireAccountSession,readBoardBody} from './accounts.mjs';
 import {isAdmin} from './admin-role.mjs';
+import Worldcup from '../ui/worldcup-core.js';
+import {validateBallot} from './tier-votes.mjs';
+import {roster} from './tier-roster.mjs';
+import {roster as gemRoster} from './gem-tier-roster.mjs';
+import {accessSettings,saveAccess} from './feature-access.mjs';
 const voteTables={gems:'gem_tier_votes',demons:'tier_votes'};
 
 export async function requireAdmin(request,env,write=false) {
@@ -16,6 +21,7 @@ export async function handleAdmin({request,env}) {
   if(request.headers.get('X-Account-Id')!==user.id)return reply({error:'로그인 계정이 변경되었습니다.'},409);
   if(request.method==='GET'){
    const url=new URL(request.url);
+   if(url.searchParams.get('view')==='access')return reply(await accessSettings(env.DB));
    if(url.searchParams.get('view')==='votes'){
     const table=voteTables[url.searchParams.get('kind')];
     const offset=Number(url.searchParams.get('offset')||0);
@@ -28,16 +34,22 @@ export async function handleAdmin({request,env}) {
       ORDER BY v.updated_at DESC,v.voter LIMIT 50 OFFSET ?`).bind(offset)
     ]);
     return reply({total:count.results[0].total,offset,votes:rows.results.map(row=>{
-     let ranking;
-     try{ranking=JSON.parse(row.ballot);}catch{}
-     return {voter:row.voter,nickname:row.nickname||(row.voter.startsWith('account:')?'삭제된 계정':'비회원 (기존 투표)'),updatedAt:row.updatedAt,
-      ranking:Array.isArray(ranking)?ranking.filter(value=>typeof value==='string'):[]};
+     let ballot,worldcup=null;
+     try{
+      ballot=JSON.parse(row.ballot);
+      const items=url.searchParams.get('kind')==='gems'?gemRoster:roster;
+      if(ballot?.format===Worldcup.FORMAT&&validateBallot(ballot,items))worldcup=Worldcup.replay(ballot,ballot.seed.filter(slug=>slug!==null));
+     }catch{}
+     return {voter:row.voter,nickname:row.nickname||(row.voter.startsWith('account:')?'삭제된 계정':(worldcup?'비회원 (브라우저)':'비회원 (기존 투표)')),updatedAt:row.updatedAt,
+      format:worldcup?'worldcup':'ranking',worldcup,
+      ranking:Array.isArray(ballot)?ballot.filter(value=>typeof value==='string'):[]};
     })});
    }
    const tables=await env.DB.prepare("SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name").all();
    return reply({user:{id:user.id,nickname:user.nickname},tables:tables.results.map(row=>row.name)});
   }
   const input=await readBoardBody(request);
+  if(input.action==='save-access')return reply(await saveAccess(env.DB,input));
   if(input.action==='delete-vote'){
    const table=voteTables[input.kind];
    if(!table||typeof input.voter!=='string'||!input.voter||!Number.isSafeInteger(input.updatedAt))

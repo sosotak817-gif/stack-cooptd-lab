@@ -27,28 +27,6 @@ const assert=require('node:assert/strict');
  assert.equal(classify([180,120,100,90,80,70,60,50,40,30]).filter(r=>r.tier==='0').length,1,'the upper larger gap keeps only the top leader');
  assert.ok(!classify([100,50,25,10]).some(r=>r.tier==='0'),'fewer than five scored units cannot form a top fifth group');
  assert.ok(classify([100,100,100,100,100]).every(r=>r.tier==='S'),'ties stay together');
- const saved=new Map();
- const DB={prepare(sql){
-  let args;
-  return {
-   bind(...a){args=a;return this;},
-   async run(){if(sql.startsWith('INSERT'))saved.set(args[0],args[1]);return {};},
-   async all(){return {results:[...saved].map(([voter,ballot])=>({voter,ballot}))};}
-  };
- }};
- let cookie='';
- const call=async(method,ranking,origin='https://test.example')=>{
-  const request=new Request('https://test.example/api/tier-votes',{method,headers:{Origin:origin,'Content-Type':'application/json',Cookie:cookie},...(method==='PUT'?{body:JSON.stringify({ranking})}:{})});
-  const response=await handleTierVotes({env:{DB},request});
-  if(response.headers.get('Set-Cookie'))cookie=response.headers.get('Set-Cookie').split(';')[0];
-  return {status:response.status,data:await response.json()};
- };
- assert.equal((await call('GET')).data.total,0);
- let result=await call('PUT',ballot);assert.equal(result.status,200);assert.equal(result.data.total,1);assert.deepEqual(result.data.mine,ballot);
- result=await call('PUT',[...ballot].reverse());assert.equal(result.data.total,1);assert.equal(result.data.rows[0].slug,ballot[6]);
- assert.equal((await call('PUT',ballot,'https://evil.example')).status,403);
- assert.equal((await call('PUT',[ballot[0]])).status,400);
- assert.equal((await call('GET')).data.total,1);
  assert.equal((await handleTierVotes({request:new Request('https://test.example'),env:{}})).status,503);
- console.log('Tier voting: weighted scores, ties, validation, browser identity, vote replacement and errors passed.');
+ console.log('Tier voting: weighted scores, ties, validation, historical ballot validation and errors passed.');
 })().catch(e=>{console.error(e);process.exitCode=1;});

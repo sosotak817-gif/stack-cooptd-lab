@@ -3,7 +3,7 @@ const $=s=>document.querySelector(s),svgNS='http://www.w3.org/2000/svg',fmt=n=>{
 const gemTiers=new Date(globalThis.performance?.timeOrigin??Date.now()).getSeconds()%2===0;
 const tierPath=gemTiers?'/gem-tiers/':'/dealer-tiers/',tierSubject=gemTiers?'보석':'초마신';
 $('#dashboard-tier-title').textContent=tierSubject+' 티어리스트';
-$('#dashboard-tier-caption').textContent='좋아하는 '+tierSubject+' 1~7위 · 순위별 7~1점';
+$('#dashboard-tier-caption').textContent=tierSubject+' 선호도 월드컵 · 최종 순위별 점수';
 $('#dashboard-tier-vote').href=tierPath+'?vote=1';
 $('#dashboard-tier-create').href=tierPath+'create/';
 $('#dashboard-tier-all').href=tierPath;
