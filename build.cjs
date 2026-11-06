@@ -115,7 +115,9 @@ const rankingCatalog={revision:rankingRevision,calculationRevision,targets:load(
 fs.mkdirSync('server',{recursive:true});
 fs.writeFileSync('server/ranking-catalog.mjs','export const catalog='+JSON.stringify(rankingCatalog)+';\n');
 fs.writeFileSync(path.join(dist,'ranking-catalog.json'),JSON.stringify(rankingCatalog));
-fs.writeFileSync(path.join(dist,'_routes.json'),JSON.stringify({version:1,include:[...new Set(['/api/*','/admin','/admin/*',...require('./server/feature-catalog.cjs').features.flatMap(feature=>(feature.pages||[]).flatMap(page=>page==='/'?['/','/index.html']:[page,page+'/*']))])],exclude:[]}));
+const accessRoutes=[...new Set(['/api/*','/admin','/admin/*',...require('./server/feature-catalog.cjs').features.flatMap(feature=>(feature.pages||[]).flatMap(page=>page==='/'?['/','/index.html']:[page,page+'/*']))])];
+const functionRoutes=accessRoutes.filter(route=>!accessRoutes.some(other=>other!==route&&other.endsWith('*')&&route.startsWith(other.slice(0,-1))));
+fs.writeFileSync(path.join(dist,'_routes.json'),JSON.stringify({version:1,include:functionRoutes,exclude:[]}));
 
 fs.cpSync('ui/assets',path.join(dist,'assets'),{recursive:true});
 

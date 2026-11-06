@@ -36,14 +36,17 @@ function request(path,id,method='GET',body,cookie,csrf=true){
 }
 const routes=JSON.parse(fs.readFileSync('dist/_routes.json','utf8'));
 for(const feature of features)for(const page of feature.pages||[]){
- assert.ok(routes.include.includes(page),'feature page must be routed through access middleware: '+page);
- if(page!=='/')assert.ok(routes.include.includes(page+'/*'));
+ const covered=path=>routes.include.some(route=>route.endsWith('*')?path.startsWith(route.slice(0,-1)):route===path);
+ assert.ok(covered(page),'feature page must be routed through access middleware: '+page);
+ assert.ok(covered(page==='/'?'/index.html':page+'/index.html'));
 }
 const settings=await accessSettings(DB);
 assert.equal(settings.features.length,features.length);
 assert.equal(settings.features.find(feature=>feature.id==='gem-vote').guest,true);
 assert.equal(settings.features.find(feature=>feature.id==='saved-decks').guest,false);
 assert.deepEqual(featureIdsForRequest('/growth/index.html'),['growth']);
+assert.deepEqual(featureIdsForRequest('/gem-tiers/create/index.html'),['gem-editor']);
+assert.deepEqual(featureIdsForRequest('/rankings/achievements/'),['achievement-ranking']);
 assert.deepEqual(featureIdsForRequest('/gr%6fwth/'),['growth']);
 assert.deepEqual(featureIdsForRequest('/api/tier-votes/','PUT','gems'),['gem-tiers','gem-vote']);
 assert.deepEqual(featureIdsForRequest('/api/weekly-puzzle','POST','demons','weekly'),['puzzle','weekly-submit']);
