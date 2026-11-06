@@ -1,7 +1,7 @@
 const fs=require('fs'),vm=require('vm'),assert=require('node:assert/strict'),W=require('./ui/worldcup-core');
 require('./dist/engine.js');
 class Element{
- constructor(tag){this.tag=tag;this.children=[];this.hidden=false;this.dataset={};this.attrs={};this.style={setProperty(){}};this.classList={add(){},remove(){},toggle(){}};}
+ constructor(tag){this.tag=tag;this.parentElement={append(){}};this.children=[];this.hidden=false;this.dataset={};this.attrs={};this.style={setProperty(){}};this.classList={add(){},remove(){},toggle(){}};}
  append(...nodes){this.children.push(...nodes);}
  replaceChildren(...nodes){this.children=nodes;}
  setAttribute(key,value){this.attrs[key]=value;}
@@ -36,7 +36,7 @@ class Element{
      }
      return {ok:true,json:async()=>({mine:submitted,total:submitted?1:0,rows:tally(submitted?[submitted]:[],roster)})};
     }};
-   vm.runInNewContext(fs.readFileSync('ui/dealer-tiers-page.js','utf8'),context);
+   vm.createContext(context);if(gemMode)vm.runInContext(fs.readFileSync('ui/gem-tier-icons.js','utf8'),context);vm.runInContext(fs.readFileSync('ui/dealer-tiers-page.js','utf8'),context);
    await new Promise(setImmediate);
    return get;
   }
