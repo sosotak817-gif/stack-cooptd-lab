@@ -5,6 +5,7 @@ function finish(items,preferred=[]){
  let result;
  while(!(result=W.replay(ballot,items)).complete){
   const {left,right}=result.next,a=preferred.indexOf(left),b=preferred.indexOf(right);
+  assert.ok(result.maxMatches>result.played,'pending comparison has remaining budget');
   ballot.picks.push(a>=0&&(b<0||a<b)?left:b>=0?right:left);
  }
  return ballot;
@@ -12,6 +13,7 @@ function finish(items,preferred=[]){
 (async()=>{
  for(let count=2;count<=80;count++){
   const items=Array.from({length:count},(_,i)=>'item-'+i),ballot=finish(items),result=W.replay(ballot,items);
+  assert.ok(result.played<=result.maxMatches);
   assert.equal(result.finalRanking.length,count);
   assert.equal(new Set(result.finalRanking).size,count);
   assert.equal(result.matches.filter(match=>!match.bye).length,ballot.picks.length);

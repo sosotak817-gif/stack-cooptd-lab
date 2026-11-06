@@ -69,7 +69,19 @@ try{
   await page.goto(base+route);
   await page.waitForFunction(()=>document.querySelector('#vote-status').textContent.includes('월드컵을 시작'));
   assert.ok(await page.locator('#worldcup-start').isEnabled());
-  await page.click('#worldcup-start');await page.locator('.worldcup-choice').first().click();
+  await page.click('#worldcup-start');
+  assert.match(await page.locator('.worldcup-overall-progress').textContent(),/전체 진행률 0%.*최대 \d+회 선택 남음/);
+  if(kind==='gems'){
+   assert.equal(await page.locator('.worldcup-choice img[src="/assets/gems/stone-sss.webp"]').count(),2);
+   for(const card of await page.locator('.worldcup-choice').all()){
+    const slug=await card.locator('.worldcup-gem-icon img').last().getAttribute('src');
+    const effect=await page.evaluate(slug=>CoopGemInfo.effect(CoopData.GEMS.find(g=>slug.endsWith('/'+g.id+'.webp'))),slug);
+    assert.equal(await card.locator('.worldcup-gem-effect').textContent(),effect);
+    assert.ok(!effect.includes('{'));
+   }
+  }
+  if(kind==='gems')await page.locator('#vote-editor').screenshot({path:process.env.TEMP+'/stack-gem-worldcup-'+width+'.png'});
+  await page.locator('.worldcup-choice').first().click();
   assert.equal(await page.evaluate(kind=>JSON.parse(localStorage.getItem('stack-lab-worldcup-v1:guest:'+kind)).picks.length,kind),1);
   signedIn=true;await page.click('#vote-refresh');await page.locator('#worldcup-start:enabled').waitFor();await page.click('#worldcup-start');
   await page.locator('.worldcup-choice').first().click();await page.locator('.worldcup-choice').first().click();
@@ -84,6 +96,8 @@ try{
    await page.locator('.worldcup-choice').first().click();
    assert.ok(++games<1000);
   }
+  assert.match(await page.locator('.worldcup-overall-progress').textContent(),/전체 진행률 100%.*남은 선택 0회/);
+  assert.equal(await page.locator('#worldcup-progress').evaluate(p=>p.value/p.max),1);
   assert.ok(placement);assert.equal(await page.locator('[data-worldcup-final]').count(),items.length);
   const first=await page.locator('[data-worldcup-final]').first().getAttribute('data-worldcup-final');
   const handles=page.locator('.worldcup-drag-handle');

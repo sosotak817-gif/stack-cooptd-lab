@@ -19,7 +19,7 @@ class Element{
     if(!nodes.has(selector))nodes.set(selector,new Element('div'));
     return nodes.get(selector);
    };
-   const context={CoopData,CoopWorldcup:W,console,structuredClone,URLSearchParams,File,Blob,Intl,confirm:()=>true,
+   const context={CoopGemInfo:{effect:()=>'SSS 효과'},CoopData,CoopWorldcup:W,console,structuredClone,URLSearchParams,File,Blob,Intl,confirm:()=>true,
     window:{addEventListener(){}},localStorage:{getItem:key=>storage.get(key)||null,setItem:(key,value)=>storage.set(key,value),removeItem:key=>storage.delete(key)},
     document:{body:{dataset:{tierKind:gemMode?'gems':'demons'}},fonts:{ready:Promise.resolve()},querySelector:get,
      createElement:tag=>{const node=new Element(tag);if(tag==='canvas'){node.getContext=()=>new Proxy({},{get:()=>()=>{}});node.toBlob=fn=>fn(new Blob(['png'],{type:'image/png'}));}return node;}},

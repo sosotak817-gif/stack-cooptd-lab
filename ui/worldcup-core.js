@@ -28,6 +28,14 @@
   const actual=seed.filter(value=>value!==null),allowed=new Set(items);
   if(actual.length!==items.length||new Set(actual).size!==items.length||actual.some(value=>!allowed.has(value)))invalid();
   for(let i=0;i<seed.length;i+=2)if(seed[i]===null&&seed[i+1]===null)invalid();
+  // The maximum includes every placement comparison; automatic byes cost no choice.
+  let topology=seed.map(value=>value!==null),maxMatches=items.length-1;
+  while(topology.length>1){
+   let losers=0;const next=[];
+   for(let i=0;i<topology.length;i+=2){if(topology[i]&&topology[i+1])losers++;next.push(topology[i]||topology[i+1]);}
+   if(losers>1){const depth=Math.ceil(Math.log2(losers));maxMatches+=losers*depth-2**depth+1;}
+   topology=next;
+  }
   const matches=[],groups=new Map(),ranking=[];
   let round=seed.slice(),chosen=0,nextMatch=null;
   function choose(left,right,meta){
@@ -39,7 +47,7 @@
   }
   function pending(){
    if(ballot.finalRanking!==undefined)invalid();
-   return {complete:false,next:nextMatch,matches,played:chosen,mainMatches:items.length-1,rankedCount:ranking.length,totalCount:items.length};
+   return {complete:false,next:nextMatch,matches,played:chosen,maxMatches,mainMatches:items.length-1,rankedCount:ranking.length,totalCount:items.length};
   }
   while(round.length>1){
    const next=[],losers=[],total=round.reduce((sum,value,i)=>sum+(i%2===0&&value!==null&&round[i+1]!==null?1:0),0);
@@ -89,7 +97,7 @@
   if(!Array.isArray(finalRanking)||finalRanking.length!==items.length||new Set(finalRanking).size!==items.length||finalRanking.some(slug=>!allowed.has(slug)))invalid();
   const placements=finalRanking.map((slug,index)=>({slug,place:index+1,points:points(index+1,items.length)}));
   return {complete:true,champion:finalRanking[0],tournamentChampion,ranking,finalRanking:finalRanking.slice(),matches,placements,
-   played:chosen,mainMatches:items.length-1,rankedCount:items.length,totalCount:items.length};
+   played:chosen,maxMatches,mainMatches:items.length-1,rankedCount:items.length,totalCount:items.length};
  }
 
  const api={FORMAT,create,replay,points,roundName,placeName};

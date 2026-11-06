@@ -7,7 +7,7 @@ function syncBackgrounds(){const host=$('#vote-backgrounds');host.replaceChildre
 let ko={},mine=null,busy=false,votingAllowed=true,loginRequired=false,voteAccount=null,draft=null,draftKey=null,savedDraft=null,storageNotice='';
 const Worldcup=CoopWorldcup,slugs=items.map(item=>item.slug);
 const name=slug=>{const d=catalog.get(slug);return ko[d?.name]||d?.name||slug;};
-function portrait(slug){const img=el('img');img.src=imagePath(slug);img.alt=name(slug);img.draggable=false;return img;}
+function portrait(slug){const img=el('img');img.src=imagePath(slug);img.alt=name(slug);img.draggable=false;if(!gemMode)return img;const icon=el('span',undefined,'worldcup-gem-icon'),stone=el('img');stone.src='/assets/gems/stone-sss.webp';stone.alt='';icon.setAttribute('role','img');icon.setAttribute('aria-label',name(slug)+' SSS');icon.append(stone,img);return icon;}
 function restoreDraft(){
  draft=null;savedDraft=null;storageNotice='';
  if(!draftKey)return;
@@ -117,9 +117,13 @@ function sync(){
  $('#vote-refresh').disabled=busy;
  $('#worldcup-progress').hidden=!draft;
  if(result){
-  const placement=result.complete||result.next.phase==='placement';
-  $('#worldcup-progress').max=placement?result.totalCount:result.mainMatches;
-  $('#worldcup-progress').value=placement?result.rankedCount:result.played;
+  const placement=result.complete||result.next.phase==='placement',progress=$('#worldcup-progress');
+  progress.max=result.complete?result.played:result.maxMatches;
+  progress.value=result.played;
+  const percent=result.complete?100:Math.floor(result.played/result.maxMatches*100);
+  progress.setAttribute('aria-valuetext','전체 '+percent+'% · 최대 '+(result.complete?0:result.maxMatches-result.played)+'회 선택 남음');
+  host.append(el('p','전체 진행률 '+percent+'% · '+result.played+'회 선택 완료 · '+(result.complete?'남은 선택 0회':'최대 '+(result.maxMatches-result.played)+'회 선택 남음'),'worldcup-overall-progress'));
+  if(!result.complete)host.append(el('small','본선과 전체 순위 결정전을 포함합니다. 남은 선택 수는 최대치이며, 선택 결과에 따라 더 일찍 끝날 수 있습니다.','worldcup-progress-note'));
   if(result.complete){
    host.append(el('h3','최종 순위 확인 · 1위 '+name(result.champion)));
    finalEditor(result,host);
@@ -131,7 +135,9 @@ function sync(){
    for(const slug of [match.left,match.right]){
     const choice=el('button',undefined,'worldcup-choice');choice.type='button';choice.disabled=busy||!votingAllowed;
     choice.setAttribute('aria-label',name(slug)+' 선택');
-    choice.append(portrait(slug),el('strong',name(slug)),el('span','선택하기'));
+    choice.append(portrait(slug),el('strong',name(slug)));
+    if(gemMode){choice.append(el('b','SSS 등급','worldcup-gem-grade'),el('p',globalThis.CoopGemInfo.effect(catalog.get(slug)),'worldcup-gem-effect'));}
+    choice.append(el('span','선택하기'));
     choice.onclick=()=>{
      if(busy||!votingAllowed)return;
      const next={...draft,picks:[...draft.picks,slug]};
