@@ -18,18 +18,19 @@ function awards(value,items,requireCurrent=false){
  }catch{return null;}
 }
 export function validateBallot(value,items=roster){return awards(value,items)!==null;}
-export function tally(ballots,items=roster){
- const rows=items.map(slug=>({slug,score:0,votes:0,ranks:Array(7).fill(0)})),map=new Map(rows.map(row=>[row.slug,row]));
+export function tally(ballots,items=roster,kind='demons'){
+ const rows=items.map(slug=>({slug,score:0,votes:0,ranks:Array(7).fill(0)})),map=new Map(rows.map(row=>[row.slug,row]));let validBallots=0;
  for(const ballot of ballots){
   const results=awards(ballot,items);
   if(!results)continue;
+  validBallots++;
   for(const result of results){
    const row=map.get(result.slug);
    row.score+=result.points;row.votes++;
    if(result.rank!==undefined)row.ranks[result.rank]++;
   }
  }
- return assignVoteTiers(rows);
+ return kind==='gems'?assignGemVoteTiers(rows,validBallots):assignVoteTiers(rows);
 }
 export function assignVoteTiers(rows){
  rows.sort((a,b)=>b.score-a.score||a.slug.localeCompare(b.slug));
@@ -45,6 +46,61 @@ export function assignVoteTiers(rows){
  }
  const best=scored[zeroCount]?.score||0;
  for(const [i,r]of rows.entries())r.tier=i<zeroCount?'0':!r.score?'미득표':r.score*100>=best*80?'S':r.score*100>=best*60?'A':r.score*100>=best*40?'B':r.score*100>=best*20?'C':'D';
+ return rows;
+}
+const gemTierTargets=[.12,.32,.68,.88],gemTierNames=['S','A','B','C','D'];
+const gemScore=row=>row.score;
+function median(values){
+ const sorted=values.slice().sort((a,b)=>a-b),middle=Math.floor(sorted.length/2);
+ return sorted.length%2?sorted[middle]:(sorted[middle-1]+sorted[middle])/2;
+}
+function gemTierCuts(rows){
+ let previous=0;
+ return gemTierTargets.map((target,index)=>{
+  const nominal=Math.round(rows.length*target),remaining=gemTierTargets.length-index-1;
+  const minimum=previous+1,maximum=rows.length-1-remaining;
+  const low=Math.max(minimum,nominal-2),high=Math.min(maximum,nominal+2),candidates=[];
+  for(let count=low;count<=high;count++){
+   const gap=gemScore(rows[count-1])-gemScore(rows[count]);
+   if(gap>0)candidates.push({count,gap,distance:Math.abs(count-nominal)});
+  }
+  candidates.sort((a,b)=>b.gap-a.gap||a.distance-b.distance||a.count-b.count);
+  const cut=candidates[0]?.count??Math.max(minimum,Math.min(maximum,nominal));
+  previous=cut;
+  return cut;
+ });
+}
+export function assignGemVoteTiers(rows,totalVotes=Math.max(0,...rows.map(row=>row.votes||0))){
+ rows.sort((a,b)=>gemScore(b)-gemScore(a)||a.slug.localeCompare(b.slug));
+ const scored=rows.filter(row=>row.score>0);
+ let zeroCount=0;
+ if(scored.length>1&&totalVotes>=15){
+  const positiveGaps=[];
+  for(let i=1;i<scored.length;i++){
+   const gap=gemScore(scored[i-1])-gemScore(scored[i]);
+   if(gap>0)positiveGaps.push(gap);
+  }
+  if(positiveGaps.length){
+   const typicalGap=median(positiveGaps),target=Math.max(1,Math.round(scored.length*.05)),candidates=[];
+   for(let count=1;count<=Math.min(3,scored.length-1);count++){
+    const gap=gemScore(scored[count-1])-gemScore(scored[count]);
+    if(gap>0&&gap>=typicalGap*1.5)candidates.push({count,ratio:gap/typicalGap,distance:Math.abs(count-target)});
+   }
+   candidates.sort((a,b)=>b.ratio-a.ratio||a.distance-b.distance||a.count-b.count);
+   zeroCount=candidates[0]?.count??0;
+  }
+ }
+ for(let i=0;i<zeroCount;i++)scored[i].tier='0';
+ const remaining=scored.slice(zeroCount),cuts=remaining.length>=5?gemTierCuts(remaining):[];
+ for(let start=0;start<remaining.length;){
+  let end=start+1;
+  while(end<remaining.length&&gemScore(remaining[end])===gemScore(remaining[start]))end++;
+  const middle=(start+end)/2;
+  const tierIndex=cuts.findIndex(cut=>middle<=cut),tier=cuts.length?gemTierNames[tierIndex<0?4:tierIndex]:'B';
+  for(let i=start;i<end;i++)remaining[i].tier=tier;
+  start=end;
+ }
+ for(const row of rows)if(!row.score)row.tier='미득표';
  return rows;
 }
 const schemas=new WeakMap();
@@ -89,7 +145,7 @@ export async function handleTierVotes({request,env}){try{
  }
  const saved=await db.prepare('SELECT voter,ballot FROM '+table).all();let mine=null;const ballots=[];for(const r of saved.results){try{const b=JSON.parse(r.ballot);if(validateBallot(b,items)){ballots.push(b);if(r.voter===voter)mine=b;}}catch{}}
  const access=await accessDecision(request,env,[voteFeature],account);
- const response=reply({total:ballots.length,rows:tally(ballots,items),mine,canVote:access.allowed,loginRequired:!!access.loginRequired});
+ const response=reply({total:ballots.length,rows:tally(ballots,items,kind),mine,canVote:access.allowed,loginRequired:!!access.loginRequired});
  if(!account)response.headers.set('Set-Cookie','__Host-tier_voter='+token+'; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=31536000');
  return response;
  }catch(error){return reply({error:error.status?error.message:'투표를 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.'},error.status||503);}}
