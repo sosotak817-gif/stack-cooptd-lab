@@ -65,6 +65,32 @@ function candidates(input,E,D,{replacement=null,stacks=true,milestones=true,reco
  return output;
 }
 function rank(rows,baseline){return rows.map(row=>({...row,delta:row.actual-baseline,gain:baseline>0?(row.actual/baseline-1)*100:null})).sort((a,b)=>b.delta-a.delta);}
+function changeKey(row){if(!row||typeof row.kind!=='string'||typeof row.slug!=='string'||!Array.isArray(row.changes))throw Error('성장 후보 형식을 확인하세요.');return JSON.stringify([row.kind,row.slug,row.changes]);}
+function budgetGroup(row){return ['level','lib','gem'].includes(row?.kind)&&row?.slug?row.kind+':'+row.slug:null;}
+function applyGoals(state,rows,D=root.CoopData){
+ if(!state||!Array.isArray(rows)||!rows.length)throw Error('적용할 성장 계획을 확인하세요.');const next=structuredClone(state);
+ for(const row of rows){if(!Array.isArray(row?.changes)||!row.changes.length)throw Error('목표 변경 정보가 없습니다.');
+  for(const change of row.changes){const own=next.you.perDemon[row.slug]||{};
+   if(change.type==='level'||change.type==='lib'){next.you.perDemon[row.slug]={...own,[change.type]:change.to};if(change.type==='lib'&&!next.cells.some(c=>c.row>5&&c.slug===row.slug&&c.lib!==false&&!c.nolib)){const cell=next.cells.find(c=>c.row>5&&c.slug===row.slug);if(cell){cell.lib=true;cell.nolib=false;}}}
+   else if(change.type==='gem'){const gems=structuredClone(own.gems||[]);while(gems.length<=change.slot)gems.push({id:'',grade:'S'});gems[change.slot]=structuredClone(change.to||{id:'',grade:'S'});next.you.perDemon[row.slug]={...own,gems};}
+   else if(change.type==='stack'){if(!['claraStacks','ivyStacks','omenSouls','spaceStacks','mouseStacks','catStacks'].includes(change.field))throw Error('지원하지 않는 스택입니다.');next.you[change.field]=change.to;}
+   else if(change.type==='unit'){let liberated=next.cells.some(c=>c.row>5&&c.slug===change.to&&c.lib!==false&&!c.nolib);next.cells=next.cells.map(c=>{if(c.row<5||c.slug!==change.from)return c;const active=!liberated&&c.lib!==false&&!c.nolib&&!D.NO_LIBERATION.has(change.to);if(active)liberated=true;return{...c,slug:change.to,lib:active,nolib:!active};});}
+   else throw Error('지원하지 않는 성장 목표입니다.');
+  }
+ }
+ return next;
+}
+function budgetPlans(entries,budget,{beamWidth=2400,maxPlans=32}={}){
+ if(!Array.isArray(entries)||!entries.length||entries.length>40||!Number.isInteger(budget)||budget<1||budget>999999999||!Number.isInteger(beamWidth)||beamWidth<1||!Number.isInteger(maxPlans)||maxPlans<1)throw Error('예산과 비용 후보를 확인하세요.');
+ const groups=new Map,keys=new Set;
+ for(const entry of entries){const group=budgetGroup(entry?.row),key=changeKey(entry?.row),cost=Number(entry?.cost),estimate=Number(entry?.estimate);if(!group||!Number.isInteger(cost)||cost<1||cost>999999999||!Number.isFinite(estimate)||estimate<=0||keys.has(key))throw Error('예산 후보의 비용과 상승량을 확인하세요.');keys.add(key);if(!groups.has(group))groups.set(group,[]);groups.get(group).push({...entry,key,group,cost,estimate});}
+ let beam=[{cost:0,score:0,entries:[],key:''}];
+ for(const choices of groups.values()){
+  const expanded=[];for(const plan of beam){expanded.push(plan);for(const entry of choices)if(plan.cost+entry.cost<=budget){const entries=[...plan.entries,entry],key=entries.map(item=>item.key).sort().join('|');expanded.push({cost:plan.cost+entry.cost,score:plan.score+entry.estimate,entries,key});}}
+  expanded.sort((a,b)=>b.score-a.score||a.cost-b.cost||a.key.localeCompare(b.key));const unique=[],seen=new Set;for(const plan of expanded)if(!seen.has(plan.key)){seen.add(plan.key);unique.push(plan);if(unique.length>=beamWidth)break;}beam=unique;
+ }
+ return beam.filter(plan=>plan.entries.length).sort((a,b)=>b.score-a.score||a.cost-b.cost||a.key.localeCompare(b.key)).slice(0,maxPlans);
+}
 // Board actual DPS and per-unit theoretical contributions are different metrics.
 function comparisonEvidence(input,before,after,slug){
  const own=result=>(result.units||[]).filter(unit=>unit.row>5&&unit.slug===slug),summary=result=>{const units=own(result);return{count:units.length,theory:units.reduce((sum,unit)=>sum+(Number.isFinite(unit.dps)?unit.dps:0),0),growth:units[0]?.stats?{level:units[0].stats.level,lib:units[0].stats.lib}:null};};
@@ -78,5 +104,5 @@ function guide(value,D,G,T){
 }
 function encode(value){const bytes=new TextEncoder().encode(JSON.stringify(value));let binary='';for(const byte of bytes)binary+=String.fromCharCode(byte);return 'SLG1.'+btoa(binary).replaceAll('+','-').replaceAll('/','_').replace(/=+$/,'');}
 function decode(code){if(typeof code!=='string'||!code.startsWith('SLG1.')||code.length>2700000||!/^[\w-]+$/.test(code.slice(5)))throw Error('공략 코드를 확인하세요.');try{const binary=atob(code.slice(5).replaceAll('-','+').replaceAll('_','/'));return parse(new TextDecoder('utf-8',{fatal:true}).decode(Uint8Array.from(binary,c=>c.charCodeAt(0))));}catch(error){throw Error('공략 코드를 읽지 못했습니다: '+error.message);}}
-root.CoopJourney={MODES,BOARD_KEY,GUIDES_KEY,parse,validateDeck,describeChange,candidates,rank,comparisonEvidence,diagnosisSummary,guide,encode,decode};if(typeof module!=='undefined')module.exports=root.CoopJourney;
+root.CoopJourney={MODES,BOARD_KEY,GUIDES_KEY,parse,validateDeck,describeChange,candidates,rank,changeKey,budgetGroup,applyGoals,budgetPlans,comparisonEvidence,diagnosisSummary,guide,encode,decode};if(typeof module!=='undefined')module.exports=root.CoopJourney;
 })(globalThis);
