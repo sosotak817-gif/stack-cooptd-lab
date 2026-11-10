@@ -13,3 +13,11 @@
 
 .growth-kind-tabs{display:flex;gap:8px;overflow-x:auto;padding:6px 0 12px}.growth-kind-tabs button{flex-shrink:0;min-height:42px;padding:8px 12px;border:1px solid #59758b;border-radius:9px;background:#172c40;color:#e4eefb;cursor:pointer}.growth-kind-tabs button[aria-selected="true"]{background:#205952;border-color:#81e8cf;color:#fff}.growth-kind-tabs button:focus-visible{outline:2px solid #81e8cf;outline-offset:2px}.journey-help{line-height:1.7}.journey-help summary{cursor:pointer;font-weight:700}
 @media(max-width:600px){.growth-budget-planner{padding:15px}.growth-budget-controls>*{flex:1 1 100%!important;max-width:none!important}.growth-budget-row{grid-template-columns:minmax(0,1fr) 94px;padding:11px 10px}.growth-budget-row label{font-size:11px}.growth-budget-row strong{font-size:11px}.growth-budget-plan{padding:13px}.growth-budget-summary strong{font-size:21px}}
+
+.growth-budget-picker label{width:100%;max-width:100%;min-width:0}
+.growth-budget-controls select{width:100%;min-width:0}
+#growth-budget-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#growth-budget-results>.journey-note,#growth-budget-results>.growth-budget-plan:only-child{grid-column:1/-1}
+#growth-budget-results>.growth-budget-plan{margin-top:0}
+@media(max-width:760px){#growth-budget-results{grid-template-columns:minmax(0,1fr)}}
+.growth-budget-row label,.growth-budget-plan{overflow-wrap:anywhere}

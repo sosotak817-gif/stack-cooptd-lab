@@ -11,12 +11,29 @@ function continuous(input){
  return CoopJourney.diagnosisSummary(CoopStages.continuousReport({run,mode:input.mode,altar:'current',T:CoopTargets,rounds:trace.rounds,basis}),input.goalWave);
 }
 async function budget(input,id){
- const request=input.budgetRequest,budget=Number(request?.budget),given=request?.entries;if(!Number.isInteger(budget)||budget<1||budget>999999999||!Array.isArray(given)||!given.length||given.length>40)throw Error('예산과 비용 후보를 확인하세요.');
+ const request=input.budgetRequest,budget=Number(request?.budget),given=request?.entries;if(!Number.isInteger(budget)||budget<1||budget>999999999||!Array.isArray(given)||!given.length)throw Error('예산과 비용 후보를 확인하세요.');
  const baseline=await calculate(input),candidates=CoopJourney.candidates(input,CoopEngine,CoopData,{replacement:null,stacks:false,milestones:true}),available=new Map(candidates.map(candidate=>[CoopJourney.changeKey(candidate),candidate])),used=new Set,entries=[];
  for(const item of given){if(typeof item?.key!=='string'||used.has(item.key)||!available.has(item.key))throw Error('현재 덱과 맞지 않는 비용 후보가 있습니다. 성장 비교를 다시 실행하세요.');const candidate=available.get(item.key),cost=Number(item.cost),estimate=Number(item.estimate);if(!CoopJourney.budgetGroup(candidate)||!Number.isInteger(cost)||cost<1||cost>999999999||!Number.isFinite(estimate)||estimate<=0)throw Error('비용 후보 값을 확인하세요.');used.add(item.key);const {state,...row}=candidate;entries.push({row,cost,estimate});}
- const shortlist=CoopJourney.budgetPlans(entries,budget);if(!shortlist.length)throw Error('입력한 예산 안에 적용할 수 있는 성장 후보가 없습니다.');const evaluated=[];postMessage({id,kind:'budget-progress',done:0,total:shortlist.length});
+ const shortlist=CoopJourney.budgetPlans(entries,budget);
+ // Reserve simulation slots for affordable single upgrades with high estimated efficiency.
+ const shortlistedSingles=new Set(shortlist.filter(plan=>plan.entries.length===1).map(plan=>CoopJourney.changeKey(plan.entries[0].row)));
+ const efficientSingles=entries.filter(entry=>entry.cost<=budget)
+  .sort((a,b)=>b.estimate/b.cost-a.estimate/a.cost||a.cost-b.cost)
+  .filter(entry=>!shortlistedSingles.has(CoopJourney.changeKey(entry.row)))
+  .slice(0,12);
+ for(const entry of efficientSingles)shortlist.push({cost:entry.cost,score:entry.estimate,entries:[entry]});
+ if(!shortlist.length)throw Error('입력한 예산 안에 적용할 수 있는 성장 후보가 없습니다.');const evaluated=[];postMessage({id,kind:'budget-progress',done:0,total:shortlist.length});
  for(const [index,plan]of shortlist.entries()){await schedulerTurn();await new Promise(resolve=>setTimeout(resolve,0));const state=CoopJourney.applyGoals(input,plan.entries.map(entry=>entry.row),CoopData),result=await calculate(state),actual=result.actual,delta=actual-baseline.actual;evaluated.push({budget,cost:plan.cost,estimatedDelta:plan.score,actual,delta,gain:baseline.actual>0?delta/baseline.actual*100:null,rows:plan.entries.map(entry=>({...entry.row,cost:entry.cost,independentDelta:entry.estimate}))});postMessage({id,kind:'budget-progress',done:index+1,total:shortlist.length});}
- evaluated.sort((a,b)=>b.delta-a.delta||a.cost-b.cost||b.estimatedDelta-a.estimatedDelta);postMessage({id,kind:'budget-result',baseline,plans:evaluated.filter(plan=>plan.delta>Math.max(1e-9,baseline.actual*1e-9)).slice(0,3),evaluated:evaluated.length,entered:entries.length,budget});
+ const improved=evaluated.filter(plan=>plan.delta>Math.max(1e-9,baseline.actual*1e-9));
+ improved.sort((a,b)=>b.delta-a.delta||a.cost-b.cost||b.estimatedDelta-a.estimatedDelta);
+ const mostEfficient=improved.reduce((best,plan)=>
+  !best||plan.delta/plan.cost>best.delta/best.cost ? plan : best,null);
+ const plans=improved.slice(0,3);
+ const efficiencyIndex=mostEfficient ? plans.indexOf(mostEfficient) : -1;
+ if(mostEfficient&&efficiencyIndex<0)plans.push(mostEfficient);
+ postMessage({id,kind:'budget-result',baseline,plans,
+  efficiencyIndex:mostEfficient ? plans.indexOf(mostEfficient) : -1,
+  evaluated:evaluated.length,entered:entries.length,budget});
 }
 self.onmessage=async({data})=>{
  if(data.kind==='__scheduler')return originalHandler({data});

@@ -81,7 +81,7 @@ function applyGoals(state,rows,D=root.CoopData){
  return next;
 }
 function budgetPlans(entries,budget,{beamWidth=2400,maxPlans=32}={}){
- if(!Array.isArray(entries)||!entries.length||entries.length>40||!Number.isInteger(budget)||budget<1||budget>999999999||!Number.isInteger(beamWidth)||beamWidth<1||!Number.isInteger(maxPlans)||maxPlans<1)throw Error('예산과 비용 후보를 확인하세요.');
+ if(!Array.isArray(entries)||!entries.length||!Number.isInteger(budget)||budget<1||budget>999999999||!Number.isInteger(beamWidth)||beamWidth<1||!Number.isInteger(maxPlans)||maxPlans<1)throw Error('예산과 비용 후보를 확인하세요.');
  const groups=new Map,keys=new Set;
  for(const entry of entries){const group=budgetGroup(entry?.row),key=changeKey(entry?.row),cost=Number(entry?.cost),estimate=Number(entry?.estimate);if(!group||!Number.isInteger(cost)||cost<1||cost>999999999||!Number.isFinite(estimate)||estimate<=0||keys.has(key))throw Error('예산 후보의 비용과 상승량을 확인하세요.');keys.add(key);if(!groups.has(group))groups.set(group,[]);groups.get(group).push({...entry,key,group,cost,estimate});}
  let beam=[{cost:0,score:0,entries:[],key:''}];

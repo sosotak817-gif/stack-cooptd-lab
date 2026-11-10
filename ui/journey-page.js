@@ -67,18 +67,102 @@ function growthCard(row,baseline,index){
  card.append(el('small',row.detail,'growth-assumption'));if(experienceResult)CoopExperience.actions(card,row,{sourceRaw:experienceResult.experience?.sourceRaw,input:experienceResult.input,baseline,isCurrent:()=>conditionSignature()===experienceResult.experience?.signature});return card;
 }
 function renderBudgetPlanner(data,section){
- const supported=data.rows.filter(row=>J.budgetGroup(row)&&row.delta>Math.max(1e-9,data.baseline.actual*1e-9)),rows=supported.slice(0,40);if(!rows.length)return;
- const COSTS='stack-lab-growth-costs-v1',LIMIT='stack-lab-growth-budget-v1',read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key)||'null')??fallback;}catch{return fallback;}},costs=read(COSTS,{}),box=el('section',undefined,'growth-budget-planner');box.append(el('span','BUDGET PLANNER','section-kicker'),el('h3','재화 예산 플래너'),el('p','게임 비용표를 임의로 추정하지 않습니다. 비교할 성장의 실제 총비용을 같은 단위로 입력하면, 예산 안의 조합을 현재 덱에 함께 적용해 최종 DPS를 다시 계산합니다.'));
- const controls=el('div',undefined,'growth-budget-controls'),budgetLabel=el('label','사용 가능한 총예산'),budgetInput=el('input');budgetInput.id='growth-budget-budget';budgetInput.type='number';budgetInput.min='1';budgetInput.max='999999999';budgetInput.step='1';budgetInput.inputMode='numeric';const storedBudget=Number(read(LIMIT,0));budgetInput.value=Number.isInteger(storedBudget)&&storedBudget>0?String(storedBudget):'';budgetInput.placeholder='예: 100';budgetLabel.append(budgetInput);const start=button('예산 안의 성장 계획 계산',null,'journey-primary'),stop=button('계획 계산 중지',null);start.id='growth-budget-start';stop.id='growth-budget-cancel';stop.hidden=true;controls.append(budgetLabel,start,stop);box.append(controls);
- const details=el('details',undefined,'growth-budget-candidates');details.open=true;details.append(el('summary','비용 입력 후보 '+rows.length+'개'+(supported.length>rows.length?' · 독립 상승량 상위 40개':'')));const list=el('div'),inputs=[];
- for(const row of rows){const key=J.changeKey(row),item=el('div',undefined,'growth-budget-row'),copy=el('div');copy.append(el('strong',nameOf(row)+' · '+row.detail),el('small','개별 적용 '+(row.gain===null?'+'+fmt(row.delta)+' DPS':'+'+row.gain.toFixed(2)+'%')));const label=el('label','총비용'),input=el('input');input.type='number';input.min='1';input.max='999999999';input.step='1';input.inputMode='numeric';input.placeholder='미입력';input.dataset.budgetKey=key;input.setAttribute('aria-label',nameOf(row)+' '+row.detail+' 총비용');const stored=Number(costs[key]);if(Number.isInteger(stored)&&stored>0)input.value=String(stored);label.append(input);item.append(copy,label);list.append(item);inputs.push({input,row,key});}
+ const supported=data.rows.filter(row=>J.budgetGroup(row)&&row.delta>Math.max(1e-9,data.baseline.actual*1e-9));if(!supported.length)return;
+ const COSTS='stack-lab-growth-costs-v1',LIMIT='stack-lab-growth-budget-v1',UNIT='stack-lab-growth-budget-unit-v1',read=(key,fallback)=>{try{return JSON.parse(localStorage.getItem(key)||'null')??fallback;}catch{return fallback;}},costs=read(COSTS,{}),box=el('section',undefined,'growth-budget-planner');box.append(el('span','BUDGET PLANNER','section-kicker'),el('h3','재화 예산 플래너'),el('p','예산과 후보별 총비용을 모두 같은 재화의 개수로 입력하세요. 예를 들어 다이아 1,000개 중 후보에 250개가 들면, 재화 단위는 다이아, 예산은 1000, 총비용은 250입니다. 단위 이름은 표시용이며 입력값을 환산하지 않습니다.'));
+ const unitLabel=el('label','재화 단위'),unitInput=el('input');
+ unitInput.type='text';
+ unitInput.maxLength=20;
+ unitInput.placeholder='예: 다이아';
+ const storedUnit=read(UNIT,'');
+ if(typeof storedUnit==='string')unitInput.value=storedUnit.slice(0,20);
+ const unit=()=>unitInput.value.trim()||'재화';
+ unitLabel.append(unitInput);
+ const controls=el('div',undefined,'growth-budget-controls'),budgetLabel=el('label','사용 가능한 총예산'),budgetInput=el('input');budgetInput.id='growth-budget-budget';budgetInput.type='number';budgetInput.min='1';budgetInput.max='999999999';budgetInput.step='1';budgetInput.inputMode='numeric';const storedBudget=Number(read(LIMIT,0));budgetInput.value=Number.isInteger(storedBudget)&&storedBudget>0?String(storedBudget):'';budgetInput.placeholder='예: 100';budgetLabel.append(budgetInput);const start=button('예산 안의 성장 계획 계산',null,'journey-primary'),stop=button('계획 계산 중지',null);start.id='growth-budget-start';stop.id='growth-budget-cancel';stop.hidden=true;controls.append(unitLabel,budgetLabel,start,stop);box.append(controls);
+ const details=el('details',undefined,'growth-budget-candidates');
+ details.open=true;
+ details.append(el('summary','후보별 비용 입력'));
+ const pickerLabel=el('label','비용을 입력할 성장 후보'),picker=el('select');
+ pickerLabel.append(picker);
+ const pickerControls=el('div',undefined,'growth-budget-controls growth-budget-picker');
+ pickerControls.append(pickerLabel);
+ box.append(pickerControls);
+ const list=el('div'),inputs=[];
+ const candidates=supported.map(row=>({row,key:J.changeKey(row),title:nameOf(row)+' · '+row.detail}));
+ const refreshPicker=()=>{
+  const added=new Set(inputs.map(({key})=>key));
+  picker.replaceChildren(new Option('추가할 후보 선택',''));
+  for(const [index,candidate]of candidates.entries()){
+   if(!added.has(candidate.key))picker.add(new Option(candidate.title,String(index)));
+  }
+  picker.disabled=picker.options.length===1;
+ };
+ const addCandidate=({row,key,title})=>{
+  const item=el('div',undefined,'growth-budget-row'),copy=el('div');
+  copy.append(el('strong',title),el('small','개별 적용 '+(row.gain===null?'+'+fmt(row.delta)+' DPS':'+'+row.gain.toFixed(2)+'%')));
+  const label=el('label'),costCaption=el('span','총비용 ('+unit()+')'),input=el('input');
+  input.type='number';
+  input.min='1';
+  input.max='999999999';
+  input.step='1';
+  input.inputMode='numeric';
+  input.placeholder='미입력';
+  input.setAttribute('aria-label',title+' 총비용');
+  const stored=Number(costs[key]);
+  if(Number.isInteger(stored)&&stored>0)input.value=String(stored);
+  label.append(costCaption,input);
+  item.append(copy,label);
+  list.append(item);
+  inputs.push({input,row,key,costCaption});
+  return input;
+ };
+ candidates.filter(({key},index)=>index<5||Number(costs[key])>0).forEach(addCandidate);
+ refreshPicker();
  details.append(list);box.append(details);const plannerStatus=el('p','비용이 입력된 후보만 계산에 포함합니다. 레벨·해방·보석 후보를 유닛별로 하나씩 조합하며 스택과 유닛 교체는 비용 계획에서 제외합니다.','growth-budget-status');plannerStatus.id='growth-budget-status';plannerStatus.setAttribute('role','status');plannerStatus.setAttribute('aria-live','polite');const output=el('div');output.id='growth-budget-results';box.append(plannerStatus,output);section.append(box);
- const persist=()=>{const next={...costs};for(const {input,key}of inputs){const value=Number(input.value);if(input.value&&Number.isInteger(value)&&value>0)next[key]=value;else delete next[key];}try{localStorage.setItem(COSTS,JSON.stringify(next));const value=Number(budgetInput.value);if(Number.isInteger(value)&&value>0)localStorage.setItem(LIMIT,JSON.stringify(value));}catch{plannerStatus.textContent='비용은 이번 화면에서 사용할 수 있지만 브라우저 저장 공간에는 기록하지 못했습니다.';}};
+ const persist=()=>{const next={...costs};for(const {input,key}of inputs){const value=Number(input.value);if(input.value&&Number.isInteger(value)&&value>0)next[key]=value;else delete next[key];}try{localStorage.setItem(COSTS,JSON.stringify(next));localStorage.setItem(UNIT,JSON.stringify(unitInput.value.trim()));const value=Number(budgetInput.value);if(Number.isInteger(value)&&value>0)localStorage.setItem(LIMIT,JSON.stringify(value));}catch{plannerStatus.textContent='비용은 이번 화면에서 사용할 수 있지만 브라우저 저장 공간에는 기록하지 못했습니다.';}};
  const finish=()=>{budgetWorker?.terminate();budgetWorker=null;start.disabled=false;stop.hidden=true;};
- const renderPlans=result=>{output.replaceChildren();if(!result.plans.length){output.append(el('p','다시 계산한 합산 DPS가 기준 덱보다 높은 계획을 찾지 못했습니다. 비용 후보나 예산을 조정해 보세요.','journey-note'));return;}for(const [index,plan]of result.plans.entries()){const card=el('article',undefined,'growth-budget-plan');card.append(el('small',index===0?'추천 계획 · 합산 DPS 1위':'대안 계획 '+(index+1)),el('h4','예산 '+fmt(plan.budget)+' 중 '+fmt(plan.cost)+' 사용'));const summary=el('div',undefined,'growth-budget-summary');summary.append(el('strong',plan.gain===null?'+'+fmt(plan.delta)+' DPS':'+'+plan.gain.toFixed(2)+'%'),el('span','합산 재계산 '+fmt(data.baseline.actual)+' → '+fmt(plan.actual)+' DPS'));card.append(summary);const ordered=el('ol');for(const row of plan.rows)ordered.append(el('li',nameOf(row)+' · '+row.detail+' · 비용 '+fmt(row.cost)));card.append(ordered,el('p','위 상승량은 선택한 성장을 모두 적용한 덱을 다시 계산한 결과입니다. 개별 상승량 합계는 조합 후보를 고르는 데만 사용했습니다.','muted'));CoopExperience.planActions(card,plan,{sourceRaw:data.experience?.sourceRaw,input:data.input,baseline:data.baseline.actual,isCurrent:()=>conditionSignature()===data.experience?.signature});output.append(card);}};
- start.onclick=()=>{try{const budget=Number(budgetInput.value);if(!Number.isInteger(budget)||budget<1||budget>999999999)throw Error('사용 가능한 총예산을 1 이상 정수로 입력하세요.');const entries=[];for(const {input,row,key}of inputs)if(input.value!==''){const cost=Number(input.value);if(!Number.isInteger(cost)||cost<1||cost>999999999)throw Error('후보 비용을 1 이상 정수로 입력하세요.');entries.push({key,cost,estimate:row.delta});}if(!entries.length)throw Error('계산에 포함할 성장 후보의 총비용을 하나 이상 입력하세요.');if(data.experience?.sourceRaw!==localStorage.getItem(J.BOARD_KEY)||conditionSignature()!==data.experience?.signature)throw Error('덱 또는 조건이 변경되었습니다. 성장 후보를 다시 비교하세요.');persist();cancelBudget();const token=++budgetSerial,input=structuredClone(data.input);input.id=token;input.kind='budget';input.budgetRequest={budget,entries};budgetWorker=new Worker('/journey-worker.js'+(version?'?v='+version:''));start.disabled=true;stop.hidden=false;output.replaceChildren();plannerStatus.textContent='예산 조합 후보를 만들고 있습니다…';budgetWorker.onmessage=({data:message})=>{if(token!==budgetSerial)return;if(message.error){finish();plannerStatus.textContent='계획 계산 실패: '+message.error;return;}if(message.kind==='budget-progress'){plannerStatus.textContent='합산 계획 '+message.done+' / '+message.total+'개 실제 DPS 재계산 중…';return;}if(message.kind==='budget-result'){finish();plannerStatus.textContent='계획 계산 완료 · 입력 '+message.entered+'개 후보 · 상위 조합 '+message.evaluated+'개 재계산';renderPlans(message);}};budgetWorker.onerror=event=>{if(token!==budgetSerial)return;finish();plannerStatus.textContent='계획 계산 실패: '+event.message;};budgetWorker.postMessage(input);}catch(error){plannerStatus.textContent=error.message;}};
- stop.onclick=()=>{cancelBudget();plannerStatus.textContent='계획 계산을 중지했습니다. 비용 입력과 기존 성장 비교 결과는 유지됩니다.';};const costsChanged=()=>{if(budgetWorker)cancelBudget();persist();output.replaceChildren();plannerStatus.textContent='예산 또는 비용이 변경되었습니다. 계획을 다시 계산하세요.';};budgetInput.onchange=costsChanged;for(const {input}of inputs)input.onchange=costsChanged;
- box.append(el('p','현재 성장 비교에서 바로 적용할 수 있는 후보만 조합합니다. 먼저 레벨을 올려 새 해방을 여는 것처럼 다음 단계에서 새로 생기는 후보와 실제 재화 차감·보유량은 자동 계산하지 않습니다. 탐색은 독립 상승량 기준 상위 조합을 제한적으로 재검증하므로 전체 조합의 수학적 최댓값을 보장하지 않습니다.','muted'));
+ const renderPlans=(result,planUnit)=>{
+  output.replaceChildren();
+  if(!result.plans.length){
+   output.append(el('p','재계산한 조합에서 기준 덱보다 DPS가 높은 계획을 찾지 못했습니다. 비용 후보나 예산을 조정해 보세요.','journey-note'));
+   return;
+  }
+  const order=[...new Set([0,result.efficiencyIndex,...result.plans.keys()])].filter(index=>index>=0);
+  for(const index of order){
+   const plan={...result.plans[index],unit:planUnit};
+   const card=el('article',undefined,'growth-budget-plan');
+   const highestDps=index===0,highestEfficiency=index===result.efficiencyIndex;
+   const caption=[highestDps?'최대 DPS':'',highestEfficiency?'비용 대비 효율 1위':''].filter(Boolean).join(' · ')||'대안 계획';
+   card.append(el('small',caption),el('h4','예산 '+fmt(plan.budget)+' '+planUnit+' 중 '+fmt(plan.cost)+' '+planUnit+' 사용'));
+   const summary=el('div',undefined,'growth-budget-summary');
+   summary.append(
+    el('strong',plan.gain===null?'+'+fmt(plan.delta)+' DPS':'+'+plan.gain.toFixed(2)+'%'),
+    el('span','합산 재계산 '+fmt(data.baseline.actual)+' → '+fmt(plan.actual)+' DPS'),
+    el('span',planUnit+' 1당 +'+fmt(plan.delta/plan.cost)+' DPS')
+   );
+   card.append(summary);
+   const ordered=el('ol');
+   for(const row of plan.rows)ordered.append(el('li',nameOf(row)+' · '+row.detail+' · 비용 '+fmt(row.cost)+' '+planUnit));
+   card.append(ordered);
+   CoopExperience.planActions(card,plan,{sourceRaw:data.experience?.sourceRaw,input:data.input,baseline:data.baseline.actual,isCurrent:()=>conditionSignature()===data.experience?.signature&&unit()===planUnit&&card.isConnected});
+   output.append(card);
+  }
+ };
+ start.onclick=()=>{try{const budget=Number(budgetInput.value);if(!Number.isInteger(budget)||budget<1||budget>999999999)throw Error('사용 가능한 총예산을 1 이상 정수로 입력하세요.');const entries=[];for(const {input,row,key}of inputs)if(input.value!==''){const cost=Number(input.value);if(!Number.isInteger(cost)||cost<1||cost>999999999)throw Error('후보 비용을 1 이상 정수로 입력하세요.');entries.push({key,cost,estimate:row.delta});}if(!entries.length)throw Error('계산에 포함할 성장 후보의 총비용을 하나 이상 입력하세요.');if(data.experience?.sourceRaw!==localStorage.getItem(J.BOARD_KEY)||conditionSignature()!==data.experience?.signature)throw Error('덱 또는 조건이 변경되었습니다. 성장 후보를 다시 비교하세요.');persist();cancelBudget();const token=++budgetSerial,input=structuredClone(data.input),planUnit=unit();input.id=token;input.kind='budget';input.budgetRequest={budget,entries};budgetWorker=new Worker('/journey-worker.js'+(version?'?v='+version:''));start.disabled=true;stop.hidden=false;output.replaceChildren();plannerStatus.textContent='예산 조합 후보를 만들고 있습니다…';budgetWorker.onmessage=({data:message})=>{if(token!==budgetSerial)return;if(message.error){finish();plannerStatus.textContent='계획 계산 실패: '+message.error;return;}if(message.kind==='budget-progress'){plannerStatus.textContent='합산 계획 '+message.done+' / '+message.total+'개 실제 DPS 재계산 중…';return;}if(message.kind==='budget-result'){finish();plannerStatus.textContent='계획 계산 완료 · 입력 '+message.entered+'개 후보 · 상위 조합 '+message.evaluated+'개 재계산';renderPlans(message,planUnit);}};budgetWorker.onerror=event=>{if(token!==budgetSerial)return;finish();plannerStatus.textContent='계획 계산 실패: '+event.message;};budgetWorker.postMessage(input);}catch(error){plannerStatus.textContent=error.message;}};
+ stop.onclick=()=>{cancelBudget();plannerStatus.textContent='계획 계산을 중지했습니다. 비용 입력과 기존 성장 비교 결과는 유지됩니다.';};const costsChanged=()=>{if(budgetWorker)cancelBudget();persist();output.replaceChildren();plannerStatus.textContent='예산 또는 비용이 변경되었습니다. 계획을 다시 계산하세요.';};budgetInput.onchange=costsChanged;
+ unitInput.onchange=()=>{
+  for(const {costCaption}of inputs)costCaption.textContent='총비용 ('+unit()+')';
+  costsChanged();
+ };
+ for(const {input}of inputs)input.onchange=costsChanged;
+ picker.onchange=()=>{
+  if(picker.value==='')return;
+  const input=addCandidate(candidates[Number(picker.value)]);
+  input.onchange=costsChanged;
+  refreshPicker();
+  details.open=true;
+  input.focus();
+ };
+ box.append(el('p','현재 성장 비교에서 바로 적용할 수 있는 후보만 조합합니다. 먼저 레벨을 올려 새 해방을 여는 것처럼 다음 단계에서 새로 생기는 후보와 실제 재화 차감·보유량은 자동 계산하지 않습니다. 최대 DPS와 비용 대비 효율은 실제 전투 계산으로 검토한 조합 안에서 비교합니다.','muted'));
 }
 function renderGrowthCards(data,section){
  const best=data.rows.find(row=>row.delta>0);if(best){const next=el('div',undefined,'experience-next');next.append(el('strong','다음 행동 · '+name(best.slug)+' '+best.detail),el('p','덱 전체 예상 상승 '+(best.gain===null?fmt(best.delta)+' DPS':best.gain.toFixed(2)+'%')+' · 아래 성장 방법 탭에서 목표를 미리보고 저장하세요.'));section.append(next);}
