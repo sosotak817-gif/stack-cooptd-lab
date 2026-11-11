@@ -80,6 +80,7 @@
  const status=document.getElementById('fortune-status'),stage=document.querySelector('.fortune-stage');
  let day=koreanDate(),timer=null;
  function reset(){
+  root.CoopFortuneExport.reset();
   clearTimeout(timer);
   timer=null;
   result.hidden=true;
@@ -137,6 +138,7 @@
    stage.dataset.reading='false';
    button.disabled=false;
    status.textContent='오늘의 운세가 도착했어요.';
+   root.CoopFortuneExport.prepare(reading);
    document.getElementById('fortune-title').focus({preventScroll:true});
    result.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'nearest'});
   },650);

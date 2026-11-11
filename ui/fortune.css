@@ -10,10 +10,12 @@
 .fortune-jewel{width:126px;height:126px;position:relative;filter:drop-shadow(0 8px 28px #7ef3ce44);animation:fortune-float 4s ease-in-out infinite}
 .fortune-jewel img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
 .fortune-jewel img+img{inset:11%;width:78%;height:78%}
-#fortune-form{max-width:380px;margin:auto;text-align:left}
+#fortune-form{box-sizing:border-box;width:100%;max-width:380px;min-width:0;margin:auto;text-align:left}
 #fortune-form label{display:flex;justify-content:space-between;font-size:14px;font-weight:700;margin-bottom:10px;color:#e0edf6}
 #fortune-form label span{color:#93a7bc;font-size:12px;font-weight:400}
-#fortune-birth{box-sizing:border-box;width:100%;min-width:0;min-height:52px;border:1px solid #456474;border-radius:12px;background:#0c1827;color:#eff7ff;padding:12px 14px;font:inherit;color-scheme:dark}
+#fortune-birth{box-sizing:border-box;display:block;width:100%;max-width:100%;min-width:0;-webkit-appearance:none;appearance:none;min-height:52px;border:1px solid #456474;border-radius:12px;background:#0c1827;color:#eff7ff;padding:12px 14px;font:inherit;color-scheme:dark}
+#fortune-birth::-webkit-date-and-time-value{min-width:0;text-align:left}
+#fortune-birth::-webkit-datetime-edit{min-width:0;padding:0}
 #fortune-birth-help{font-size:12px;color:#9fb3c7!important;line-height:1.8;margin:10px 0 20px}
 #fortune-submit{width:100%;min-height:52px;display:flex;align-items:center;justify-content:center;gap:12px;background:#8be6ce;color:#092721;border:0;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer}
 #fortune-submit:hover{background:#acf4df}
@@ -85,3 +87,17 @@ html.lab-dark .fortune-note{display:block;text-align:center}
  .fortune-result:before{left:7%;top:25px;font-size:25px}
  .fortune-result:after{right:8%;top:130px}
 }
+
+.fortune-export-actions{display:flex;justify-content:center;flex-wrap:wrap;gap:10px;margin-top:22px}
+.fortune-export-actions button,.fortune-export-actions a{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:10px 22px;border:1px solid #4c647a;border-radius:10px;background:#20364a;color:#edf7ff;font:inherit;font-size:14px;font-weight:700;cursor:pointer;box-sizing:border-box;text-decoration:none}
+.fortune-export-actions button:disabled{opacity:.5;cursor:wait}
+#fortune-image-status{font-size:12px;color:#b6cbd9!important;min-height:22px;margin:12px 0 0}
+#fortune-export{box-sizing:border-box;width:min(600px,calc(100% - 24px));max-height:88vh;max-height:88dvh;padding:20px;border:1px solid #52718b;border-radius:16px;background:#122233;color:#e5f1ff;overflow:auto}
+#fortune-export::backdrop{background:#020916cc}
+#fortune-export header{display:flex;align-items:center;justify-content:space-between;gap:12px}
+#fortune-export h2{font-size:18px;margin:0}
+#fortune-export header button{min-height:44px;padding:8px 14px;border:1px solid #4c647a;border-radius:9px;background:#20364a;color:#edf7ff;cursor:pointer}
+#fortune-export p{font-size:12px;line-height:1.8;color:#b4cada}
+#fortune-export .fortune-export-actions{margin:12px 0 18px}
+#fortune-preview{display:block;width:100%;height:auto;border-radius:10px}
+@media(max-width:560px){.fortune-export-actions>*{flex:1 1 auto}.fortune-export-actions button,.fortune-export-actions a{padding:10px 12px;font-size:13px}}

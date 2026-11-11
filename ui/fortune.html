@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="/responsive.css">
 <link rel="stylesheet" href="/portal.css">
 <link rel="stylesheet" href="/fortune.css">
+<script src="/fortune-export.js" defer></script>
 <script src="/fortune.js" defer></script>
 </head>
 <body>
@@ -60,11 +61,19 @@
    <div><span>행운의 숫자</span><strong id="fortune-number"></strong></div>
   </div>
   <p id="fortune-ritual" class="fortune-ritual"></p>
+  <div class="fortune-export-actions"><button type="button" id="fortune-save" disabled>이미지 저장</button><button type="button" id="fortune-share" disabled>공유하기</button></div>
+  <p id="fortune-image-status" role="status" aria-live="polite"></p>
  </section>
  <footer class="fortune-note">
   <p>생년월일은 이 화면에서만 계산하며 서버로 전송하거나 저장하지 않아요.</p>
   <p>가볍게 즐기는 운세예요. 실제 보석 뽑기 확률과는 관계없어요.</p>
  </footer>
 </main>
+<dialog id="fortune-export" aria-labelledby="fortune-export-title">
+ <header><h2 id="fortune-export-title">오늘의 운세 이미지</h2><button type="button" id="fortune-export-close">닫기</button></header>
+ <p>이미지를 길게 눌러 사진에 저장하거나 아래 버튼을 이용하세요.</p>
+ <div class="fortune-export-actions"><a id="fortune-download" download>파일 저장</a><a id="fortune-image-open" target="_blank" rel="noopener">이미지 크게 열기</a></div>
+ <img id="fortune-preview" alt="오늘의 보석 운세 결과 이미지">
+</dialog>
 </body>
 </html>
