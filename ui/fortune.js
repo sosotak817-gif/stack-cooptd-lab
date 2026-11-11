@@ -79,6 +79,16 @@
  const result=document.getElementById('fortune-result'),button=document.getElementById('fortune-submit');
  const status=document.getElementById('fortune-status'),stage=document.querySelector('.fortune-stage');
  let day=koreanDate(),timer=null;
+ const birthdayKey='stack-lab-fortune-birthday-v1';
+ function rememberBirthday(){
+  try{
+   if(!birth.value)localStorage.removeItem(birthdayKey);
+   else if(validDate(birth.value)&&birth.value<=koreanDate())localStorage.setItem(birthdayKey,birth.value);
+  }catch{
+   document.getElementById('fortune-birth-help').textContent='브라우저 저장 공간을 사용할 수 없어 생년월일을 기억하지 못해요. 현재 입력으로 운세를 볼 수 있어요.';
+  }
+ }
+
  function reset(){
   root.CoopFortuneExport.reset();
   clearTimeout(timer);
@@ -100,8 +110,10 @@
  }
  birth.addEventListener('input',()=>{
   birth.setCustomValidity('');
+  rememberBirthday();
   reset();
  });
+ birth.addEventListener('change',rememberBirthday);
  form.addEventListener('submit',event=>{
   event.preventDefault();
   syncDay();
@@ -112,6 +124,7 @@
    birth.reportValidity();
    return;
   }
+  rememberBirthday();
   reset();
   button.disabled=true;
   stage.dataset.reading='true';
@@ -146,4 +159,13 @@
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncDay();});
  setInterval(syncDay,60000);
  syncDay();
+ try{
+  const savedBirthday=localStorage.getItem(birthdayKey);
+  if(savedBirthday){
+   if(validDate(savedBirthday)&&savedBirthday<=day)birth.value=savedBirthday;
+   else localStorage.removeItem(birthdayKey);
+  }
+ }catch{
+  document.getElementById('fortune-birth-help').textContent='브라우저 저장 공간을 사용할 수 없어 생년월일을 기억하지 못해요. 직접 입력해 운세를 볼 수 있어요.';
+ }
 })(globalThis);
