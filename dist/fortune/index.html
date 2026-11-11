@@ -1,28 +1,34 @@
 <!doctype html>
 <html lang="ko">
-<head><link rel="stylesheet" href="/gem-info.css?v=1791f7e4430cfe5c"><script src="/gem-info.js?v=1791f7e4430cfe5c" defer></script><link rel="stylesheet" href="/workspace-shell.css?v=1791f7e4430cfe5c"><script src="/dealer-conditions.js?v=1791f7e4430cfe5c" defer></script><script src="/dealer-tools.js?v=1791f7e4430cfe5c" defer></script><script src="/dealer-recommendations.js?v=1791f7e4430cfe5c" defer></script><script src="/shared-calculation-version.js?v=1791f7e4430cfe5c" defer></script><script src="/shared-results.js?v=1791f7e4430cfe5c" defer></script><script src="/compute-pool.js?v=1791f7e4430cfe5c" defer></script><script src="/workspace-shell.js?v=1791f7e4430cfe5c" defer></script>
+<head><link rel="stylesheet" href="/gem-info.css?v=0f5e623bcc9843d5"><script src="/gem-info.js?v=0f5e623bcc9843d5" defer></script><link rel="stylesheet" href="/workspace-shell.css?v=0f5e623bcc9843d5"><script src="/dealer-conditions.js?v=0f5e623bcc9843d5" defer></script><script src="/dealer-tools.js?v=0f5e623bcc9843d5" defer></script><script src="/dealer-recommendations.js?v=0f5e623bcc9843d5" defer></script><script src="/shared-calculation-version.js?v=0f5e623bcc9843d5" defer></script><script src="/shared-results.js?v=0f5e623bcc9843d5" defer></script><script src="/compute-pool.js?v=0f5e623bcc9843d5" defer></script><script src="/workspace-shell.js?v=0f5e623bcc9843d5" defer></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>오늘의 보석 운세 · 스택 연구소</title>
-<meta name="description" content="생년월일로 펼쳐 보는 오늘의 보석 운세. 행운의 보석과 한 줄 메시지를 확인하세요.">
+<meta name="description" content="생년월일로 펼쳐 보는 오늘의 보석 운세. 대길·길·보통·흉·대흉, 보석 등급별 오늘의 뽑기 운세를 확인하세요.">
 <link rel="icon" href="/logo.svg">
-<link rel="stylesheet" href="/board.css?v=1791f7e4430cfe5c">
-<link rel="stylesheet" href="/responsive.css?v=1791f7e4430cfe5c">
-<link rel="stylesheet" href="/portal.css?v=1791f7e4430cfe5c">
-<link rel="stylesheet" href="/fortune.css?v=1791f7e4430cfe5c">
-<script src="/fortune.js?v=1791f7e4430cfe5c" defer></script>
-<link rel="stylesheet" href="/design-system.css?v=1791f7e4430cfe5c"><script src="/feature-access.js?v=1791f7e4430cfe5c" defer></script><script src="/design-shell.js?v=1791f7e4430cfe5c" defer></script><link rel="stylesheet" href="/research-focus.css?v=1791f7e4430cfe5c"><script src="/research-bridge.js?v=1791f7e4430cfe5c" defer></script></head>
+<link rel="stylesheet" href="/board.css?v=0f5e623bcc9843d5">
+<link rel="stylesheet" href="/responsive.css?v=0f5e623bcc9843d5">
+<link rel="stylesheet" href="/portal.css?v=0f5e623bcc9843d5">
+<link rel="stylesheet" href="/fortune.css?v=0f5e623bcc9843d5">
+<script src="/fortune.js?v=0f5e623bcc9843d5" defer></script>
+<link rel="stylesheet" href="/design-system.css?v=0f5e623bcc9843d5"><script src="/feature-access.js?v=0f5e623bcc9843d5" defer></script><script src="/design-shell.js?v=0f5e623bcc9843d5" defer></script><link rel="stylesheet" href="/research-focus.css?v=0f5e623bcc9843d5"><script src="/research-bridge.js?v=0f5e623bcc9843d5" defer></script></head>
 <body>
 <header class="top"><a class="logo" href="/">스택 연구소</a></header>
 <main class="portal fortune-page">
  <header class="fortune-heading">
   <p id="fortune-date"></p>
   <h1>오늘의 보석 운세</h1>
-  <p>보석을 뽑기 전, 오늘 나에게 온 작은 메시지.</p>
+  <p>오늘 뽑을까, 내일로 미룰까? 보석 요정에게 물어보세요.</p>
  </header>
  <section class="fortune-stage" aria-label="보석 운세 보기">
+  <div class="fortune-satellites" aria-hidden="true">
+   <span><img src="/assets/gems/stone-ss.webp" alt=""><img src="/assets/gems/awakening.webp" alt=""></span>
+   <span><img src="/assets/gems/stone-a.webp" alt=""><img src="/assets/gems/focus.webp" alt=""></span>
+   <span><img src="/assets/gems/stone-b.webp" alt=""><img src="/assets/gems/agility.webp" alt=""></span>
+   <span><img src="/assets/gems/stone-s.webp" alt=""><img src="/assets/gems/cycle.webp" alt=""></span>
+  </div>
   <div class="fortune-orbit" aria-hidden="true">
-   <div class="fortune-jewel"><img src="/assets/gems/stone-sss.webp" alt=""><img src="/assets/gems/fortune.webp" alt=""></div>
+   <div class="fortune-jewel"><img data-fortune-stone src="/assets/gems/stone-s.webp" alt=""><img data-fortune-glyph src="/assets/gems/fortune.webp" alt=""></div>
   </div>
   <form id="fortune-form">
    <label for="fortune-birth">생년월일 <span>양력</span></label>
@@ -31,13 +37,25 @@
    <button type="submit" id="fortune-submit">오늘의 운세 펼치기 <span aria-hidden="true">✧</span></button>
   </form>
   <p id="fortune-status" role="status" aria-live="polite"></p>
+  <div class="fortune-scale" aria-label="보석 등급별 운세">
+   <span><img src="/assets/gems/stone-sss.webp" alt="SSS"><b>대길</b></span>
+   <span><img src="/assets/gems/stone-ss.webp" alt="SS"><b>길</b></span>
+   <span><img src="/assets/gems/stone-s.webp" alt="S"><b>보통</b></span>
+   <span><img src="/assets/gems/stone-a.webp" alt="A"><b>흉</b></span>
+   <span><img src="/assets/gems/stone-b.webp" alt="B"><b>대흉</b></span>
+  </div>
  </section>
  <section id="fortune-result" class="fortune-result" hidden aria-labelledby="fortune-title">
+  <div class="fortune-grade-reveal">
+   <div class="fortune-result-jewel" aria-hidden="true"><img data-fortune-stone src="/assets/gems/stone-s.webp" alt=""><img data-fortune-glyph src="/assets/gems/fortune.webp" alt=""></div>
+   <div><span id="fortune-grade"></span><strong id="fortune-luck"></strong></div>
+  </div>
+  <div class="fortune-verdict"><span>오늘 뽑을까?</span><strong id="fortune-verdict"></strong></div>
   <p id="fortune-mood" class="fortune-mood"></p>
   <h2 id="fortune-title" tabindex="-1"></h2>
   <p id="fortune-message"></p>
   <div class="fortune-lucky">
-   <div><span>행운의 보석</span><strong id="fortune-gem"></strong></div>
+   <div><span>행운의 보석</span><img class="fortune-lucky-icon" data-fortune-glyph src="/assets/gems/fortune.webp" alt=""><strong id="fortune-gem"></strong></div>
    <div><span>행운의 색</span><strong id="fortune-color"></strong></div>
    <div><span>행운의 숫자</span><strong id="fortune-number"></strong></div>
   </div>
