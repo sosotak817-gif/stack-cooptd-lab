@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="ko">
+<head><link rel="stylesheet" href="/gem-info.css?v=1791f7e4430cfe5c"><script src="/gem-info.js?v=1791f7e4430cfe5c" defer></script><link rel="stylesheet" href="/workspace-shell.css?v=1791f7e4430cfe5c"><script src="/dealer-conditions.js?v=1791f7e4430cfe5c" defer></script><script src="/dealer-tools.js?v=1791f7e4430cfe5c" defer></script><script src="/dealer-recommendations.js?v=1791f7e4430cfe5c" defer></script><script src="/shared-calculation-version.js?v=1791f7e4430cfe5c" defer></script><script src="/shared-results.js?v=1791f7e4430cfe5c" defer></script><script src="/compute-pool.js?v=1791f7e4430cfe5c" defer></script><script src="/workspace-shell.js?v=1791f7e4430cfe5c" defer></script>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>오늘의 보석 운세 · 스택 연구소</title>
+<meta name="description" content="생년월일로 펼쳐 보는 오늘의 보석 운세. 행운의 보석과 한 줄 메시지를 확인하세요.">
+<link rel="icon" href="/logo.svg">
+<link rel="stylesheet" href="/board.css?v=1791f7e4430cfe5c">
+<link rel="stylesheet" href="/responsive.css?v=1791f7e4430cfe5c">
+<link rel="stylesheet" href="/portal.css?v=1791f7e4430cfe5c">
+<link rel="stylesheet" href="/fortune.css?v=1791f7e4430cfe5c">
+<script src="/fortune.js?v=1791f7e4430cfe5c" defer></script>
+<link rel="stylesheet" href="/design-system.css?v=1791f7e4430cfe5c"><script src="/feature-access.js?v=1791f7e4430cfe5c" defer></script><script src="/design-shell.js?v=1791f7e4430cfe5c" defer></script><link rel="stylesheet" href="/research-focus.css?v=1791f7e4430cfe5c"><script src="/research-bridge.js?v=1791f7e4430cfe5c" defer></script></head>
+<body>
+<header class="top"><a class="logo" href="/">스택 연구소</a></header>
+<main class="portal fortune-page">
+ <header class="fortune-heading">
+  <p id="fortune-date"></p>
+  <h1>오늘의 보석 운세</h1>
+  <p>보석을 뽑기 전, 오늘 나에게 온 작은 메시지.</p>
+ </header>
+ <section class="fortune-stage" aria-label="보석 운세 보기">
+  <div class="fortune-orbit" aria-hidden="true">
+   <div class="fortune-jewel"><img src="/assets/gems/stone-sss.webp" alt=""><img src="/assets/gems/fortune.webp" alt=""></div>
+  </div>
+  <form id="fortune-form">
+   <label for="fortune-birth">생년월일 <span>양력</span></label>
+   <input id="fortune-birth" type="date" required aria-describedby="fortune-birth-help">
+   <p id="fortune-birth-help">생년월일과 한국 시간의 오늘 날짜로 운세를 정해요.<br>같은 생일은 하루 동안 같은 결과가 나와요.</p>
+   <button type="submit" id="fortune-submit">오늘의 운세 펼치기 <span aria-hidden="true">✧</span></button>
+  </form>
+  <p id="fortune-status" role="status" aria-live="polite"></p>
+ </section>
+ <section id="fortune-result" class="fortune-result" hidden aria-labelledby="fortune-title">
+  <p id="fortune-mood" class="fortune-mood"></p>
+  <h2 id="fortune-title" tabindex="-1"></h2>
+  <p id="fortune-message"></p>
+  <div class="fortune-lucky">
+   <div><span>행운의 보석</span><strong id="fortune-gem"></strong></div>
+   <div><span>행운의 색</span><strong id="fortune-color"></strong></div>
+   <div><span>행운의 숫자</span><strong id="fortune-number"></strong></div>
+  </div>
+  <p id="fortune-ritual" class="fortune-ritual"></p>
+ </section>
+ <footer class="fortune-note">
+  <p>생년월일은 이 화면에서만 계산하며 서버로 전송하거나 저장하지 않아요.</p>
+  <p>가볍게 즐기는 운세예요. 실제 보석 뽑기 확률과는 관계없어요.</p>
+ </footer>
+</main>
+</body>
+</html>

@@ -1,0 +1,44 @@
+.fortune-page{max-width:900px;padding-bottom:48px}
+.fortune-heading{text-align:center;padding:35px 0 8px}
+.fortune-heading h1{font-size:clamp(28px,5vw,42px);letter-spacing:-1.6px;margin:10px 0 14px}
+.fortune-heading p{color:#a8bacd!important;font-size:14px}
+#fortune-date{color:#88dfcf!important;font-size:12px;letter-spacing:.08em}
+.fortune-stage{position:relative;text-align:center;padding:16px 28px 24px;border:1px solid #304958;border-radius:24px;background:radial-gradient(ellipse at 50% 20%,#1e4148 0,transparent 65%),#101e2d}
+.fortune-orbit{width:210px;height:210px;margin:0 auto 18px;display:grid;place-items:center;border-radius:50%;background:radial-gradient(circle,#79e9ce20,transparent 68%);position:relative}
+.fortune-orbit:before,.fortune-orbit:after{content:"";position:absolute;inset:17px;border:1px solid #83e6ce33;border-radius:50%;transform:rotateX(58deg) rotate(-24deg)}
+.fortune-orbit:after{inset:0;transform:rotateX(58deg) rotate(42deg)}
+.fortune-jewel{width:126px;height:126px;position:relative;filter:drop-shadow(0 8px 28px #7ef3ce44);animation:fortune-float 4s ease-in-out infinite}
+.fortune-jewel img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}
+.fortune-jewel img+img{inset:11%;width:78%;height:78%}
+#fortune-form{max-width:380px;margin:auto;text-align:left}
+#fortune-form label{display:flex;justify-content:space-between;font-size:14px;font-weight:700;margin-bottom:10px;color:#e0edf6}
+#fortune-form label span{color:#93a7bc;font-size:12px;font-weight:400}
+#fortune-birth{box-sizing:border-box;width:100%;min-width:0;min-height:52px;border:1px solid #456474;border-radius:12px;background:#0c1827;color:#eff7ff;padding:12px 14px;font:inherit;color-scheme:dark}
+#fortune-birth-help{font-size:12px;color:#9fb3c7!important;line-height:1.8;margin:10px 0 20px}
+#fortune-submit{width:100%;min-height:52px;display:flex;align-items:center;justify-content:center;gap:12px;background:#8be6ce;color:#092721;border:0;border-radius:12px;font-weight:800;font-size:15px;cursor:pointer}
+#fortune-submit:hover{background:#acf4df}
+#fortune-submit:disabled{opacity:.65;cursor:wait}
+#fortune-status{min-height:22px;margin:14px 0 0;color:#9fe9d5!important;font-size:13px}
+.fortune-page :focus-visible{outline:2px solid #8be6ce;outline-offset:4px}
+.fortune-result{margin:20px 0 0;padding:30px;border:1px solid #477669;border-radius:20px;background:linear-gradient(140deg,#183934,#122333);text-align:center;animation:fortune-reveal .5s ease-out}
+.fortune-result[hidden]{display:none}
+.fortune-mood{display:inline-block;margin:0 0 12px;color:#a5f2d8!important;font-size:13px}
+.fortune-result h2{margin:0 0 14px;font-size:26px;line-height:1.45;letter-spacing:-.7px;color:#f1fff8}
+#fortune-message{color:#c2d6e1!important;line-height:1.9;max-width:520px;margin:0 auto}
+.fortune-lucky{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin:26px 0 20px}
+.fortune-lucky>div{padding:17px 8px;background:#0a1a2580;border:1px solid #36574f;border-radius:12px}
+.fortune-lucky span,.fortune-lucky strong{display:block}
+.fortune-lucky span{font-size:11px;color:#9fbabf;margin-bottom:8px}
+.fortune-lucky strong{font-size:17px;color:#c7ffe9;overflow-wrap:anywhere}
+.fortune-ritual{border-top:1px solid #416258;padding-top:18px;margin-bottom:0;color:#bfd2d9!important;font-size:13px}
+.fortune-note{text-align:center;padding:17px 8px}
+.fortune-note p{font-size:11px;line-height:1.8;color:#8fa7bb!important;margin:6px 0}
+.fortune-stage[data-reading=true] .fortune-jewel{animation:fortune-read .65s ease-in-out}
+@keyframes fortune-float{50%{transform:translateY(-9px)}}
+@keyframes fortune-read{50%{transform:scale(1.16) rotate(12deg);filter:drop-shadow(0 0 34px #b3ffdf)}}
+@keyframes fortune-reveal{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:560px){.fortune-heading{padding-top:22px}.fortune-stage{padding:12px 18px 18px}.fortune-orbit{width:175px;height:175px;margin-bottom:12px}.fortune-jewel{width:108px;height:108px}.fortune-result{padding:24px 17px}.fortune-result h2{font-size:23px}.fortune-lucky{gap:6px}.fortune-lucky strong{font-size:14px}}
+@media(prefers-reduced-motion:reduce){.fortune-jewel,.fortune-result,.fortune-stage[data-reading=true] .fortune-jewel{animation:none}}
+html.lab-dark .portal.fortune-page{max-width:900px}
+html.lab-dark .fortune-note{display:block;text-align:center}
+.fortune-result{scroll-margin-top:75px;scroll-margin-bottom:80px}
