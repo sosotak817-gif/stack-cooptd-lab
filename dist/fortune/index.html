@@ -1,21 +1,21 @@
 <!doctype html>
 <html lang="ko">
-<head><link rel="stylesheet" href="/gem-info.css?v=76c38d552a60dc3c"><script src="/gem-info.js?v=76c38d552a60dc3c" defer></script><link rel="stylesheet" href="/workspace-shell.css?v=76c38d552a60dc3c"><script src="/dealer-conditions.js?v=76c38d552a60dc3c" defer></script><script src="/dealer-tools.js?v=76c38d552a60dc3c" defer></script><script src="/dealer-recommendations.js?v=76c38d552a60dc3c" defer></script><script src="/shared-calculation-version.js?v=76c38d552a60dc3c" defer></script><script src="/shared-results.js?v=76c38d552a60dc3c" defer></script><script src="/compute-pool.js?v=76c38d552a60dc3c" defer></script><script src="/workspace-shell.js?v=76c38d552a60dc3c" defer></script>
+<head><link rel="stylesheet" href="/gem-info.css?v=17eb377efd4a37e7"><script src="/gem-info.js?v=17eb377efd4a37e7" defer></script><link rel="stylesheet" href="/workspace-shell.css?v=17eb377efd4a37e7"><script src="/dealer-conditions.js?v=17eb377efd4a37e7" defer></script><script src="/dealer-tools.js?v=17eb377efd4a37e7" defer></script><script src="/dealer-recommendations.js?v=17eb377efd4a37e7" defer></script><script src="/shared-calculation-version.js?v=17eb377efd4a37e7" defer></script><script src="/shared-results.js?v=17eb377efd4a37e7" defer></script><script src="/compute-pool.js?v=17eb377efd4a37e7" defer></script><script src="/workspace-shell.js?v=17eb377efd4a37e7" defer></script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>오늘의 보석 운세 · 스택 연구소</title>
 <meta name="description" content="생년월일로 펼쳐 보는 오늘의 보석 운세. 대길·길·보통·흉·대흉, 보석 등급별 오늘의 뽑기 운세를 확인하세요.">
 <link rel="icon" href="/logo.svg">
-<link rel="stylesheet" href="/board.css?v=76c38d552a60dc3c">
-<link rel="stylesheet" href="/responsive.css?v=76c38d552a60dc3c">
-<link rel="stylesheet" href="/portal.css?v=76c38d552a60dc3c">
-<link rel="stylesheet" href="/fortune.css?v=76c38d552a60dc3c">
-<script src="/fortune-export.js?v=76c38d552a60dc3c" defer></script>
-<script src="/fortune.js?v=76c38d552a60dc3c" defer></script>
-<link rel="stylesheet" href="/design-system.css?v=76c38d552a60dc3c"><script src="/feature-access.js?v=76c38d552a60dc3c" defer></script><script src="/design-shell.js?v=76c38d552a60dc3c" defer></script><link rel="stylesheet" href="/research-focus.css?v=76c38d552a60dc3c"><script src="/research-bridge.js?v=76c38d552a60dc3c" defer></script></head>
+<link rel="stylesheet" href="/board.css?v=17eb377efd4a37e7">
+<link rel="stylesheet" href="/responsive.css?v=17eb377efd4a37e7">
+<link rel="stylesheet" href="/portal.css?v=17eb377efd4a37e7">
+<link rel="stylesheet" href="/fortune.css?v=17eb377efd4a37e7">
+<script src="/fortune-export.js?v=17eb377efd4a37e7" defer></script>
+<script src="/fortune.js?v=17eb377efd4a37e7" defer></script>
+<link rel="stylesheet" href="/design-system.css?v=17eb377efd4a37e7"><script src="/feature-access.js?v=17eb377efd4a37e7" defer></script><script src="/design-shell.js?v=17eb377efd4a37e7" defer></script><link rel="stylesheet" href="/research-focus.css?v=17eb377efd4a37e7"><script src="/research-bridge.js?v=17eb377efd4a37e7" defer></script></head>
 <body>
 <header class="top"><a class="logo" href="/">스택 연구소</a></header>
-<main class="portal fortune-page">
+<main class="portal fortune-page" data-gem-info-ignore>
  <header class="fortune-heading">
   <p id="fortune-date"></p>
   <h1>오늘의 보석 운세</h1>
@@ -28,8 +28,8 @@
    <span><img src="/assets/gems/stone-b.webp" alt=""><img src="/assets/gems/agility.webp" alt=""></span>
    <span><img src="/assets/gems/stone-s.webp" alt=""><img src="/assets/gems/cycle.webp" alt=""></span>
   </div>
-  <div class="fortune-orbit" aria-hidden="true">
-   <div class="fortune-jewel"><img data-fortune-stone src="/assets/gems/stone-s.webp" alt=""><img data-fortune-glyph src="/assets/gems/fortune.webp" alt=""></div>
+  <div class="fortune-orbit">
+   <button type="button" class="fortune-jewel" data-fortune-whisper aria-label="보석 요정의 속마음 듣기" aria-controls="fortune-whisper" aria-expanded="false" disabled><img data-fortune-stone src="/assets/gems/stone-s.webp" alt=""><img data-fortune-glyph src="/assets/gems/fortune.webp" alt=""></button>
   </div>
   <form id="fortune-form">
    <label for="fortune-birth">생년월일 <span>양력</span></label>
@@ -48,15 +48,20 @@
  </section>
  <section id="fortune-result" class="fortune-result" hidden aria-labelledby="fortune-title">
   <div class="fortune-grade-reveal">
-   <div class="fortune-result-jewel" aria-hidden="true"><img data-fortune-stone src="/assets/gems/stone-s.webp" alt=""><img data-fortune-glyph src="/assets/gems/fortune.webp" alt=""></div>
+   <button type="button" class="fortune-result-jewel" data-fortune-whisper aria-label="운세 결과 보석 · 요정의 속마음 듣기" aria-controls="fortune-whisper" aria-expanded="false" disabled><img data-fortune-stone src="/assets/gems/stone-s.webp" alt=""><img data-fortune-glyph src="/assets/gems/fortune.webp" alt=""></button>
    <div><span id="fortune-grade"></span><strong id="fortune-luck"></strong></div>
   </div>
+  <p class="fortune-whisper-hint">보석을 눌러 요정의 속마음 듣기</p>
+  <aside id="fortune-whisper" class="fortune-whisper" role="status" aria-live="polite" hidden>
+   <span>보석 요정의 속마음</span>
+   <p id="fortune-whisper-text"></p>
+  </aside>
   <div class="fortune-verdict"><span>오늘 뽑을까?</span><strong id="fortune-verdict"></strong></div>
   <p id="fortune-mood" class="fortune-mood"></p>
   <h2 id="fortune-title" tabindex="-1"></h2>
   <p id="fortune-message"></p>
   <div class="fortune-lucky">
-   <div><span>행운의 보석</span><img class="fortune-lucky-icon" data-fortune-glyph src="/assets/gems/fortune.webp" alt=""><strong id="fortune-gem"></strong></div>
+   <div><span>행운의 보석</span><button type="button" class="fortune-lucky-gem" data-fortune-whisper aria-label="행운의 보석 · 요정의 속마음 듣기" aria-controls="fortune-whisper" aria-expanded="false" disabled><img class="fortune-lucky-icon" data-fortune-glyph src="/assets/gems/fortune.webp" alt=""><strong id="fortune-gem"></strong></button></div>
    <div><span>행운의 색</span><strong id="fortune-color"></strong></div>
    <div><span>행운의 숫자</span><strong id="fortune-number"></strong></div>
   </div>

@@ -17,6 +17,16 @@
     ['상자 밖으로 새어 나오는 빛','보석 요정이 먼저 문을 두드려요','오늘은 요정이 상자 앞에서 발을 동동 구르고 있어요. 준비해 둔 오늘 몫이 있다면 펼쳐보고 싶은 기운이에요. 정해 둔 횟수 안에서, 어떤 보석을 만날지 설레는 순간을 즐겨 보세요.'],
     ['유난히 반짝이는 기운','오늘의 상자에 시선 집중','상자 틈으로 빛이 새어 나와 눈을 뗄 수가 없네요. 오늘 뽑을지 망설였다면 요정은 오늘 쪽에 한 표를 던졌어요. 오늘 몫으로 정해 둔 상자를 천천히 열어볼까요?'],
     ['요정의 초대장','기다리던 순간을 펼쳐볼까요?','보석 요정이 당신 이름이 적힌 초대장을 내밀었어요. 오늘은 준비해 둔 뽑기를 열어보는 쪽으로 마음이 기우네요. 정한 만큼 즐긴 뒤에는 오늘의 만남을 기억해 주세요.']
+   ],
+   whispers:[
+    "사실 오늘 아침부터 네 상자만 닦고 있었어.",
+    "오늘은 문 앞에서 기다렸어. 노크도 필요 없어.",
+    "반짝이 가루? 네가 올까 봐 조금 더 뿌려뒀지.",
+    "나 지금 표정 관리 중이야. 너무 티 내면 안 되거든.",
+    "네 상자에는 리본도 묶어뒀어. 특별 대우 맞아.",
+    "일단 웃어봐. 오늘 내 기분이 꽤 좋거든.",
+    "누구 기다리냐고? 너. 아까부터 너만 기다렸어.",
+    "쉿, 오늘은 내 응원도 같이 들어 있어."
    ]
   },
   {
@@ -25,6 +35,16 @@
     ['손끝에 머무는 반짝임','작은 기대를 열어봐도 좋겠어요','상자 위에 금빛 가루가 살짝 내려앉았네요. 오늘은 정해 둔 만큼 가볍게 열어보고 싶은 날이에요. 커다란 기대보다 어떤 보석을 만날지 궁금해하는 마음이 잘 어울려요.'],
     ['살며시 열린 문','오늘은 한 번 인사해 볼까요?','보석 요정이 문틈으로 손을 흔들고 있어요. 준비한 오늘 몫이 있다면 가볍게 인사하러 가도 좋겠네요. 미리 정한 횟수를 지키며 오늘의 이야기를 만들어 보세요.'],
     ['기분 좋은 예감','기대를 조금 꺼내볼 때','상자를 보고 있자니 왠지 입꼬리가 올라가네요. 오늘의 요정은 살짝 호의적인 표정이에요. 정해 둔 오늘 몫 안에서 작은 설렘을 펼쳐보는 건 어때요?']
+   ],
+   whispers:[
+    "좋은 느낌인데… 오늘 몫까지만 열어봐.",
+    "화려한 환영식은 없지만, 문은 열어뒀어.",
+    "상자 위에 앉은 먼지는 내가 털었어. 그 정도 정성은 있지.",
+    "오늘은 인사 정도는 받아줄 기분이야.",
+    "기대는 조금만. 설레는 건 마음껏 해도 돼.",
+    "반짝이 가루를 한 꼬집 뿌렸어. 한 꼬집만.",
+    "크게 떠들진 마. 소소하게 반가운 날이거든.",
+    "너 온다고 해서 앞머리까지 빗고 기다렸잖아."
    ]
   },
   {
@@ -33,6 +53,16 @@
     ['반은 기대, 반은 망설임','요정도 동전을 굴리는 중','오늘은 열까 말까, 요정도 쉽게 결정을 못 하겠대요. 궁금하다면 미리 정한 소량만 열어보고, 마음이 내키지 않으면 내일로 넘겨도 좋은 분위기예요.'],
     ['잔잔한 보석의 기운','오늘의 선택은 반반','상자도 요정도 오늘은 조용하네요. 특별히 서두를 신호는 없지만 조금 맛보는 재미는 있겠어요. 소량만 가볍게 열지, 그대로 남길지 취향대로 골라보세요.'],
     ['문턱에 앉은 요정','조금 열고 여운 남기기','요정이 문턱에 앉아 다리를 흔들고 있어요. 오늘은 큰 결심보다 작은 호기심에 어울리는 날. 궁금한 만큼 미리 정한 소량만, 나머지 기대는 다음 이야기로 남겨 둬요.']
+   ],
+   whispers:[
+    "나도 모르겠어서 동전 던지는 중이야.",
+    "동전이 모서리로 섰어. 이건 나도 처음이야.",
+    "오늘 내 표정? 그냥 배고파서 그런 거야.",
+    "상자는 준비됐는데, 내 결심은 아직 준비 중.",
+    "반짝일까 말까… 지금 조명부터 확인하고 있어.",
+    "한쪽 눈은 기대하고, 한쪽 눈은 졸고 있어.",
+    "오늘은 네 촉을 믿어봐. 내 촉은 충전 중이야.",
+    "열쇠는 있는데, 괜히 한 번 더 고민하게 되네."
    ]
   },
   {
@@ -41,6 +71,16 @@
     ['안개에 가려진 상자','오늘은 관망하는 쪽에 한 표','상자 앞에 안개가 자욱해서 마음까지 오락가락하네요. 오늘은 버튼에서 한 발 물러나 상자를 아껴두는 쪽이 어울려요. 내일은 어떤 기운이 오는지 다시 확인해 볼까요?'],
     ['느린 행운의 걸음','하루 더 기다려볼까요?','오늘의 보석 요정은 약속 시간보다 느긋하게 걸어오고 있어요. 지금 문을 두드리기보다는 기대를 하루 더 품고 싶네요. 내일의 운세를 보고 다시 결정해도 좋아요.'],
     ['닫혀 있는 보석의 문','내일의 나에게 넘겨볼까요?','문고리를 돌려봐도 요정이 대답을 망설이네요. 오늘은 서둘러 상자를 열기보다 잠시 내려두고 싶은 기운이에요. 내일의 나에게 결정권을 넘겨보는 건 어때요?']
+   ],
+   whispers:[
+    "오늘은 열쇠를 어디 뒀는지 기억이 안 나.",
+    "문 앞 안개는 내가 피운 게 아니야. 아마도.",
+    "내일 다시 와줄래? 오늘은 정리할 게 좀 있어.",
+    "상자가 무거워진 건 기분 탓… 이라고 해둘게.",
+    "오늘은 손보다 주머니가 더 편안해 보이는데?",
+    "지금 노크 소리, 못 들은 척해도 될까?",
+    "오늘 내 추천? 상자 구경만 하고 산책 가기.",
+    "열기 전에 한 번 더 생각해. 나는 차 한 잔 할게."
    ]
   },
   {
@@ -49,6 +89,16 @@
     ['보석 요정 휴무일','상자에 휴무 안내문이 붙었어요','오늘의 요정은 이불 속에서 나올 생각이 없대요. 상자에도 큼지막하게 휴무 안내문을 붙여 뒀네요. 오늘은 뽑기를 쉬어가고, 내일 요정이 출근했는지 다시 확인해 봐요.'],
     ['깊이 잠든 보석','두드려도 코 고는 소리만','상자 안에서 반짝임 대신 새근새근 코 고는 소리가 들려요. 오늘은 깨우려고 애쓰기보다 그대로 재워두고 싶은 날이에요. 상자는 아껴 두고 내일의 기운을 만나러 와요.'],
     ['요정의 자리 비움','오늘은 버튼과 잠시 거리 두기','요정이 상자 열쇠를 베개 밑에 두고 산책을 나갔대요. 오늘만큼은 버튼과 눈을 마주치지 않는 쪽에 한 표. 내일은 어떤 표정으로 돌아올지 다시 만나봐요.']
+   ],
+   whispers:[
+    "문 두드리지 마. 오늘 휴무라고 붙여놨잖아.",
+    "나 오늘 연차야. 상자도 같이 연차 냈어.",
+    "열쇠? 베개 밑에 두고 다시 누웠어.",
+    "지금 들리는 건 보석 소리가 아니라 내 코 고는 소리야.",
+    "오늘 출근한 건 내 그림자야. 본체는 이불 속.",
+    "상자에 붙은 '내일 봐' 메모, 내가 쓴 거 맞아.",
+    "버튼 누르는 손, 오늘은 주머니에 넣어두자.",
+    "나 깨우면 잠꼬대로 대답할 거야. 내일 얘기하자."
    ]
   }
  ];
@@ -70,7 +120,7 @@
   const grade=grades[pick(grades.length)];
   const [mood,title,message]=grade.readings[pick(grade.readings.length)];
   const [gem,gemName]=gems[pick(gems.length)];
-  return {day,mood,title,message,grade:grade.grade,luck:grade.luck,choice:grade.choice,verdict:grade.verdict,accent:grade.color,gem,gemName,color:colors[pick(colors.length)],number:pick(9)+1,ritual:rituals[pick(rituals.length)]};
+  return {day,mood,title,message,grade:grade.grade,luck:grade.luck,choice:grade.choice,verdict:grade.verdict,accent:grade.color,gem,gemName,color:colors[pick(colors.length)],number:pick(9)+1,ritual:rituals[pick(rituals.length)],whisper:grade.whispers[pick(grade.whispers.length)]};
  }
  root.CoopFortune={koreanDate,fortune};
  if(typeof module!=='undefined')module.exports=root.CoopFortune;
@@ -78,6 +128,23 @@
  const form=document.getElementById('fortune-form'),birth=document.getElementById('fortune-birth');
  const result=document.getElementById('fortune-result'),button=document.getElementById('fortune-submit');
  const status=document.getElementById('fortune-status'),stage=document.querySelector('.fortune-stage');
+ const whisperPanel=document.getElementById('fortune-whisper');
+ const whisperText=document.getElementById('fortune-whisper-text');
+ const whisperButtons=[...document.querySelectorAll('[data-fortune-whisper]')];
+ for(const trigger of whisperButtons){
+  trigger.addEventListener('click',()=>{
+   const open=whisperPanel.hidden;
+   whisperPanel.hidden=!open;
+   for(const button of whisperButtons)button.setAttribute('aria-expanded',String(open));
+   if(open){
+    if(!matchMedia('(prefers-reduced-motion: reduce)').matches){
+     trigger.animate([{transform:'rotate(0)'},{transform:'rotate(-8deg)'},{transform:'rotate(6deg)'},{transform:'rotate(0)'}],{duration:380,easing:'ease-out'});
+    }
+    whisperPanel.scrollIntoView({behavior:matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'nearest'});
+   }
+  });
+ }
+
  let day=koreanDate(),timer=null;
  const birthdayKey='stack-lab-fortune-birthday-v1';
  function rememberBirthday(){
@@ -90,6 +157,12 @@
  }
 
  function reset(){
+  whisperPanel.hidden=true;
+  whisperText.textContent='';
+  for(const trigger of whisperButtons){
+   trigger.disabled=true;
+   trigger.setAttribute('aria-expanded','false');
+  }
   root.CoopFortuneExport.reset();
   clearTimeout(timer);
   timer=null;
@@ -147,6 +220,8 @@
     document.getElementById('fortune-'+key).textContent=String(reading[key]);
    }
    document.getElementById('fortune-gem').textContent=reading.gemName;
+   whisperText.textContent=reading.whisper;
+   for(const trigger of whisperButtons)trigger.disabled=false;
    result.hidden=false;
    stage.dataset.reading='false';
    button.disabled=false;
