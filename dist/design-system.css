@@ -122,7 +122,7 @@ html.lab-dark body details:is(.deck-dps-range,.damage-results)>summary b{display
 }
 
 .dashboard-tools{grid-template-columns:repeat(5,minmax(0,1fr))}.research-tool-tile{border-color:#4bbba5;background:#143c3e}
-@media(max-width:760px){.dashboard-tools{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-tools .research-tool-tile{grid-column:1/-1;flex-direction:row;min-height:68px;text-align:left;padding:10px 16px;gap:12px}.dashboard-tools .research-tool-tile strong{font-size:16px}.dashboard-tools .research-tool-tile small{display:block;font-size:12px;margin-top:4px}.dashboard-tools .tool-tile:not(.research-tool-tile){min-height:88px}.dashboard-tools .tool-tile strong{font-size:13px}}
+@media(max-width:760px){.dashboard-tools{grid-template-columns:repeat(2,minmax(0,1fr))}.dashboard-tools .research-tool-tile{grid-column:1/-1;flex-direction:row;min-height:68px;text-align:left;padding:10px 16px;gap:12px}.dashboard-tools .research-tool-tile>div{flex:1 1 0;min-width:0}.dashboard-tools .research-tool-tile strong{font-size:16px}.dashboard-tools .research-tool-tile small{display:block;font-size:12px;margin-top:4px}.dashboard-tools .tool-tile:not(.research-tool-tile){min-height:88px}.dashboard-tools .tool-tile strong{font-size:13px}}
 
 /* Theme groups keep the main navigation short while preserving every tool. */
 @media(min-width:761px){.lab-sidebar nav{min-height:0;overflow-y:auto;flex-shrink:1}.lab-sidebar .sidebar-caption{flex-shrink:0;margin-bottom:0}}
