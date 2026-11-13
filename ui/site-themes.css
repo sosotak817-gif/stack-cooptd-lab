@@ -1,0 +1,202 @@
+/* The initial palette is replaced by the selected character before rendering. */
+:root{
+ --theme-bg:hsl(205 18% 9%);--theme-panel:hsl(205 18% 14%);--theme-raised:hsl(205 16% 19%);--theme-nav:hsl(205 20% 11%);
+ --theme-line:hsl(205 17% 30%);--theme-text:hsl(205 20% 91%);--theme-muted:hsl(205 16% 73%);--theme-accent:#a0d9df;
+}
+:root[data-site-theme]{
+ --ink:var(--theme-text);--muted:var(--theme-muted);--line:var(--theme-line);
+ --surface:var(--theme-panel);--mint:var(--theme-accent);--accent:var(--theme-accent);
+}
+html.lab-dark[data-site-theme] body{
+ background:radial-gradient(ellipse at 80% 0,color-mix(in srgb,var(--theme-accent) 7%,transparent),transparent 55%),var(--theme-bg);
+ color:var(--theme-text);
+}
+html.lab-dark[data-site-theme] body .lab-sidebar{
+ background:linear-gradient(180deg,var(--theme-nav),var(--theme-bg));border-color:var(--theme-line);
+}
+html.lab-dark[data-site-theme] body :is(.lab-topbar,.workspace-dock,.lab-sidebar.menu-open nav){
+ background:var(--theme-nav);border-color:var(--theme-line);
+}
+html.lab-dark[data-site-theme] body :is(.lab-brand,.lab-sidebar nav a,.lab-nav-group summary,.lab-breadcrumb b,.lab-top-actions,.sidebar-caption){
+ color:var(--theme-text);
+}
+html.lab-dark[data-site-theme] body :is(.lab-brand small,.lab-local-label,.sidebar-caption small,.lab-search span,.lab-breadcrumb){
+ color:var(--theme-muted);
+}
+html.lab-dark[data-site-theme] body .lab-sidebar nav a.active{
+ color:var(--theme-accent);background:color-mix(in srgb,var(--theme-accent) 12%,transparent);border-left-color:var(--theme-accent);
+}
+html.lab-dark[data-site-theme] body :is(.lab-sidebar nav a:hover,.lab-nav-group summary:hover){
+ background:var(--theme-raised);
+}
+html.lab-dark[data-site-theme] body :is(.panel,.portal .panel,.dashboard-panel,.tool-tile,.research-banner,.portal-card,.roster,.board-panel,.unit-combo,.unit-skill,.unit-top-panel,.dealer-ranking-row,.dealer-tier-row,.dealer-tier-card,.ranking-panel,.rank-panel,.achievement-card,.journey-help,.growth-card,.experience-next){
+ background:var(--theme-panel);border-color:var(--theme-line);color:var(--theme-text);
+}
+html.lab-dark[data-site-theme] body :is(.dashboard-heading h1,.dashboard-panel h2,.portal h1,.portal h2,.portal h3,.tool-tile strong,.panel-heading,.unit-combo h3,.dealer-ranking-info b){
+ color:var(--theme-text);
+}
+html.lab-dark[data-site-theme] body :is(.dashboard-heading p,.tool-tile small,.portal p,.portal-card p,.section-kicker,.eyebrow,.dealer-ranking-info small,.dealer-tier-card small,.journey-note){
+ color:var(--theme-muted);
+}
+html.lab-dark[data-site-theme] body .research-banner:before{
+ background:radial-gradient(ellipse at 85% 70%,color-mix(in srgb,var(--theme-accent) 15%,transparent),transparent 65%),linear-gradient(90deg,var(--theme-panel),transparent);
+}
+html.lab-dark[data-site-theme] body .research-tool-tile{
+ background:color-mix(in srgb,var(--theme-accent) 12%,var(--theme-panel));border-color:color-mix(in srgb,var(--theme-accent) 55%,var(--theme-line));
+}
+html.lab-dark[data-site-theme] body :is(.lab-search,.release-link,.preview-actions a,.stage-tag,.journey-fields,.growth-budget-candidates,.growth-budget-plan,.experience-dialog,.workspace-dock button){
+ background:var(--theme-raised);border-color:var(--theme-line);color:var(--theme-text);
+}
+html.lab-dark[data-site-theme] body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=hidden]),select,textarea){
+ background:var(--theme-raised)!important;color:var(--theme-text)!important;-webkit-text-fill-color:var(--theme-text)!important;border-color:var(--theme-line)!important;caret-color:var(--theme-accent);
+}
+html.lab-dark[data-site-theme] body :is(input,textarea)::placeholder{
+ color:var(--theme-muted)!important;-webkit-text-fill-color:var(--theme-muted)!important;
+}
+html.lab-dark[data-site-theme] body :is(button,.portal button):where(:not([data-fortune-whisper],#fortune-submit,.mint-button,.portal-primary,.journey-primary,.dps-value-button)){
+ background:var(--theme-raised);border-color:var(--theme-line);color:var(--theme-text);
+}
+html.lab-dark[data-site-theme] body :is(.mint-button,.portal-primary,.journey-primary,#fortune-submit){
+ background:var(--theme-accent);border-color:var(--theme-accent);color:var(--theme-bg)!important;
+}
+html.lab-dark[data-site-theme] body dialog{
+ background:var(--theme-panel)!important;color:var(--theme-text)!important;border-color:var(--theme-line);
+}
+html.lab-dark[data-site-theme] body .fortune-stage{
+ background:radial-gradient(ellipse at 50% 20%,color-mix(in srgb,var(--fortune-accent) 12%,transparent),transparent 65%),var(--theme-panel);
+}
+html.lab-dark[data-site-theme] body .fortune-result{
+ background:radial-gradient(ellipse at 20% 0,color-mix(in srgb,var(--fortune-accent) 15%,transparent),transparent 65%),var(--theme-panel);
+}
+html.lab-dark[data-site-theme] body .fortune-whisper{background:var(--theme-raised)}
+html.lab-dark[data-site-theme] body .fortune-whisper:before{background:var(--theme-raised)}
+.lab-sidebar nav .lab-theme-open{
+ display:flex;align-items:center;gap:13px;width:100%;min-height:45px;padding:10px 13px;
+ border:1px solid var(--theme-line);border-radius:7px;background:var(--theme-panel);color:var(--theme-text);
+ font:inherit;font-size:13px;text-align:left;cursor:pointer;
+}
+.lab-theme-open>span{font-size:23px;width:24px;text-align:center}
+dialog#lab-theme-dialog{
+ box-sizing:border-box;width:min(900px,calc(100% - 24px));max-height:88vh;max-height:88dvh;
+ padding:24px;border:1px solid var(--theme-line);border-radius:20px;
+ background:var(--theme-panel)!important;color:var(--theme-text)!important;overflow:auto;
+}
+#lab-theme-dialog::backdrop{background:#05080ec9;backdrop-filter:blur(5px)}
+#lab-theme-dialog header{display:flex;align-items:start;justify-content:space-between;gap:16px}
+#lab-theme-title{font-size:22px;margin:0;color:var(--theme-text)}
+#lab-theme-dialog header p{font-size:13px;color:var(--theme-muted);margin:8px 0 20px}
+#lab-theme-dialog header button{
+ min-height:44px;padding:8px 14px;border:1px solid var(--theme-line);border-radius:10px;background:var(--theme-raised);color:var(--theme-text);cursor:pointer;
+}
+#lab-theme-dialog fieldset{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:0;padding:0;border:0}
+.lab-theme-card{
+ position:relative;display:grid;gap:6px;padding:12px;border:1px solid var(--theme-line);border-radius:13px;
+ background:var(--theme-bg);color:var(--theme-text);cursor:pointer;
+}
+.lab-theme-card:has(input:checked){outline:2px solid var(--theme-accent);outline-offset:-1px}
+.lab-theme-card:focus-within{outline:2px solid var(--theme-accent);outline-offset:3px}
+.lab-theme-card input{position:absolute;right:10px;top:10px;accent-color:var(--theme-accent)}
+.lab-theme-card strong{font-size:14px;text-align:center;word-break:keep-all}
+.lab-theme-card small{word-break:keep-all;overflow-wrap:break-word;font-size:11px;line-height:1.6;color:var(--theme-muted);text-align:center}
+.lab-theme-sample{display:grid;place-items:center;height:106px;border-radius:9px;background:radial-gradient(ellipse at 50% 75%,color-mix(in srgb,var(--theme-accent) 16%,transparent),transparent 72%),var(--theme-panel);overflow:hidden;margin-bottom:5px}
+.lab-theme-sample>img{width:100px;height:100px;object-fit:contain;filter:drop-shadow(0 4px 8px #0006)}
+.lab-theme-notice{font-size:12px;line-height:1.8;color:var(--theme-muted);margin:18px 0 0}
+@media(max-width:760px){
+ .lab-sidebar nav .lab-theme-open{min-height:44px;font-size:12px;padding:8px}
+ .lab-theme-open>span{font-size:18px}
+ dialog#lab-theme-dialog{padding:20px}
+ #lab-theme-dialog fieldset{gap:10px}
+ .lab-theme-card{padding:11px}
+ .lab-theme-card small{font-size:10px}
+}
+
+
+html.lab-dark[data-site-theme] body :is(input[type=checkbox],input[type=radio],input[type=range]){accent-color:var(--theme-accent)}
+html.lab-dark[data-site-theme] body .visitor-line{stroke:var(--theme-accent)}
+html.lab-dark[data-site-theme] body :is(.visitor-dot,.visitor-value){fill:var(--theme-accent)}
+html.lab-dark[data-site-theme] body .visitor-axis{fill:var(--theme-muted)}
+html.lab-dark[data-site-theme] body :is(.metrics strong,.combo-dps,.banner-copy h2){color:var(--theme-text)}
+
+@media(min-width:761px){.lab-sidebar{overflow-y:auto;scrollbar-width:thin}}
+
+html.lab-dark[data-site-theme] body .home-journey-grid a{background:var(--theme-panel);border-color:var(--theme-line)}
+html.lab-dark[data-site-theme] body .home-journey-grid b{color:var(--theme-accent)}
+html.lab-dark[data-site-theme] body :is(.home-journey-grid span,.banner-copy p,.empty-message,.empty-title){color:var(--theme-muted)}
+
+
+
+
+.lab-theme-toolbar{position:sticky;top:0;z-index:2;padding-bottom:14px;background:var(--theme-panel)}
+.lab-theme-search{display:block}
+#lab-theme-dialog .lab-theme-search input{box-sizing:border-box;width:100%;min-width:0;min-height:44px;padding:10px 13px;border:1px solid var(--theme-line);border-radius:10px;font:inherit}
+.lab-theme-card[hidden],.lab-theme-empty[hidden]{display:none}
+.lab-theme-empty{padding:24px 0;color:var(--theme-muted);text-align:center}
+@media(max-width:800px){#lab-theme-dialog fieldset{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:560px){
+ #lab-theme-dialog fieldset{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .lab-theme-card{padding:10px}
+ .lab-theme-card strong{font-size:13px}
+ .lab-theme-card small{display:none}
+ .lab-theme-sample{height:94px}
+ .lab-theme-sample>img{width:90px;height:90px}
+}
+
+/* Shared game-tool surfaces use the same palette as the surrounding shell. */
+html.lab-dark[data-site-theme] body :is(
+ .metrics>div,.deck-dps-range,.damage-results,.damage-grid>div,.unit-stat-grid>div,
+ .target-picker,.traits-panel,.partner-panel,.settings-launcher,.settings-launcher>button,.settings-summary,
+ .field-controls,.toolbar,.board-caption,.board-foot,.selected-unit,.advanced-unit,.score-guide,
+ .contribution,.trait-row,.trait-chip,.owned-gem-row,.gem-proposal-row,.compose-stack-comparison,
+ .giant-phases>div,.unit-top-row,.unit-position-box,.unit-formula,.formula-section,.unit-top-panel,
+ .gem-lab,.gem-recommend-actions,.stage-summary-grid>div,.stage-pressure-results,.stage-altar-side,
+ .wall-pool label,.wall-tile,.rank-panel,.ranking-panel,.ranking-row,.sync-summary>div,
+ .journey-metrics>div,.journey-note,.growth-budget-planner,.growth-budget-summary,
+ .settings-dialog,.setting-row,.clara-content details,.pressure-content details,.comparison-card,.experience-panel,.experience-goal:not(:empty)
+){background:var(--theme-panel);border-color:var(--theme-line);color:var(--theme-text)}
+html.lab-dark[data-site-theme] body .metrics .power-metric{
+ background:linear-gradient(120deg,color-mix(in srgb,var(--theme-accent) 10%,var(--theme-panel)),var(--theme-panel));
+ border-color:var(--theme-line);
+}
+html.lab-dark[data-site-theme] body #actual-dps{background:transparent;color:var(--theme-accent)}
+html.lab-dark[data-site-theme] body :is(.hero h1>span,.hero-badge strong,.journey .gain,.journey-metrics strong,.combo-dps,.deck-dps-range .metric-detail-body>strong,.contribution .contribution-share){
+ color:var(--theme-accent);-webkit-text-fill-color:var(--theme-accent);
+}
+html.lab-dark[data-site-theme] body .hero h1>span{background:none}
+html.lab-dark[data-site-theme] body :is(
+ .hero p,.hero-badge small,.hero-badge span,.metrics>div>span,.metrics>div>small,.contribution small,
+ .board-caption,.board-foot,.settings-summary,.journey small,.unit-skill small,.setting-row,
+ .panel-heading,.source-links,.roster-name,.journey label,.unit-controls label,.stage-table th,
+ .deck-dps-range>summary small,.damage-results>summary small
+){color:var(--theme-muted)}
+html.lab-dark[data-site-theme] body :is(.metrics strong,.metrics>div strong,.damage-grid strong,.unit-stat-grid strong,.contribution strong,.deck-dps-range>summary,.damage-results>summary){
+ color:var(--theme-text);
+}
+html.lab-dark[data-site-theme] body :is(input,select,textarea):disabled{
+ background:var(--theme-panel)!important;color:var(--theme-muted)!important;-webkit-text-fill-color:var(--theme-muted)!important;
+}
+html.lab-dark[data-site-theme] body .field-controls>label{color:var(--theme-muted)}
+html.lab-dark[data-site-theme] body :is(.fortune-jewel,.fortune-result-jewel,.fortune-lucky-gem){
+ background:transparent!important;
+}
+
+html.lab-dark[data-site-theme] body :is(.roster-unit.selected,.unit-roster button[aria-pressed=true],.journey-nav a[aria-current=page],.growth-kind-tabs button[aria-selected=true],.tabs button.on){
+ background:color-mix(in srgb,var(--theme-accent) 14%,var(--theme-panel));border-color:var(--theme-accent);color:var(--theme-accent);
+}
+html.lab-dark[data-site-theme] body :is(.roster-name,.setting-row small,.board-caption small){color:var(--theme-muted)}
+html.lab-dark[data-site-theme] body details:is(.deck-dps-range,.damage-results)[open]>summary{border-color:var(--theme-line)}
+html.lab-dark[data-site-theme] body .experience-validity:not([data-stale=true]){background:color-mix(in srgb,var(--theme-accent) 10%,var(--theme-panel));border-color:var(--theme-line);color:var(--theme-accent)}
+html.lab-dark[data-site-theme] body :is(.experience-panel p,.experience-panel small,.experience-help){color:var(--theme-muted)}
+
+html.lab-dark[data-site-theme] body :is(.board-edit-row,.shortcut-controls,.journey .journey-link,.audit,.audit-status,.research-map-empty){background:var(--theme-panel);color:var(--theme-text);border-color:var(--theme-line)}
+html.lab-dark[data-site-theme] body :is(#board-message,#unit-gem-comparison,#gem-preview,#pressure-current,#compose-locks label,.unit-freeze-settings,.unit-top-row:first-child,.unit-top-gem,.gem-description p,.unit-combo .combo-stat,.unit-combo .combo-delta,.unit-comparison-nav>.combo-nav-item){
+ background:var(--theme-panel);color:var(--theme-text);border-color:var(--theme-line);
+}
+html.lab-dark[data-site-theme] body .research-map{background-color:var(--theme-panel);border-color:var(--theme-line)}
+html.lab-dark[data-site-theme] body :is(.lab-topbar,.tool-actions-bar) .account-chip{background:var(--theme-raised)!important;color:var(--theme-accent)!important;border-color:var(--theme-line)!important}
+html.lab-dark[data-site-theme] body :is(.lab-topbar .top-actions,.tool-actions-bar) button{background:var(--theme-raised);color:var(--theme-text);border-color:var(--theme-line)}
+html.lab-dark[data-site-theme] body .tool-actions-bar{background:var(--theme-nav);border-color:var(--theme-line)}
+html.lab-dark[data-site-theme] body details:is(.deck-dps-range,.damage-results)>summary{color:var(--theme-text)}
+html.lab-dark[data-site-theme] body :is(.hero .eyebrow,.partner-panel p,.partner-panel summary){color:var(--theme-muted)}
+html.lab-dark[data-site-theme] body [data-icon]::before{color:var(--theme-muted)}
+html.lab-dark[data-site-theme] body :is(.freeze-condition-note,.unit-position-box,details.gem-description){background:var(--theme-panel);color:var(--theme-text);border-color:var(--theme-line)}
+html.lab-dark[data-site-theme] body :is(#defence-note,.giant-pressure-summary,.traits-overview,.gem-recommend-actions,.compose-selected,.compose-chosen,.composition-dialog .composition-actions,.mobile-board #composition-dialog .composition-actions,.giant-party-options button,.setting-preview-table,.freeze-condition-note,.combo-change-summary,.unit-formula,.formula-section,.unit-position-box,.gem-description,.pressure-content details){background:var(--theme-panel);color:var(--theme-text);border-color:var(--theme-line)}
